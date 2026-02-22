@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { STUDENTS } from "../Constant";
-import { color } from "framer-motion";
 
 const Hero: React.FC = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -12,14 +11,6 @@ const Hero: React.FC = () => {
         }, 4000);
         return () => clearInterval(interval);
     }, []);
-
-    const goToPrevious = () => {
-        setCurrentIndex((prev) => (prev - 1 + STUDENTS.length) % STUDENTS.length);
-    };
-
-    const goToNext = () => {
-        setCurrentIndex((prev) => (prev + 1) % STUDENTS.length);
-    };
 
     return (
         <section className="relative min-h-[85vh] overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white">

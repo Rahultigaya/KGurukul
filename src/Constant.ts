@@ -25,19 +25,19 @@ export interface Student {
 export const STUDENTS: Student[] = [
     {
         image: "/first.jpg",
-        rank: "1st Rank",
+        rank: "1st",
         name: "🏆 Saumya Bhide",
         badge: "gold"
     },
     {
         image: "/java.jpg",
-        rank: "2nd Rank",
+        rank: "2nd",
         name: "🥈 Ananya Patel",
         badge: "silver",
     },
     {
         image: "/java_prog.jpg",
-        rank: "3rd Rank",
+        rank: "3rd",
         name: "🥉 Aman Verma",
         badge: "bronze",
     },

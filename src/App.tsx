@@ -4,7 +4,6 @@ import Hero from "./components/Hero";
 import FloatingActions from "./components/FloatingActions";
 import Contact from "./components/Contact";
 import Services from "./components/Cources";
-import WhatsAppReviews from "./components/Reviews";
 import About from "./components/AboutUs";
 
 function App() {
@@ -23,7 +22,6 @@ function App() {
       <section id="Courses">
         <Services />
       </section>
-      {/* <WhatsAppReviews /> */}
       <section id="Contact">
         <Contact />
       </section>

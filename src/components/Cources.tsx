@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import  {useEffect, useRef } from "react";
 import Product from "../Cources";
 import reviews from "../review";
 
@@ -220,8 +220,7 @@ const Services = () => {
                             className="flex gap-4 overflow-x-auto overflow-y-hidden scroll-smooth px-2"
                             style={{
                                 scrollbarWidth: 'none',
-                                msOverflowStyle: 'none',
-                                WebkitScrollbar: 'none'
+                                msOverflowStyle: 'none'
                             }}
                         >
                             {reviews.map((review, i) => (

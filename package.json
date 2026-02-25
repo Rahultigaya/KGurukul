@@ -11,12 +11,23 @@
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@mantine/core": "^8.3.14",
+    "@mantine/dates": "^8.3.14",
+    "@mantine/hooks": "^8.3.14",
+    "@tabler/icons-react": "^3.36.1",
     "@tanstack/react-query": "^5.90.20",
+    "@tanstack/react-table": "^8.21.3",
+    "ag-grid-community": "^35.1.0",
+    "ag-grid-react": "^35.1.0",
     "axios": "^1.13.5",
+    "dayjs": "^1.11.19",
     "framer-motion": "^12.34.0",
+    "mantine-datatable": "^8.3.13",
     "react": "^19.2.0",
+    "react-data-table-component": "^7.7.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.13.0"
+    "react-router-dom": "^7.13.0",
+    "sweetalert2": "^11.26.19"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

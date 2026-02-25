@@ -1,0 +1,92 @@
+.mantine-TextInput-input:focus,
+.mantine-Textarea-input:focus,
+.mantine-Select-input:focus,
+.mantine-NumberInput-input:focus,
+.mantine-FileInput-input:focus,
+.mantine-Radio-radio:focus,
+.mantine-DateInput-input:focus {
+  border-color: rgb(139 92 246) !important;
+  box-shadow: 0 0 0 1px rgb(139 92 246) !important;
+}
+
+.mantine-TextInput-input,
+.mantine-Textarea-input,
+.mantine-Select-input,
+.mantine-NumberInput-input,
+.mantine-FileInput-input,
+.mantine-Radio-radio,
+.mantine-DateInput-input {
+  background-color: #1c2739 !important;
+}
+
+/* Purple selected date */
+.mantine-DateInput-day[data-selected],
+.mantine-DateInput-monthsListControl[data-selected],
+.mantine-DateInput-yearsListControl[data-selected] {
+  background-color: #9333ea !important;
+  color: white !important;
+}
+
+/* Purple hover */
+.mantine-DateInput-day:hover,
+.mantine-DateInput-calendarHeaderLevel:hover,
+.mantine-DateInput-monthsListControl:hover,
+.mantine-DateInput-yearsListControl:hover,
+.mantine-DateInput-calendarHeaderControl:hover {
+  background-color: #7c3aed !important;
+  color: white !important;
+}
+
+/* [class*="rdt_Table"] svg,
+[id*="column"] svg,
+.sc-dmqHEX svg,
+.sc-hLBbgP svg {
+  fill: #e2e8f0 !important;
+  color: #e2e8f0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+[class*="rdt_TableCol"]:hover svg {
+  fill: #f97316 !important;
+  color: #f97316 !important;
+}
+
+[class*="rdt_TableHead"] button svg,
+[class*="rdt_TableHead"] span svg,
+[class*="rdt_TableHead"] div svg {
+  fill: #e2e8f0 !important;
+  color: #e2e8f0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+[class*="rdt_Pagination"] select {
+  color: #e2e8f0 !important;
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(100, 116, 139, 0.4) !important;
+  border-radius: 6px !important;
+  padding: 2px 8px !important;
+}
+[class*="rdt_Pagination"] select option {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+[class*="rdt_Pagination"] button svg {
+  fill: #e2e8f0 !important;
+  color: #e2e8f0 !important;
+  opacity: 1 !important;
+}
+[class*="rdt_Pagination"] button:hover:not(:disabled) svg {
+  fill: #f97316 !important;
+  color: #f97316 !important;
+}
+[class*="rdt_Pagination"] button:disabled svg {
+  fill: rgba(148, 163, 184, 0.25) !important;
+  opacity: 0.3 !important;
+}
+
+[class*="rdt_Pagination"] span {
+  color: #94a3b8 !important;
+} */

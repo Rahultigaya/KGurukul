@@ -90,3 +90,8 @@
 [class*="rdt_Pagination"] span {
   color: #94a3b8 !important;
 } */
+
+.rdt_Pagination select option {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}

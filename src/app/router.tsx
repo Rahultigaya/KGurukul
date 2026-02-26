@@ -9,6 +9,8 @@ import AppLayout from "../pages/components/layout/AppLayout"; // Your layout wit
 import UsersList from "../pages/admin/Users/UserList";
 import StudentRegistration from "../pages/admin/Users/Student/StudentRegistration";
 import StudentRegistration1 from "../pages/admin/Users/StudentRegistration1";
+import UserProfile from "../pages/admin/Users/AdminProfile";
+import ProfilePage from "../pages/profile/ProfilePage";
 
 export const router = createBrowserRouter([
   {
@@ -33,8 +35,14 @@ export const router = createBrowserRouter([
         path: "Users",
         element: <UsersList />,
       },
-
+      { path: "profile", element: <ProfilePage /> }, // admin
+      { path: "profile/student/:id", element: <ProfilePage /> }, // student
+      { path: "profile/teacher/:id", element: <ProfilePage /> }, // teacher
       // Routes added:
+      {
+        path: "Users/profile",
+        element: <UserProfile />,
+      },
       {
         path: "Users/add",
         element: <StudentRegistration1 />,

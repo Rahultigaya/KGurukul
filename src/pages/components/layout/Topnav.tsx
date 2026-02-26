@@ -190,7 +190,7 @@ const TopNav: React.FC<TopNavProps> = ({
 
                   <div className="py-2">
                     <button
-                      onClick={() => navigate("/profile")}
+                      onClick={() => navigate("/Users/profile")}
                       className="w-full px-4 py-2 text-left text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors flex items-center gap-3"
                     >
                       <IconBell size={18} />

@@ -115,7 +115,7 @@ const LoginForm: React.FC = () => {
 
       // Redirect to admin dashboard
       setTimeout(() => {
-        navigate("/admin/dashboard"); // ✅ Updated to new route structure
+        navigate("/adminDashboard"); // ✅ Updated to new route structure
       }, 1500);
     }, 1500);
   };

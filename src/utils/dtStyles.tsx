@@ -67,3 +67,18 @@ export const dtStyles = {
 export const sortIcon = (
   <span style={{ color: "#e2e8f0", fontSize: 12, marginLeft: 4 }}>↕</span>
 );
+
+
+
+export const selectDropdownStyles = {
+  comboboxProps: {
+    styles: {
+      dropdown: {
+        background: "#1c2739",
+        border: "1px solid rgba(139,92,246,0.3)",
+        color: "white",
+      },
+    },
+  },
+  styles: { option: { color: "white", backgroundColor: "#1c2739" } },
+};

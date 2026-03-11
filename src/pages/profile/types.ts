@@ -1,8 +1,6 @@
 // src/pages/profile/types.ts
-//
-// Shared types used across all profile pages.
 
-export type UserRole = "admin" | "student" | "teacher";
+export type UserRole = "admin" | "student" | "teacher" | "parent";
 
 export interface BaseProfile {
   id: string;
@@ -66,4 +64,29 @@ export interface TeacherProfileData extends BaseProfile {
   status: string;
   joined: string;
   totalStudents: number;
+}
+
+// ─── Parent ───────────────────────────────────────────────────────────────────
+// A parent is linked to one or more students via guardian records in the store.
+
+export interface LinkedStudent {
+  id: string; // studentStore key
+  name: string;
+  standard: string;
+  subject: string;
+  branch: string;
+  courseType: string;
+  paymentStatus: "Paid" | "Partial" | "Unpaid" | "Pending";
+  totalFees: string;
+  discountAmount: string;
+  paidAmount: string;
+  dueAmount: string;
+  paymentType: "full" | "installment" | "later";
+}
+
+export interface ParentProfileData extends BaseProfile {
+  role: "parent";
+  relation: string; // e.g. "Father", "Mother", "Guardian"
+  occupation: string;
+  linkedStudents: LinkedStudent[];
 }

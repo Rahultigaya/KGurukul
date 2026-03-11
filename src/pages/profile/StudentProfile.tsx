@@ -125,6 +125,7 @@ const StudentProfile: React.FC = () => {
         subtitle={`${student.courseType} · ${student.subject} · Std ${student.standard} · ${student.branch}`}
         photo={student.photo}
         onPhotoSave={handlePhotoSave}
+        showPhotoPrompt={!student.photo} // ← ADD THIS
       >
         {/* Fee summary strip */}
         <div className="space-y-3">

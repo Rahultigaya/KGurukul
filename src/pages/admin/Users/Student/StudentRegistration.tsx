@@ -21,6 +21,10 @@ import {
   IconUsers,
   IconCurrencyRupee,
   IconAlertCircle,
+  IconDeviceFloppy,
+  IconArrowRight,
+  IconCreditCard,
+  IconX,
 } from "@tabler/icons-react";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
@@ -624,6 +628,7 @@ const StudentRegistration: React.FC = () => {
             size="md"
             fullWidth
             className="sm:w-auto order-2 sm:order-1 !bg-slate-600 hover:!bg-slate-500 !text-white !border-slate-500 disabled:!bg-slate-700 disabled:!text-slate-500 disabled:!opacity-60"
+            leftSection={<IconArrowLeft size={16} />}
           >
             Previous
           </Button>
@@ -635,6 +640,7 @@ const StudentRegistration: React.FC = () => {
               size="md"
               fullWidth
               className="sm:w-auto !text-white hover:!bg-slate-600/50 !border !border-slate-500"
+              leftSection={<IconX size={16} />}
             >
               Cancel
             </Button>
@@ -647,6 +653,7 @@ const StudentRegistration: React.FC = () => {
                 size="md"
                 fullWidth
                 className="sm:w-auto"
+                leftSection={<IconCreditCard size={16} />}
               >
                 Save Payment
               </Button>
@@ -654,10 +661,11 @@ const StudentRegistration: React.FC = () => {
               // Normal mode, steps 0–2: show "Next Step"
               <Button
                 onClick={nextStep}
-                color="violet"
+                color="orange"
                 size="md"
                 fullWidth
                 className="sm:w-auto"
+                leftSection={<IconArrowRight size={16} />}
               >
                 Next Step
               </Button>
@@ -669,6 +677,7 @@ const StudentRegistration: React.FC = () => {
                 size="md"
                 fullWidth
                 className="sm:w-auto"
+                leftSection={<IconDeviceFloppy size={16} />}
               >
                 {isEditMode ? "Save Changes" : "Complete Registration"}
               </Button>

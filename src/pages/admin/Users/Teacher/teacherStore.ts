@@ -1,7 +1,4 @@
 // src/pages/admin/Users/Teacher/teacherStore.ts
-//
-// Single source of truth for teacher data.
-// Replace getTeacherById / updateTeacher with real API calls when ready.
 
 export interface TeacherData {
   id: number;

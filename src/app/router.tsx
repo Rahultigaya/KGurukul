@@ -11,6 +11,9 @@ import StudentRegistration from "../pages/admin/Users/Student/StudentRegistratio
 import StudentRegistration1 from "../pages/admin/Users/StudentRegistration1";
 import UserProfile from "../pages/admin/Users/AdminProfile";
 import ProfilePage from "../pages/profile/ProfilePage";
+import BatchList from "../pages/batches/BatchList";
+import BatchForm from "../pages/batches/BatchForm";
+import BatchDetail from "../pages/batches/BatchDetail";
 
 export const router = createBrowserRouter([
   {
@@ -32,12 +35,21 @@ export const router = createBrowserRouter([
         element: <AdminDashboard />,
       },
       {
+        path: "Batches",
+        element: <BatchList />,
+      },
+      { path: "batches/create", element: <BatchForm mode="create" /> },
+      { path: "batches/:id", element: <BatchDetail /> },
+      { path: "batches/:id/edit", element: <BatchForm mode="edit" /> },
+      {
         path: "Users",
         element: <UsersList />,
       },
       { path: "profile", element: <ProfilePage /> }, // admin
       { path: "profile/student/:id", element: <ProfilePage /> }, // student
       { path: "profile/teacher/:id", element: <ProfilePage /> }, // teacher
+      { path: "profile/parent/:id", element: <ProfilePage /> },
+
       // Routes added:
       {
         path: "Users/profile",

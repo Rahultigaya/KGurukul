@@ -22,6 +22,7 @@ import type {
     StudentRegistrationData,
     ValidationErrors,
 } from "../types";
+import { selectDropdownStyles } from "../../../../../utils/dtStyles";
 
 interface FeesProps {
   formData: StudentRegistrationData;
@@ -46,18 +47,6 @@ const datePickerStyles = {
   day: { color: "white" },
 };
 
-const selectDropdownStyles = {
-  comboboxProps: {
-    styles: {
-      dropdown: {
-        background: "#1c2739",
-        border: "1px solid rgba(139,92,246,0.3)",
-        color: "white",
-      },
-    },
-  },
-  styles: { option: { color: "white", backgroundColor: "#1c2739" } },
-};
 
 const FeesContent = React.memo<FeesProps>(
   ({

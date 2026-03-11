@@ -9,6 +9,8 @@ import {
   IconUser,
   IconX,
   IconMenu2,
+  IconUsersGroup,
+  IconCalendarCheck,
 } from "@tabler/icons-react";
 
 interface SidebarProps {
@@ -26,6 +28,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { path: "/adminDashboard", icon: IconLayoutDashboard, label: "Dashboard" },
     { path: "/Users", icon: IconUser, label: "Users" },
+    { path: "/Batches", icon: IconUsersGroup, label: "Batches" },
+    { path: "/attendance", icon: IconCalendarCheck, label: "Attendance" },
     { path: "/grades", icon: IconTrophy, label: "My Grades" },
     { path: "/tasks", icon: IconChecklist, label: "Tasks" },
     { path: "/analytics", icon: IconChartBar, label: "Analytics" },

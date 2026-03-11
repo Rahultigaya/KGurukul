@@ -1,13 +1,4 @@
 // src/pages/admin/Users/Student/studentStore.ts
-//
-// Single source of truth for student data.
-// Both UserList.tsx and StudentRegistration.tsx import from here.
-// When you connect a real API, replace getStudentById / updateStudent
-// with your fetch/axios/react-query calls — everything else stays the same.
-//
-// ✅ Valid values for mode   → "Cash" | "Cheque" | "Online"
-// ✅ Valid values for paidTo → "Sir Account" | "Ma'am Account"
-// (These must exactly match the Select option values in FeesContent.tsx)
 
 import type { StudentRegistrationData } from "./types";
 

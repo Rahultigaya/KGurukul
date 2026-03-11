@@ -10,6 +10,7 @@ import { teacherStore } from "./Teacher/teacherStore";
 import { useStudentColumns } from "./Student/StudentColumns";
 import { useTeacherColumns } from "./Teacher/TeacherColumns";
 import { dtStyles, sortIcon } from "../../../utils/dtStyles";
+import { Button } from "@mantine/core";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -47,13 +48,14 @@ const UsersList: React.FC = () => {
         </div>
 
         {activeTab === "students" && (
-          <button
+          <Button
             onClick={() => navigate("/Users/add-student")}
-            className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg transition-all hover:scale-105"
+            color="orange"
+            size="md"
+            leftSection={<IconPlus size={16} />}
           >
-            <IconPlus size={16} />
             Add Student
-          </button>
+          </Button>
         )}
         {activeTab === "teachers" && (
           <button

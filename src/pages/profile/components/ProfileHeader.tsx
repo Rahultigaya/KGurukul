@@ -24,6 +24,10 @@ const roleBadge: Record<UserRole, { label: string; classes: string }> = {
     label: "Teacher",
     classes: "bg-blue-500/15   text-blue-400   border-blue-500/25",
   },
+  parent: {
+    label: "Parent",
+    classes: "bg-green-500/15  text-green-400  border-green-500/25",
+  },
 };
 
 const avatarGradients = [
@@ -42,10 +46,11 @@ interface ProfileHeaderProps {
   id: string;
   name: string;
   role: UserRole;
-  subtitle: string; // e.g. "Mathematics · Std 12 · Pune Main"
+  subtitle: string;
   photo: string | null;
   onPhotoSave: (dataUrl: string) => void;
-  children?: React.ReactNode; // optional stats strip below avatar row
+  children?: React.ReactNode;
+  showPhotoPrompt?: boolean; // shows persistent "Add Photo" nudge (for students)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +65,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   photo,
   onPhotoSave,
   children,
+  showPhotoPrompt = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -77,6 +83,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const gradient = avatarGradients[Number(id) % avatarGradients.length];
   const badge = roleBadge[role];
   const active = preview ?? photo;
+
+  // whether to show the persistent "Add Photo" nudge state
+  const showNudge = showPhotoPrompt && !active && !preview;
 
   // ── Handlers ────────────────────────────────────────────────────────────
   const handleFile = (file: File | null) => {
@@ -113,7 +122,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <div
               className={`w-24 h-24 rounded-2xl border-4 border-slate-800 overflow-hidden cursor-pointer group ${
                 isDragging ? "ring-2 ring-orange-400" : ""
-              }`}
+              } ${showNudge ? "ring-2 ring-red-500 ring-offset-2 ring-offset-slate-800" : ""}`}
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -141,11 +150,19 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                   </span>
                 </div>
               )}
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+
+              {/* Overlay — always visible when nudging, hover-only otherwise */}
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-center gap-1 transition-opacity
+                  ${
+                    showNudge
+                      ? "opacity-100 bg-red-950/70"
+                      : "opacity-0 group-hover:opacity-100 bg-black/55"
+                  }`}
+              >
                 <IconCamera size={18} className="text-white" />
                 <span className="text-white text-[10px] font-medium">
-                  Change
+                  {showNudge ? "Add Photo" : "Change"}
                 </span>
               </div>
             </div>
@@ -155,6 +172,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-slate-800">
                 <IconCheck size={12} className="text-white" />
               </div>
+            )}
+
+            {/* Pulsing dot indicator when nudging */}
+            {showNudge && (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+              </span>
             )}
           </div>
 
@@ -177,6 +202,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               </span>
             </div>
             <p className="text-slate-400 text-sm mt-1 truncate">{subtitle}</p>
+
+            {/* Inline nudge text under subtitle — only when no photo */}
+            {showNudge && (
+              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
+                <IconCamera size={11} />
+                Click the avatar to add your profile photo
+              </p>
+            )}
           </div>
 
           {/* ── Save / Cancel buttons (only when preview is pending) ── */}
@@ -197,6 +230,20 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </div>
           )}
         </div>
+
+        {/* Photo prompt banner — shown above children when student has no photo */}
+        {showNudge && (
+          <div className="flex items-start gap-2.5 mb-4 px-3.5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30">
+            <IconCamera size={14} className="text-red-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-red-300 leading-relaxed">
+              <span className="font-semibold text-red-200">
+                Profile photo missing.
+              </span>{" "}
+              Adding a photo helps staff and teachers identify you quickly.
+              Click the avatar above to upload one.
+            </p>
+          </div>
+        )}
 
         {/* Optional stats strip or any extra content passed as children */}
         {children}

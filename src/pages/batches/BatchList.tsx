@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Select } from "@mantine/core";
+import { Select, Badge } from "@mantine/core";
 import {
   IconPlus,
   IconSearch,
@@ -15,6 +15,7 @@ import {
   IconEdit,
   IconTrash,
   IconEye,
+  IconUserPlus,
   IconX,
   IconSchool,
   IconAlertTriangle,
@@ -27,15 +28,17 @@ import {
   AREAS,
   BRANCHES,
   DAYS,
+  BATCH_TYPES,
   type Batch,
   type Area,
+  type BatchType,
 } from "./batchStore";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mantine Select styles — matches your existing selectDropdownStyles
+// Styles
 // ─────────────────────────────────────────────────────────────────────────────
 
-const selectDropdownStyles = {
+const selectStyles = {
   comboboxProps: {
     styles: {
       dropdown: {
@@ -52,8 +55,7 @@ const selectDropdownStyles = {
       color: "white",
       borderRadius: "10px",
       fontSize: "13px",
-      height: "38px",
-      "&:focus": { borderColor: "rgba(249,115,22,0.5)" },
+      height: "36px",
     },
     section: { color: "#94a3b8" },
     option: { color: "white", backgroundColor: "#1c2739" },
@@ -74,18 +76,19 @@ const TODAY_DAY = [
   "Saturday",
 ][new Date().getDay()];
 
-const areaColor: Record<Area, { badge: string; dot: string; row: string }> = {
-  Thane: {
-    badge: "bg-orange-500/15 text-orange-400 border-orange-500/25",
-    dot: "bg-orange-400",
-    row: "hover:bg-orange-500/5",
-  },
-  Mulund: {
-    badge: "bg-violet-500/15 text-violet-400 border-violet-500/25",
-    dot: "bg-violet-400",
-    row: "hover:bg-violet-500/5",
-  },
-};
+const areaColor: Record<Area, { badge: string; dot: string; border: string }> =
+  {
+    Thane: {
+      badge: "bg-orange-500/15 text-orange-400 border-orange-500/25",
+      dot: "bg-orange-400",
+      border: "border-orange-500/20",
+    },
+    Mulund: {
+      badge: "bg-violet-500/15 text-violet-400 border-violet-500/25",
+      dot: "bg-violet-400",
+      border: "border-violet-500/20",
+    },
+  };
 
 const dayColor: Record<string, string> = {
   Monday: "text-blue-400",
@@ -95,6 +98,12 @@ const dayColor: Record<string, string> = {
   Friday: "text-violet-400",
   Saturday: "text-pink-400",
   Sunday: "text-red-400",
+};
+
+const typeColor: Record<BatchType, string> = {
+  Regular: "bg-blue-500/15 text-blue-400",
+  Backlog: "bg-orange-500/15 text-orange-400",
+  Recovery: "bg-violet-500/15 text-violet-400",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -163,94 +172,135 @@ const DeleteModal: React.FC<{
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BatchTableRow
+// BatchCard — replaces table row
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BatchTableRow: React.FC<{
+const BatchCard: React.FC<{
   batch: Batch;
   onView: () => void;
+  onAssign: () => void;
   onEdit: () => void;
   onDelete: () => void;
-}> = ({ batch, onView, onEdit, onDelete }) => {
+}> = ({ batch, onView, onAssign, onEdit, onDelete }) => {
   const area = areaColor[batch.area];
-  const isToday = batch.day === TODAY_DAY && batch.isActive;
+  const isToday = batch.day === TODAY_DAY && batch.status === "Active";
+  const fillPct = Math.min(
+    (batch.studentIds.length / batch.capacity) * 100,
+    100,
+  );
+  const fillColor =
+    batch.studentIds.length >= batch.capacity
+      ? "bg-red-500"
+      : fillPct >= 80
+        ? "bg-yellow-500"
+        : "bg-green-500";
 
   return (
-    <tr
-      className={`border-b border-slate-700/30 last:border-0 transition-colors ${area.row} ${!batch.isActive ? "opacity-50" : ""}`}
+    <div
+      className={`rounded-xl border bg-slate-800/40 p-4 transition-colors hover:bg-slate-800/60 ${
+        batch.status !== "Active" ? "opacity-60" : ""
+      } ${isToday ? "border-orange-500/30" : "border-slate-700/50"}`}
     >
-      <td className="py-3 pl-4 pr-3">
-        <div className="flex items-center gap-2">
-          <span className="text-slate-300 text-sm">{batch.name}</span>
-          {isToday && (
-            <span className="px-1.5 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[9px] font-bold uppercase tracking-wider">
-              Today
+      {/* Top row — name + badges + actions */}
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+            {/* Type badge */}
+            <span
+              className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${typeColor[batch.type]}`}
+            >
+              {batch.type}
             </span>
-          )}
-          {!batch.isActive && (
-            <span className="px-1.5 py-0.5 rounded bg-slate-700/50 text-slate-500 text-[9px]">
-              Inactive
-            </span>
-          )}
+            {/* Status badge (only if not Active) */}
+            {batch.status !== "Active" && (
+              <span className="px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-400 text-[9px] font-semibold uppercase">
+                {batch.status}
+              </span>
+            )}
+            {isToday && (
+              <span className="px-1.5 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[9px] font-bold uppercase animate-pulse">
+                Today
+              </span>
+            )}
+          </div>
+          <p className="text-white text-sm font-semibold leading-snug">
+            {batch.name}
+          </p>
         </div>
-      </td>
-      <td className="py-3 px-3 whitespace-nowrap">
-        <span
-          className={`text-sm font-semibold ${dayColor[batch.day] ?? "text-slate-400"}`}
-        >
-          {batch.day}
-        </span>
-      </td>
-      <td className="py-3 px-3 whitespace-nowrap">
-        <span className="flex items-center gap-1 text-slate-400 text-sm">
-          <IconClock size={12} className="text-slate-500 shrink-0" />
-          {batch.timeSlot}
-        </span>
-      </td>
-      <td className="py-3 px-3 whitespace-nowrap">
-        <div className="text-slate-300 text-sm">{batch.subject}</div>
-        <div className="text-slate-500 text-xs">{batch.standard}</div>
-      </td>
-      <td className="py-3 px-3 whitespace-nowrap">
-        <span className="flex items-center gap-1 text-slate-400 text-sm">
-          <IconUser size={12} className="text-slate-500 shrink-0" />
-          {batch.teacherName}
-        </span>
-      </td>
-      <td className="py-3 px-3 text-center whitespace-nowrap">
-        <span className="flex items-center justify-center gap-1 text-slate-300 text-sm font-semibold">
-          <IconUsers size={13} className="text-slate-500" />
-          {batch.studentIds.length}
-        </span>
-      </td>
-      <td className="py-3 pl-3 pr-4">
-        <div className="flex items-center gap-0.5 justify-end">
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={onView}
-            className="p-1.5 rounded-lg hover:bg-slate-700/60 text-slate-400 hover:text-white     transition-colors"
             title="View"
+            className="p-1.5 rounded-lg hover:bg-slate-700/60 text-slate-400 hover:text-white      transition-colors"
           >
-            {" "}
             <IconEye size={14} />
           </button>
           <button
-            onClick={onEdit}
-            className="p-1.5 rounded-lg hover:bg-slate-700/60 text-slate-400 hover:text-orange-400 transition-colors"
-            title="Edit"
+            onClick={onAssign}
+            title="Assign"
+            className="p-1.5 rounded-lg hover:bg-slate-700/60 text-slate-400 hover:text-green-400  transition-colors"
           >
-            {" "}
+            <IconUserPlus size={14} />
+          </button>
+          <button
+            onClick={onEdit}
+            title="Edit"
+            className="p-1.5 rounded-lg hover:bg-slate-700/60 text-slate-400 hover:text-orange-400 transition-colors"
+          >
             <IconEdit size={14} />
           </button>
           <button
             onClick={onDelete}
-            className="p-1.5 rounded-lg hover:bg-red-500/15   text-slate-400 hover:text-red-400   transition-colors"
             title="Delete"
+            className="p-1.5 rounded-lg hover:bg-red-500/15   text-slate-400 hover:text-red-400    transition-colors"
           >
             <IconTrash size={14} />
           </button>
         </div>
-      </td>
-    </tr>
+      </div>
+
+      {/* Info grid — 2 col */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3">
+        <div className="flex items-center gap-1.5">
+          <IconCalendar size={12} className="text-slate-500 shrink-0" />
+          <span
+            className={`text-xs font-semibold ${dayColor[batch.day] ?? "text-slate-400"}`}
+          >
+            {batch.day}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <IconClock size={12} className="text-slate-500 shrink-0" />
+          <span className="text-slate-400 text-xs ">{batch.timeSlot}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <IconBook size={12} className="text-slate-500 shrink-0" />
+          <span className="text-slate-300 text-xs ">{batch.subject}</span>
+          <span className="text-slate-500 text-xs">·</span>
+          <span className="text-slate-500 text-xs">{batch.standard}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <IconUser size={12} className="text-slate-500 shrink-0" />
+          <span className="text-slate-400 text-xs ">{batch.teacherName}</span>
+        </div>
+      </div>
+
+      {/* Capacity bar */}
+      <div className="flex items-center gap-2">
+        <IconUsers size={12} className="text-slate-500 shrink-0" />
+        <div className="flex-1 h-1.5 bg-slate-700/80 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${fillColor}`}
+            style={{ width: `${fillPct}%` }}
+          />
+        </div>
+        <span className="text-slate-500 text-[11px] font-medium shrink-0">
+          {batch.studentIds.length}/{batch.capacity}
+        </span>
+      </div>
+    </div>
   );
 };
 
@@ -267,15 +317,17 @@ const BatchList: React.FC = () => {
   const [filterBranch, setFilterBranch] = useState<string | null>(null);
   const [filterDay, setFilterDay] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Batch | null>(null);
 
   const stats = useMemo(
     () => ({
       total: batches.length,
-      active: batches.filter((b) => b.isActive).length,
-      todayBatches: batches.filter((b) => b.day === TODAY_DAY && b.isActive)
-        .length,
+      active: batches.filter((b) => b.status === "Active").length,
+      todayBatches: batches.filter(
+        (b) => b.day === TODAY_DAY && b.status === "Active",
+      ).length,
       totalStudents: new Set(batches.flatMap((b) => b.studentIds)).size,
     }),
     [batches],
@@ -299,10 +351,11 @@ const BatchList: React.FC = () => {
             (!filterArea || b.area === filterArea) &&
             (!filterBranch || b.branch === filterBranch) &&
             (!filterDay || b.day === filterDay) &&
+            (!filterType || b.type === filterType) &&
             (!filterStatus ||
-              (filterStatus === "active" && b.isActive) ||
-              (filterStatus === "inactive" && !b.isActive) ||
-              (filterStatus === "today" && b.day === TODAY_DAY && b.isActive))
+              (filterStatus === "today"
+                ? b.day === TODAY_DAY && b.status === "Active"
+                : b.status === filterStatus))
           );
         })
         .sort((a, b) => {
@@ -310,7 +363,15 @@ const BatchList: React.FC = () => {
           if (a.branch !== b.branch) return a.branch.localeCompare(b.branch);
           return DAYS.indexOf(a.day) - DAYS.indexOf(b.day);
         }),
-    [batches, search, filterArea, filterBranch, filterDay, filterStatus],
+    [
+      batches,
+      search,
+      filterArea,
+      filterBranch,
+      filterDay,
+      filterStatus,
+      filterType,
+    ],
   );
 
   const grouped = useMemo(() => {
@@ -333,6 +394,7 @@ const BatchList: React.FC = () => {
     },
     filterBranch && { label: filterBranch, clear: () => setFilterBranch(null) },
     filterDay && { label: filterDay, clear: () => setFilterDay(null) },
+    filterType && { label: filterType, clear: () => setFilterType(null) },
     filterStatus && { label: filterStatus, clear: () => setFilterStatus(null) },
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
@@ -343,35 +405,26 @@ const BatchList: React.FC = () => {
     setDeleteTarget(null);
   };
 
-  const clearAllFilters = () => {
-    setFilterArea(null);
-    setFilterBranch(null);
-    setFilterDay(null);
-    setFilterStatus(null);
-  };
-
   return (
-    <div className="max-w-6xl mx-auto pb-10 space-y-5">
+    <div className="max-w-6xl mx-auto pb-10 space-y-5 px-2 sm:px-0">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-2xl font-bold text-white">Batches</h2>
           <p className="text-slate-400 text-sm mt-0.5">
             Manage all batches across areas and branches
           </p>
         </div>
-        <Button
+        <button
           onClick={() => navigate("/batches/create")}
-          color="orange"
-          size="md"
-          leftSection={<IconPlus size={16} />}
+          className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-orange-500/20"
         >
-          Create Batch
-        </Button>
+          <IconPlus size={16} /> Create Batch
+        </button>
       </div>
 
       {/* ── Stats ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatCard
           icon={<IconSchool size={18} className="text-orange-400" />}
           label="Total Batches"
@@ -395,20 +448,21 @@ const BatchList: React.FC = () => {
         />
       </div>
 
-      {/* ── Search + Filters ────────────────────────────────────────────── */}
+      {/* ── Search + Filter toggle ──────────────────────────────────────── */}
       <div className="space-y-3">
-        <div className="flex gap-3 flex-wrap">
-          {/* Search */}
-          <div className="flex-1 min-w-52 relative">
+        <div className="flex gap-2 flex-wrap">
+          <div className="flex-1 min-w-[180px] relative">
             <IconSearch
               size={14}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
             />
             <input
               type="text"
-              placeholder="Search batch, subject, teacher, branch..."
+              placeholder="Search batch, subject, teacher…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearch(e.target.value)
+              }
               className="w-full bg-slate-800/60 border border-slate-700/60 text-white text-sm rounded-xl pl-9 pr-4 py-2.5 placeholder-slate-500 outline-none focus:border-orange-500/50 transition-colors"
             />
             {search && (
@@ -420,8 +474,6 @@ const BatchList: React.FC = () => {
               </button>
             )}
           </div>
-
-          {/* Filter toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
@@ -439,9 +491,9 @@ const BatchList: React.FC = () => {
           </button>
         </div>
 
-        {/* Filter dropdowns — Mantine Select */}
+        {/* Filter dropdowns */}
         {showFilters && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-slate-700/50 bg-slate-800/30">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-4 rounded-xl border border-slate-700/50 bg-slate-800/30">
             <Select
               placeholder="All Areas"
               value={filterArea}
@@ -451,7 +503,7 @@ const BatchList: React.FC = () => {
               }}
               data={AREAS.map((a) => ({ value: a, label: a }))}
               clearable
-              {...selectDropdownStyles}
+              {...selectStyles}
             />
             <Select
               placeholder="All Branches"
@@ -459,7 +511,7 @@ const BatchList: React.FC = () => {
               onChange={setFilterBranch}
               data={availableBranches.map((b) => ({ value: b, label: b }))}
               clearable
-              {...selectDropdownStyles}
+              {...selectStyles}
             />
             <Select
               placeholder="All Days"
@@ -467,19 +519,28 @@ const BatchList: React.FC = () => {
               onChange={setFilterDay}
               data={DAYS.map((d) => ({ value: d, label: d }))}
               clearable
-              {...selectDropdownStyles}
+              {...selectStyles}
+            />
+            <Select
+              placeholder="All Types"
+              value={filterType}
+              onChange={setFilterType}
+              data={BATCH_TYPES.map((t) => ({ value: t, label: t }))}
+              clearable
+              {...selectStyles}
             />
             <Select
               placeholder="All Status"
               value={filterStatus}
               onChange={setFilterStatus}
               data={[
-                { value: "active", label: "Active" },
-                { value: "inactive", label: "Inactive" },
+                { value: "Active", label: "Active" },
+                { value: "Inactive", label: "Inactive" },
+                { value: "Completed", label: "Completed" },
                 { value: "today", label: "Today" },
               ]}
               clearable
-              {...selectDropdownStyles}
+              {...selectStyles}
             />
           </div>
         )}
@@ -500,7 +561,13 @@ const BatchList: React.FC = () => {
               </span>
             ))}
             <button
-              onClick={clearAllFilters}
+              onClick={() => {
+                setFilterArea(null);
+                setFilterBranch(null);
+                setFilterDay(null);
+                setFilterType(null);
+                setFilterStatus(null);
+              }}
               className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
             >
               Clear all
@@ -516,7 +583,7 @@ const BatchList: React.FC = () => {
           : `${filtered.length} of ${batches.length} batches`}
       </p>
 
-      {/* ── Table grouped by Area → Branch ─────────────────────────────── */}
+      {/* ── Cards grouped by Area → Branch ─────────────────────────────── */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-slate-800/60 border border-slate-700/50 flex items-center justify-center mb-4">
@@ -548,17 +615,14 @@ const BatchList: React.FC = () => {
                 <div className="flex-1 h-px bg-slate-700/40" />
               </div>
 
-              {/* Branch tables */}
-              <div className="space-y-3">
+              {/* Branches */}
+              <div className="space-y-4">
                 {Object.entries(branches).map(([branch, batchList]) => (
-                  <div
-                    key={branch}
-                    className="rounded-2xl border border-slate-700/60 bg-slate-800/30 overflow-hidden"
-                  >
+                  <div key={branch}>
                     {/* Branch sub-header */}
-                    <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700/50 bg-slate-800/50">
-                      <IconMapPin size={13} className="text-slate-500" />
-                      <span className="text-slate-300 text-sm font-semibold">
+                    <div className="flex items-center gap-2 mb-2 px-1">
+                      <IconMapPin size={12} className="text-slate-500" />
+                      <span className="text-slate-400 text-xs font-semibold">
                         {branch}
                       </span>
                       <span className="text-slate-600 text-xs">
@@ -567,56 +631,20 @@ const BatchList: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-slate-700/40">
-                            <th className="text-left py-2 pl-4 pr-3 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
-                              Batch Name
-                            </th>
-                            <th className="text-left py-2 px-3 text-slate-500 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
-                              <span className="flex items-center gap-1">
-                                <IconCalendar size={10} /> Day
-                              </span>
-                            </th>
-                            <th className="text-left py-2 px-3 text-slate-500 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
-                              <span className="flex items-center gap-1">
-                                <IconClock size={10} /> Time
-                              </span>
-                            </th>
-                            <th className="text-left py-2 px-3 text-slate-500 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
-                              <span className="flex items-center gap-1">
-                                <IconBook size={10} /> Subject
-                              </span>
-                            </th>
-                            <th className="text-left py-2 px-3 text-slate-500 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
-                              <span className="flex items-center gap-1">
-                                <IconUser size={10} /> Teacher
-                              </span>
-                            </th>
-                            <th className="text-center py-2 px-3 text-slate-500 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
-                              <span className="flex items-center justify-center gap-1">
-                                <IconUsers size={10} /> Students
-                              </span>
-                            </th>
-                            <th className="py-2 pl-3 pr-4 w-24" />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {batchList.map((batch) => (
-                            <BatchTableRow
-                              key={batch.id}
-                              batch={batch}
-                              onView={() => navigate(`/batches/${batch.id}`)}
-                              onEdit={() =>
-                                navigate(`/batches/${batch.id}/edit`)
-                              }
-                              onDelete={() => setDeleteTarget(batch)}
-                            />
-                          ))}
-                        </tbody>
-                      </table>
+                    {/* Card grid — 1 col mobile, 2 col sm, 3 col lg */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {batchList.map((batch) => (
+                        <BatchCard
+                          key={batch.id}
+                          batch={batch}
+                          onView={() => navigate(`/batches/${batch.id}`)}
+                          onAssign={() =>
+                            navigate(`/batches/${batch.id}/assign`)
+                          }
+                          onEdit={() => navigate(`/batches/${batch.id}/edit`)}
+                          onDelete={() => setDeleteTarget(batch)}
+                        />
+                      ))}
                     </div>
                   </div>
                 ))}

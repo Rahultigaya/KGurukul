@@ -14,6 +14,7 @@ import ProfilePage from "../pages/profile/ProfilePage";
 import BatchList from "../pages/batches/BatchList";
 import BatchForm from "../pages/batches/BatchForm";
 import BatchDetail from "../pages/batches/BatchDetail";
+import BatchAssign from "../pages/batches/BatchAssign";
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "batches/create", element: <BatchForm mode="create" /> },
       { path: "batches/:id", element: <BatchDetail /> },
       { path: "batches/:id/edit", element: <BatchForm mode="edit" /> },
+      { path: "batches/:id/assign", element: <BatchAssign /> },
       {
         path: "Users",
         element: <UsersList />,

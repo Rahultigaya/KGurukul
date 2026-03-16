@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Select,
-  Switch,
   NumberInput,
   Button,
   ActionIcon,
@@ -13,12 +12,11 @@ import {
   Tooltip,
   Badge,
 } from "@mantine/core";
-import { TimeInput } from "@mantine/dates";
-
 import {
   IconArrowLeft,
   IconDeviceFloppy,
   IconMapPin,
+  IconBuilding,
   IconCalendar,
   IconClock,
   IconBook,
@@ -29,16 +27,23 @@ import {
   IconCheck,
   IconX,
 } from "@tabler/icons-react";
+import { TimeInput } from "@mantine/dates";
+
 import Swal from "sweetalert2";
 import {
   AREAS,
   BRANCHES,
   DAYS,
+  BATCH_TYPES,
+  BATCH_STATUSES,
+  BATCH_TYPE_META,
   generateBatchName,
   getBatchById,
   addBatch,
   updateBatch,
   type Area,
+  type BatchType,
+  type BatchStatus,
 } from "./batchStore";
 
 const TEACHERS = [
@@ -201,7 +206,8 @@ interface FormData {
   standard: string | null;
   teacherId: string | null;
   capacity: number | string;
-  isActive: boolean;
+  type: BatchType;
+  status: BatchStatus;
 }
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
@@ -215,7 +221,8 @@ const emptyForm: FormData = {
   standard: null,
   teacherId: null,
   capacity: 30,
-  isActive: true,
+  type: "Regular",
+  status: "Active",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -375,7 +382,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
       standard: batch.standard,
       teacherId: batch.teacherId,
       capacity: batch.capacity,
-      isActive: batch.isActive,
+      type: batch.type,
+      status: batch.status,
     });
   }, [mode, batchId]);
 
@@ -447,7 +455,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
           teacherName,
           capacity: Number(form.capacity),
           studentIds: [],
-          isActive: form.isActive,
+          type: form.type,
+          status: form.status,
           createdAt: new Date().toISOString().split("T")[0],
         });
       } else if (batchId) {
@@ -464,7 +473,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
           teacherId: form.teacherId!,
           teacherName,
           capacity: Number(form.capacity),
-          isActive: form.isActive,
+          type: form.type,
+          status: form.status,
         });
       }
 
@@ -720,33 +730,44 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
             </div>
           </SectionCard>
 
-          {/* Status */}
-          <div className="rounded-2xl border border-purple-500/30 bg-slate-700/50 p-5 flex items-center justify-between">
-            <div>
-              <p className="text-white text-sm font-semibold">Active Batch</p>
-              <p className="text-slate-500 text-xs mt-0.5">
-                Inactive batches won't appear in attendance screens
+          {/* Batch Type + Status */}
+          <SectionCard
+            icon={<IconSparkles size={15} />}
+            title="Batch Type & Status"
+          >
+            <div className="grid grid-cols-2 gap-4 pt-1">
+              <Select
+                label="Batch Type"
+                value={form.type}
+                onChange={(v) => set("type", v as BatchType)}
+                data={BATCH_TYPES.map((t) => ({
+                  value: t,
+                  label: t,
+                  description: BATCH_TYPE_META[t as BatchType].description,
+                }))}
+                required
+                withAsterisk
+                {...selectStyles}
+              />
+              <Select
+                label="Status"
+                value={form.status}
+                onChange={(v) => set("status", v as BatchStatus)}
+                data={BATCH_STATUSES.map((s) => ({ value: s, label: s }))}
+                required
+                withAsterisk
+                {...selectStyles}
+              />
+            </div>
+            <div className="mt-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/40">
+              <p className="text-slate-500 text-xs">
+                <span className="text-orange-400 font-semibold">
+                  {form.type}:{" "}
+                </span>
+                {BATCH_TYPE_META[form.type]?.description}
               </p>
             </div>
-            <Switch
-              checked={form.isActive}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                set("isActive", e.currentTarget.checked)
-              }
-              size="md"
-              color="orange"
-              styles={{
-                track: {
-                  backgroundColor: form.isActive
-                    ? undefined
-                    : "rgba(71,85,105,0.4)",
-                  borderColor: form.isActive
-                    ? undefined
-                    : "rgba(71,85,105,0.4)",
-                },
-              }}
-            />
-          </div>
+          </SectionCard>
         </div>
       </div>
 

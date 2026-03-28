@@ -12,24 +12,12 @@ import { useTeacherColumns } from "./Teacher/TeacherColumns";
 import { dtStyles, sortIcon } from "../../../utils/dtStyles";
 import { Button } from "@mantine/core";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 type TabType = "students" | "teachers";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Attach store key as `id` so columns can use it for navigation + avatar color
-// ─────────────────────────────────────────────────────────────────────────────
 
 const studentsWithId = Object.entries(studentStore).map(([key, student]) => ({
   ...student,
-  id: key, // key is "1", "2", "3" ... matches the edit route /Users/edit-student/:id
+  id: key,
 }));
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────────────────────────────────────
 
 const UsersList: React.FC = () => {
   const navigate = useNavigate();
@@ -40,11 +28,16 @@ const UsersList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+
+      {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-1">Users</h2>
-          <p className="text-slate-400 text-sm">Manage students and teachers</p>
+          <h2 className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+            Users
+          </h2>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+            Manage students and teachers
+          </p>
         </div>
 
         {activeTab === "students" && (
@@ -68,25 +61,31 @@ const UsersList: React.FC = () => {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-8 border-b border-slate-700">
+      {/* ── Tabs ───────────────────────────────────────────────────── */}
+      <div
+        className="flex gap-8"
+        style={{ borderBottom: "1px solid var(--border-default)" }}
+      >
         {(["students", "teachers"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-3 px-2 font-medium capitalize transition-all text-sm ${
-              activeTab === tab
-                ? "text-orange-500 border-b-2 border-orange-500"
-                : "text-slate-400 hover:text-white"
-            }`}
+            className="pb-3 px-2 font-medium capitalize transition-all text-sm"
+            style={{
+              color: activeTab === tab ? "var(--accent-orange)" : "var(--text-secondary)",
+              borderBottom: activeTab === tab ? "2px solid var(--accent-orange)" : "2px solid transparent",
+            }}
           >
             {tab}
           </button>
         ))}
       </div>
 
-      {/* DataTable */}
-      <div className="rounded-xl overflow-hidden border border-slate-700/70">
+      {/* ── DataTable ──────────────────────────────────────────────── */}
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{ border: "1px solid var(--border-card)" }}
+      >
         {activeTab === "students" && (
           <DataTable
             columns={studentColumns}

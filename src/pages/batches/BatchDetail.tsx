@@ -2,126 +2,93 @@
 
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ActionIcon, Tooltip } from "@mantine/core";
+import { Stack, Paper, Title, Grid, Text, ActionIcon, Tooltip } from "@mantine/core";
 import {
-  IconArrowLeft,
-  IconEdit,
-  IconMapPin,
-  IconBuilding,
-  IconCalendar,
-  IconClock,
-  IconBook,
-  IconUser,
-  IconUsers,
-  IconCircleCheck,
-  IconCircleOff,
+  IconArrowLeft, IconEdit, IconMapPin, IconBuilding,
+  IconCalendar, IconClock, IconBook, IconUser, IconUsers,
+  IconCircleCheck, IconCircleOff, IconCircleX,
 } from "@tabler/icons-react";
-import { getBatchById, type Area } from "./batchStore";
+import { getBatchById, BATCH_TYPE_META, BATCH_STATUS_META, type Area } from "./batchStore";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
 const areaColor: Record<Area, { badge: string; dot: string }> = {
-  Thane: {
-    badge: "bg-orange-500/15 text-orange-400 border-orange-500/25",
-    dot: "bg-orange-400",
-  },
-  Mulund: {
-    badge: "bg-violet-500/15 text-violet-400 border-violet-500/25",
-    dot: "bg-violet-400",
-  },
+  Thane:  { badge: "bg-orange-500/15 text-orange-400 border border-orange-500/25", dot: "bg-orange-400" },
+  Mulund: { badge: "bg-violet-500/15 text-violet-400 border border-violet-500/25", dot: "bg-violet-400" },
 };
 
-const TODAY_DAY = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-][new Date().getDay()];
+const TODAY_DAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// InfoRow — uses CSS vars
+// ─────────────────────────────────────────────────────────────────────────────
 
 const InfoRow: React.FC<{
-  icon: React.ReactNode;
-  iconColor: string;
-  label: string;
-  value: React.ReactNode;
+  icon: React.ReactNode; iconColor: string; label: string; value: React.ReactNode;
 }> = ({ icon, iconColor, label, value }) => (
-  <div className="flex items-center gap-3 py-2.5 border-b border-slate-700/30 last:border-0">
+  <div className="flex items-center gap-3 py-2.5"
+    style={{ borderBottom: "1px solid var(--border-default)" }}>
     <span className={`shrink-0 ${iconColor}`}>{icon}</span>
-    <span className="text-slate-500 text-sm w-16 shrink-0">{label}</span>
-    <span className="text-white text-sm font-medium">{value}</span>
-  </div>
-);
-
-const SectionCard: React.FC<{
-  title: string;
-  icon: React.ReactNode;
-  iconColor: string;
-  children: React.ReactNode;
-}> = ({ title, icon, iconColor, children }) => (
-  <div className="rounded-2xl border border-purple-500/30 bg-slate-700/50 p-5">
-    <div className="flex items-center gap-2 mb-1 pb-3 border-b border-slate-700/50">
-      <span className={iconColor}>{icon}</span>
-      <h3 className="text-purple-400 font-semibold text-sm">{title}</h3>
-    </div>
-    {children}
+    <Text size="sm" w={64} style={{ color: "var(--text-muted)", flexShrink: 0 }}>{label}</Text>
+    <Text size="sm" fw={500} style={{ color: "var(--text-primary)" }}>{value}</Text>
   </div>
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BatchDetail
+// ─────────────────────────────────────────────────────────────────────────────
 
 const BatchDetail: React.FC = () => {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const batch = id ? getBatchById(id) : null;
+  const { id }   = useParams<{ id: string }>();
+  const batch     = id ? getBatchById(id) : null;
 
   if (!batch)
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <p className="text-slate-400">Batch not found.</p>
-        <button
-          onClick={() => navigate("/batches")}
-          className="text-orange-400 text-sm flex items-center gap-1"
-        >
+        <Text style={{ color: "var(--text-secondary)" }}>Batch not found.</Text>
+        <button onClick={() => navigate("/batches")}
+          className="flex items-center gap-1 text-sm"
+          style={{ color: "var(--accent-orange)" }}>
           <IconArrowLeft size={15} /> Back to Batches
         </button>
       </div>
     );
 
-  const area = areaColor[batch.area];
-  const isToday = batch.day === TODAY_DAY && batch.isActive;
-  const fillPct = Math.min(
-    (batch.studentIds.length / batch.capacity) * 100,
-    100,
-  );
-  const fillColor =
-    batch.studentIds.length >= batch.capacity
-      ? "bg-red-500"
-      : fillPct >= 80
-        ? "bg-yellow-500"
-        : "bg-green-500";
+  const area     = areaColor[batch.area];
+  const isToday  = batch.day === TODAY_DAY && batch.status === "Active";
+  const fillPct  = Math.min((batch.studentIds.length / batch.capacity) * 100, 100);
+  const fillColor = batch.studentIds.length >= batch.capacity ? "#ef4444"
+    : fillPct >= 80 ? "#f59e0b" : "#22c55e";
+
+  const typeMeta   = BATCH_TYPE_META[batch.type];
+  const statusIcon = batch.status === "Active"    ? <IconCircleCheck size={22} className="text-green-400" />
+                   : batch.status === "Completed" ? <IconCircleX     size={22} className="text-slate-400" />
+                   :                                <IconCircleOff   size={22} className="text-yellow-400" />;
+  const statusIconBg = batch.status === "Active"    ? "rgba(34,197,94,0.12)"
+                     : batch.status === "Completed" ? "rgba(100,116,139,0.2)"
+                     :                                "rgba(234,179,8,0.12)";
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4 pb-8">
-      {/* ── Header ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+    <Stack gap="md" maw={1000} mx="auto" pb="xl">
+
+      {/* ── Header ────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <Tooltip label="Back to Batches" position="right" withArrow>
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              size="lg"
-              radius="lg"
+            <ActionIcon variant="subtle" size="lg" radius="lg"
               onClick={() => navigate("/batches")}
-              styles={{ root: { color: "#94a3b8" } }}
-            >
+              styles={{ root: { color: "var(--text-secondary)" } }}>
               <IconArrowLeft size={20} />
             </ActionIcon>
           </Tooltip>
           <div>
-            <h2 className="text-2xl font-bold text-white">Batch Details</h2>
-            <p className="text-slate-400 text-sm">
+            <Title order={3} style={{ color: "var(--text-primary)" }}>Batch Details</Title>
+            <Text size="sm" style={{ color: "var(--text-muted)" }}>
               ID: {batch.id} · Created {batch.createdAt}
-            </p>
+            </Text>
           </div>
         </div>
         <button
@@ -132,187 +99,172 @@ const BatchDetail: React.FC = () => {
         </button>
       </div>
 
-      {/* ── Banner ─────────────────────────────────────────────────── */}
-      <div
-        className={`rounded-2xl border p-4 flex items-center gap-4 ${
-          isToday
-            ? "border-orange-500/40 bg-orange-500/[0.06]"
-            : "border-slate-700/60 bg-slate-800/40"
-        }`}
-      >
-        <div
-          className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-            batch.isActive ? "bg-green-500/15" : "bg-slate-700/50"
-          }`}
-        >
-          {batch.isActive ? (
-            <IconCircleCheck size={22} className="text-green-400" />
-          ) : (
-            <IconCircleOff size={22} className="text-slate-500" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <div className={`w-2 h-2 rounded-full ${area.dot}`} />
-            <span
-              className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${area.badge}`}
-            >
-              {batch.area}
-            </span>
-            {isToday && (
-              <span className="px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[10px] font-bold uppercase animate-pulse">
-                Today
-              </span>
-            )}
-            {!batch.isActive && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-700/50 border border-slate-600/50 text-slate-500 text-[10px]">
-                Inactive
-              </span>
-            )}
-          </div>
-          <p className="text-white font-bold text-lg truncate">{batch.name}</p>
-        </div>
-        <div className="shrink-0 text-right">
-          <p className="text-white font-bold text-base leading-none">
-            {batch.studentIds.length}
-            <span className="text-slate-500 text-sm font-normal">
-              {" "}
-              / {batch.capacity}
-            </span>
-          </p>
-          <p className="text-slate-500 text-[11px] mb-1.5">students</p>
-          <div className="w-20 h-1.5 bg-slate-700/80 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${fillColor}`}
-              style={{ width: `${fillPct}%` }}
-            />
-          </div>
-        </div>
-      </div>
+      {/* ── Banner ────────────────────────────────────────────────────── */}
+      <Paper className="p-4"
+        style={{
+          background: isToday ? "rgba(249,115,22,0.05)" : "var(--bg-card)",
+          border: `1px solid ${isToday ? "rgba(249,115,22,0.35)" : "var(--border-card)"}`,
+        }}>
+        <div className="flex items-center gap-4 flex-wrap">
 
-      {/* ── Details — 2 cards side by side ─────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4">
-        <SectionCard
-          title="Location & Schedule"
-          icon={<IconMapPin size={15} />}
-          iconColor="text-orange-400"
-        >
-          <InfoRow
-            icon={<IconMapPin size={14} />}
-            iconColor="text-orange-400"
-            label="Area"
-            value={batch.area}
-          />
-          <InfoRow
-            icon={<IconBuilding size={14} />}
-            iconColor="text-orange-400"
-            label="Branch"
-            value={batch.branch}
-          />
-          <InfoRow
-            icon={<IconCalendar size={14} />}
-            iconColor="text-violet-400"
-            label="Day"
-            value={batch.day}
-          />
-          <InfoRow
-            icon={<IconClock size={14} />}
-            iconColor="text-violet-400"
-            label="Time"
-            value={batch.timeSlot}
-          />
-        </SectionCard>
+          {/* Status icon */}
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: statusIconBg }}>
+            {statusIcon}
+          </div>
 
-        <SectionCard
-          title="Academic & Teacher"
-          icon={<IconBook size={15} />}
-          iconColor="text-blue-400"
-        >
-          <InfoRow
-            icon={<IconBook size={14} />}
-            iconColor="text-blue-400"
-            label="Subject"
-            value={batch.subject}
-          />
-          <InfoRow
-            icon={<IconBook size={14} />}
-            iconColor="text-blue-400"
-            label="Standard"
-            value={batch.standard}
-          />
-          <InfoRow
-            icon={<IconUser size={14} />}
-            iconColor="text-green-400"
-            label="Teacher"
-            value={batch.teacherName}
-          />
-          <InfoRow
-            icon={<IconUsers size={14} />}
-            iconColor="text-green-400"
-            label="Capacity"
-            value={
-              <div className="flex items-center gap-2.5">
-                <span>
-                  {batch.studentIds.length} / {batch.capacity}
+          {/* Name + badges */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <div className={`w-2 h-2 rounded-full ${area.dot}`} />
+              <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${area.badge}`}>
+                {batch.area}
+              </span>
+              <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full`}
+                style={{
+                  background: `color-mix(in srgb, var(--accent-orange) 12%, transparent)`,
+                  color: "var(--accent-orange)",
+                }}>
+                {batch.type}
+              </span>
+              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"
+                style={{
+                  background: "var(--bg-tertiary)",
+                  color: batch.status === "Active" ? "#22c55e" : batch.status === "Completed" ? "var(--text-muted)" : "#f59e0b",
+                }}>
+                {batch.status}
+              </span>
+              {isToday && (
+                <span className="px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[10px] font-bold uppercase animate-pulse">
+                  Today
                 </span>
-                <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${fillColor}`}
-                    style={{ width: `${fillPct}%` }}
-                  />
-                </div>
-              </div>
-            }
-          />
-        </SectionCard>
-      </div>
+              )}
+            </div>
+            <Text fw={700} size="lg" style={{ color: "var(--text-primary)" }}>{batch.name}</Text>
+            <Text size="xs" mt={2} style={{ color: "var(--text-muted)" }}>
+              {typeMeta.description}
+            </Text>
+          </div>
 
-      {/* ── Students — full width below ─────────────────────────────── */}
-      <SectionCard
-        title="Assigned Students"
-        icon={<IconUsers size={15} />}
-        iconColor="text-purple-400"
-      >
-        <div className="flex items-center justify-between -mt-1 mb-3">
-          <span className="text-slate-500 text-xs">
+          {/* Capacity */}
+          <div className="shrink-0 text-right">
+            <Text fw={700} size="xl" style={{ color: "var(--text-primary)" }}>
+              {batch.studentIds.length}
+              <Text span size="sm" fw={400} style={{ color: "var(--text-muted)" }}> / {batch.capacity}</Text>
+            </Text>
+            <Text size="xs" mb={6} style={{ color: "var(--text-muted)" }}>students</Text>
+            <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--bg-tertiary)" }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${fillPct}%`, background: fillColor }} />
+            </div>
+          </div>
+        </div>
+      </Paper>
+
+      {/* ── Detail cards ──────────────────────────────────────────────── */}
+      <Grid gutter="md">
+        {/* Location & Schedule */}
+        <Grid.Col span={{ base: 12, sm: 6 }}>
+          <Paper className="p-4 sm:p-5 h-full"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+            <Title order={5} mb="sm" style={{ color: "var(--text-accent)", fontSize: "clamp(13px,2vw,16px)" }}>
+              <span className="flex items-center gap-2">
+                <IconMapPin size={15} style={{ color: "var(--text-accent)" }} />
+                Location & Schedule
+              </span>
+            </Title>
+            <InfoRow icon={<IconMapPin  size={14} />} iconColor="text-orange-400" label="Area"   value={batch.area}     />
+            <InfoRow icon={<IconBuilding size={14} />} iconColor="text-orange-400" label="Branch" value={batch.branch}   />
+            <InfoRow icon={<IconCalendar size={14} />} iconColor="text-violet-400" label="Day"    value={batch.day}      />
+            <InfoRow icon={<IconClock   size={14} />} iconColor="text-violet-400" label="Time"   value={batch.timeSlot} />
+          </Paper>
+        </Grid.Col>
+
+        {/* Academic & Teacher */}
+        <Grid.Col span={{ base: 12, sm: 6 }}>
+          <Paper className="p-4 sm:p-5 h-full"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+            <Title order={5} mb="sm" style={{ color: "var(--text-accent)", fontSize: "clamp(13px,2vw,16px)" }}>
+              <span className="flex items-center gap-2">
+                <IconBook size={15} style={{ color: "var(--text-accent)" }} />
+                Academic & Teacher
+              </span>
+            </Title>
+            <InfoRow icon={<IconBook  size={14} />} iconColor="text-blue-400"  label="Subject"  value={batch.subject}     />
+            <InfoRow icon={<IconBook  size={14} />} iconColor="text-blue-400"  label="Standard" value={batch.standard}    />
+            <InfoRow icon={<IconUser  size={14} />} iconColor="text-green-400" label="Teacher"  value={batch.teacherName} />
+            <InfoRow
+              icon={<IconUsers size={14} />} iconColor="text-green-400" label="Capacity"
+              value={
+                <div className="flex items-center gap-2.5">
+                  <span>{batch.studentIds.length} / {batch.capacity}</span>
+                  <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--bg-tertiary)" }}>
+                    <div className="h-full rounded-full" style={{ width: `${fillPct}%`, background: fillColor }} />
+                  </div>
+                </div>
+              }
+            />
+          </Paper>
+        </Grid.Col>
+      </Grid>
+
+      {/* ── Students ──────────────────────────────────────────────────── */}
+      <Paper className="p-4 sm:p-5"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <Title order={5} style={{ color: "var(--text-accent)", fontSize: "clamp(13px,2vw,16px)" }}>
+            <span className="flex items-center gap-2">
+              <IconUsers size={15} style={{ color: "var(--text-accent)" }} />
+              Assigned Students
+            </span>
+          </Title>
+          <Text size="xs" style={{ color: "var(--text-muted)" }}>
             {batch.studentIds.length} of {batch.capacity} seats filled
-          </span>
+          </Text>
         </div>
 
         {batch.studentIds.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
-            <div className="w-12 h-12 rounded-xl bg-slate-800/60 border border-slate-700/50 flex items-center justify-center">
-              <IconUsers size={20} className="text-slate-600" />
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-default)" }}>
+              <IconUsers size={20} style={{ color: "var(--text-muted)" }} />
             </div>
-            <p className="text-slate-500 text-sm">No students assigned yet</p>
+            <Text size="sm" style={{ color: "var(--text-muted)" }}>No students assigned yet</Text>
           </div>
         ) : (
-          /* grid: 3 columns of student rows */
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {batch.studentIds.map((sid, idx) => (
               <button
                 key={sid}
                 onClick={() => navigate(`/profile/student/${sid}`)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-800/50 border border-slate-700/40 hover:border-orange-500/40 hover:bg-orange-500/5 transition-colors group"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group"
+                style={{
+                  background: "var(--bg-tertiary)",
+                  border: "1px solid var(--border-default)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(249,115,22,0.4)";
+                  e.currentTarget.style.background  = "rgba(249,115,22,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "var(--border-default)";
+                  e.currentTarget.style.background  = "var(--bg-tertiary)";
+                }}
               >
-                <div className="w-7 h-7 rounded-lg bg-slate-700/60 flex items-center justify-center shrink-0 text-slate-500 text-xs font-bold group-hover:bg-orange-500/20 group-hover:text-orange-400 transition-colors">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors"
+                  style={{ background: "var(--border-default)", color: "var(--text-muted)" }}>
                   {idx + 1}
                 </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="text-slate-300 text-sm font-medium group-hover:text-orange-300 transition-colors truncate">
-                    Student #{sid}
-                  </p>
-                </div>
-                <IconUser
-                  size={13}
-                  className="text-slate-600 group-hover:text-orange-400 transition-colors shrink-0"
-                />
+                <Text size="sm" fw={500} style={{ color: "var(--text-primary)", flex: 1 }}>
+                  Student #{sid}
+                </Text>
+                <IconUser size={13} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
               </button>
             ))}
           </div>
         )}
-      </SectionCard>
-    </div>
+      </Paper>
+
+    </Stack>
   );
 };
 

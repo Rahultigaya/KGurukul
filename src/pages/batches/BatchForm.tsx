@@ -3,80 +3,87 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Select,
-  NumberInput,
-  Button,
-  ActionIcon,
-  Alert,
-  Group,
-  Tooltip,
-  Badge,
+  Stack, Paper, Title, Grid, Select, NumberInput,
+  Button, ActionIcon, Alert, Group, Tooltip, Badge, Text,
 } from "@mantine/core";
-import {
-  IconArrowLeft,
-  IconDeviceFloppy,
-  IconMapPin,
-  IconBuilding,
-  IconCalendar,
-  IconClock,
-  IconBook,
-  IconUser,
-  IconUsers,
-  IconSparkles,
-  IconAlertCircle,
-  IconCheck,
-  IconX,
-} from "@tabler/icons-react";
 import { TimeInput } from "@mantine/dates";
-
+import {
+  IconArrowLeft, IconDeviceFloppy, IconMapPin,
+  IconCalendar, IconClock, IconBook, IconUser,
+  IconUsers, IconSparkles, IconAlertCircle, IconCheck, IconX,
+} from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import {
-  AREAS,
-  BRANCHES,
-  DAYS,
-  BATCH_TYPES,
-  BATCH_STATUSES,
-  BATCH_TYPE_META,
-  generateBatchName,
-  getBatchById,
-  addBatch,
-  updateBatch,
-  type Area,
-  type BatchType,
-  type BatchStatus,
+  AREAS, BRANCHES, DAYS, BATCH_TYPES, BATCH_STATUSES, BATCH_TYPE_META,
+  generateBatchName, getBatchById, addBatch, updateBatch,
+  type Area, type BatchType, type BatchStatus,
 } from "./batchStore";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
 const TEACHERS = [
-  { id: "T001", name: "Rahul Sir" },
+  { id: "T001", name: "Rahul Sir"   },
   { id: "T002", name: "Priya Ma'am" },
   { id: "T003", name: "Anita Ma'am" },
 ];
-const STANDARDS = [
-  "5th",
-  "6th",
-  "7th",
-  "8th",
-  "9th",
-  "10th",
-  "11th",
-  "12th",
-  "JEE",
-  "NEET",
-  "Other",
-];
-const SUBJECTS = [
-  "Mathematics",
-  "Science",
-  "English",
-  "Physics",
-  "Chemistry",
-  "Biology",
-  "History",
-  "Geography",
-  "SSC",
-  "HSC",
-  "Other",
-];
+
+const STANDARDS = ["5th","6th","7th","8th","9th","10th","11th","12th","JEE","NEET","Other"];
+const SUBJECTS  = ["Mathematics","Science","English","Physics","Chemistry","Biology","History","Geography","SSC","HSC","Other"];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared input styles — uses CSS vars, matches EnrollmentContent pattern
+// ─────────────────────────────────────────────────────────────────────────────
+
+const inputStyles = {
+  label: { color: "var(--text-primary)", marginBottom: 6 },
+  input: {
+    backgroundColor: "var(--bg-input)",
+    color: "var(--text-primary)",
+    borderColor: "var(--border-default)",
+  },
+  placeholder: { color: "var(--text-muted)" },
+  error: { color: "#f87171" },
+};
+
+const selectStyles = {
+  styles: {
+    label:       { color: "var(--text-primary)", marginBottom: 6 },
+    input:       { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+    section:     { color: "var(--text-muted)" },
+    option:      { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
+    placeholder: { color: "var(--text-muted)" },
+    error:       { color: "#f87171" },
+  },
+  comboboxProps: {
+    styles: {
+      dropdown: {
+        background: "var(--bg-secondary)",
+        border: "1px solid var(--border-accent)",
+        color: "var(--text-primary)",
+      },
+    },
+  },
+};
+
+const numberInputStyles = {
+  styles: {
+    label:   { color: "var(--text-primary)", marginBottom: 6 },
+    input:   { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+    control: { borderColor: "var(--border-default)", color: "var(--text-muted)" },
+    error:   { color: "#f87171" },
+  },
+};
+
+const timeInputStyles = {
+  styles: {
+    label:   { color: "var(--text-primary)", marginBottom: 6 },
+    input:   { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)", paddingLeft: "36px" },
+    section: { color: "var(--text-muted)" },
+    error:   { color: "#f87171" },
+  },
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Time helpers
@@ -114,154 +121,60 @@ function parseTimeSlot(slot: string): { startTime: string; endTime: string } {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared Mantine styles
-// ─────────────────────────────────────────────────────────────────────────────
-
-const selectStyles = {
-  comboboxProps: {
-    styles: {
-      dropdown: {
-        background: "#1c2739",
-        border: "1px solid rgba(139,92,246,0.3)",
-        color: "white",
-      },
-    },
-  },
-  styles: {
-    input: {
-      backgroundColor: "rgba(30,41,59,0.8)",
-      border: "1px solid rgba(71,85,105,0.5)",
-      color: "white",
-      borderRadius: "10px",
-      fontSize: "14px",
-      height: "42px",
-    },
-    label: {
-      color: "white",
-      marginBottom: "6px",
-      fontSize: "13px",
-      fontWeight: 500,
-    },
-    section: { color: "#94a3b8" },
-    option: { color: "white", backgroundColor: "#1c2739" },
-    error: { color: "#f87171" },
-  },
-};
-
-const timeInputStyles = {
-  styles: {
-    input: {
-      backgroundColor: "rgba(30,41,59,0.8)",
-      border: "1px solid rgba(71,85,105,0.5)",
-      color: "white",
-      borderRadius: "10px",
-      fontSize: "14px",
-      height: "42px",
-      paddingLeft: "36px",
-      colorScheme: "dark",
-    },
-    label: {
-      color: "white",
-      marginBottom: "6px",
-      fontSize: "13px",
-      fontWeight: 500,
-    },
-    section: { color: "#94a3b8" },
-    error: { color: "#f87171" },
-  },
-};
-
-const numberInputStyles = {
-  styles: {
-    input: {
-      backgroundColor: "rgba(30,41,59,0.8)",
-      border: "1px solid rgba(71,85,105,0.5)",
-      color: "white",
-      borderRadius: "10px",
-      fontSize: "14px",
-      height: "42px",
-    },
-    label: {
-      color: "white",
-      marginBottom: "6px",
-      fontSize: "13px",
-      fontWeight: 500,
-    },
-    control: { borderColor: "rgba(71,85,105,0.5)", color: "#94a3b8" },
-    error: { color: "#f87171" },
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
+// Form types
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface FormData {
-  area: string | null;
-  branch: string | null;
-  day: string | null;
-  startTime: string;
-  endTime: string;
-  subject: string | null;
-  standard: string | null;
-  teacherId: string | null;
-  capacity: number | string;
-  type: BatchType;
-  status: BatchStatus;
+  area:       string | null;
+  branch:     string | null;
+  day:        string | null;
+  startTime:  string;
+  endTime:    string;
+  subject:    string | null;
+  standard:   string | null;
+  teacherId:  string | null;
+  capacity:   number | string;
+  type:       BatchType;
+  status:     BatchStatus;
 }
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
 const emptyForm: FormData = {
-  area: null,
-  branch: null,
-  day: null,
-  startTime: "",
-  endTime: "",
-  subject: null,
-  standard: null,
-  teacherId: null,
-  capacity: 30,
-  type: "Regular",
-  status: "Active",
+  area: null, branch: null, day: null,
+  startTime: "", endTime: "",
+  subject: null, standard: null, teacherId: null,
+  capacity: 30, type: "Regular", status: "Active",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Batch name preview component
+// Batch Name Preview
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BatchNamePreview: React.FC<{
-  area: string | null;
-  branch: string | null;
-  day: string | null;
-  startTime: string;
-  endTime: string;
+  area: string | null; branch: string | null; day: string | null;
+  startTime: string; endTime: string;
 }> = ({ area, branch, day, startTime, endTime }) => {
-  const hasAny = !!(area || branch || day || startTime || endTime);
+  const hasAny     = !!(area || branch || day || startTime || endTime);
   const isComplete = !!(area && branch && day && startTime && endTime);
 
   const tokens = [
-    { label: "Area", value: area, filled: !!area },
+    { label: "Area",   value: area,   filled: !!area   },
     { label: "Branch", value: branch, filled: !!branch },
-    { label: "Day", value: day, filled: !!day },
+    { label: "Day",    value: day,    filled: !!day    },
     {
       label: "Time",
-      value:
-        startTime && endTime
-          ? buildTimeSlot(startTime, endTime)
-          : startTime
-            ? `${to12h(startTime)} – ?`
-            : endTime
-              ? `? – ${to12h(endTime)}`
-              : null,
+      value: startTime && endTime ? buildTimeSlot(startTime, endTime)
+        : startTime ? `${to12h(startTime)} – ?`
+        : endTime   ? `? – ${to12h(endTime)}` : null,
       filled: !!(startTime && endTime),
     },
   ];
 
   if (!hasAny)
     return (
-      <p className="text-slate-600 text-sm italic">
+      <Text size="sm" fs="italic" style={{ color: "var(--text-muted)" }}>
         Fill Area, Branch, Day and Time to generate name…
-      </p>
+      </Text>
     );
 
   return (
@@ -269,55 +182,36 @@ const BatchNamePreview: React.FC<{
       <p className="font-bold text-base tracking-wide flex flex-wrap items-center gap-0">
         {tokens.map((t, i) => (
           <span key={i} className="flex items-center">
-            <span
-              className={
-                t.filled ? "text-orange-400" : "text-slate-500 italic text-sm"
-              }
-            >
+            <span style={{ color: t.filled ? "var(--accent-orange)" : "var(--text-muted)", fontStyle: t.filled ? "normal" : "italic", fontSize: t.filled ? undefined : "13px" }}>
               {t.filled ? t.value : `[ ${t.label} ]`}
             </span>
             {i < tokens.length - 1 && (
-              <span className="text-slate-600 mx-1.5">·</span>
+              <span style={{ color: "var(--text-muted)" }} className="mx-1.5">·</span>
             )}
           </span>
         ))}
         {isComplete && (
-          <Badge
-            size="xs"
-            variant="light"
-            color="green"
-            leftSection={<IconCheck size={9} />}
-            ml="sm"
-            styles={{
-              root: {
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontWeight: 700,
-              },
-            }}
-          >
+          <Badge size="xs" variant="light" color="green" leftSection={<IconCheck size={9} />} ml="sm"
+            styles={{ root: { textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 } }}>
             Complete
           </Badge>
         )}
       </p>
 
-      {/* Progress dots */}
       {hasAny && !isComplete && (
         <div className="flex items-center gap-2 mt-2">
           {[
-            { label: "Area", filled: !!area },
-            { label: "Branch", filled: !!branch },
-            { label: "Day", filled: !!day },
-            { label: "Start", filled: !!startTime },
-            { label: "End", filled: !!endTime },
+            { label: "Area",   filled: !!area      },
+            { label: "Branch", filled: !!branch    },
+            { label: "Day",    filled: !!day       },
+            { label: "Start",  filled: !!startTime },
+            { label: "End",    filled: !!endTime   },
           ].map((s) => (
             <div key={s.label} className="flex items-center gap-1">
-              <div
-                className={`w-1.5 h-1.5 rounded-full transition-all ${s.filled ? "bg-orange-400" : "bg-slate-600"}`}
-              />
-              <span
-                className={`text-[10px] ${s.filled ? "text-orange-400/70" : "text-slate-600"}`}
-              >
+              <div className={`w-1.5 h-1.5 rounded-full transition-all`}
+                style={{ background: s.filled ? "var(--accent-orange)" : "var(--border-default)" }} />
+              <span className="text-[10px]"
+                style={{ color: s.filled ? "var(--accent-orange)" : "var(--text-muted)" }}>
                 {s.label}
               </span>
             </div>
@@ -329,106 +223,58 @@ const BatchNamePreview: React.FC<{
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Section card wrapper
-// ─────────────────────────────────────────────────────────────────────────────
-
-const SectionCard: React.FC<{
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-}> = ({ icon, title, children }) => (
-  <div className="rounded-2xl border border-purple-500/30 bg-slate-700/50 p-5">
-    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-700/50">
-      <span className="text-white">{icon}</span>
-      <h3 className="text-purple-400 font-semibold text-sm">{title}</h3>
-    </div>
-    {children}
-  </div>
-);
-
-// ─────────────────────────────────────────────────────────────────────────────
 // BatchForm
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface BatchFormProps {
-  mode: "create" | "edit";
-}
+interface BatchFormProps { mode: "create" | "edit"; }
 
 const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
   const navigate = useNavigate();
   const { id: batchId } = useParams<{ id: string }>();
 
-  const [form, setForm] = useState<FormData>(emptyForm);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [saving, setSaving] = useState(false);
+  const [form, setForm]       = useState<FormData>(emptyForm);
+  const [errors, setErrors]   = useState<FormErrors>({});
+  const [saving, setSaving]   = useState(false);
   const [notFound, setNotFound] = useState(false);
 
-  // ── Load for edit ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (mode !== "edit" || !batchId) return;
     const batch = getBatchById(batchId);
-    if (!batch) {
-      setNotFound(true);
-      return;
-    }
+    if (!batch) { setNotFound(true); return; }
     const { startTime, endTime } = parseTimeSlot(batch.timeSlot);
     setForm({
-      area: batch.area,
-      branch: batch.branch,
-      day: batch.day,
-      startTime,
-      endTime,
-      subject: batch.subject,
-      standard: batch.standard,
-      teacherId: batch.teacherId,
-      capacity: batch.capacity,
-      type: batch.type,
-      status: batch.status,
+      area: batch.area, branch: batch.branch, day: batch.day,
+      startTime, endTime,
+      subject: batch.subject, standard: batch.standard,
+      teacherId: batch.teacherId, capacity: batch.capacity,
+      type: batch.type, status: batch.status,
     });
   }, [mode, batchId]);
 
-  const timeSlot = buildTimeSlot(form.startTime, form.endTime);
-  const hasAny = !!(
-    form.area ||
-    form.branch ||
-    form.day ||
-    form.startTime ||
-    form.endTime
-  );
-  const isComplete = !!(
-    form.area &&
-    form.branch &&
-    form.day &&
-    form.startTime &&
-    form.endTime
-  );
-  const branchOptions = form.area
-    ? (BRANCHES[form.area as Area] ?? []).map((b) => ({ value: b, label: b }))
-    : [];
+  const timeSlot    = buildTimeSlot(form.startTime, form.endTime);
+  const hasAny      = !!(form.area || form.branch || form.day || form.startTime || form.endTime);
+  const isComplete  = !!(form.area && form.branch && form.day && form.startTime && form.endTime);
+  const branchOpts  = form.area ? (BRANCHES[form.area as Area] ?? []).map((b) => ({ value: b, label: b })) : [];
   const teacherName = TEACHERS.find((t) => t.id === form.teacherId)?.name ?? "";
 
   const set = (field: keyof FormData, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => {
-      const e = { ...prev };
-      delete e[field];
-      return e;
-    });
+    setErrors((prev) => { const e = { ...prev }; delete e[field]; return e; });
   };
 
   const validate = (): boolean => {
     const e: FormErrors = {};
-    if (!form.area) e.area = "Required";
-    if (!form.branch) e.branch = "Required";
-    if (!form.day) e.day = "Required";
+    if (!form.area)      e.area      = "Required";
+    if (!form.branch)    e.branch    = "Required";
+    if (!form.day)       e.day       = "Required";
     if (!form.startTime) e.startTime = "Required";
-    if (!form.endTime) e.endTime = "Required";
+    if (!form.endTime)   e.endTime   = "Required";
     if (form.startTime && form.endTime && form.startTime >= form.endTime)
-      e.endTime = "End must be after start";
-    if (!form.subject) e.subject = "Required";
-    if (!form.standard) e.standard = "Required";
+      e.endTime = "End time must be after start time";
+    if (!form.subject)   e.subject   = "Required";
+    if (!form.standard)  e.standard  = "Required";
     if (!form.teacherId) e.teacherId = "Required";
-    if (!form.capacity || Number(form.capacity) < 1) e.capacity = "Min 1";
+    if (!form.capacity || Number(form.capacity) < 1) e.capacity = "Minimum 1";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -441,46 +287,26 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
       const name = generateBatchName(form.area!, form.branch!, form.day!, slot);
 
       if (mode === "create") {
-        const newId = `B${String(Date.now()).slice(-4)}`;
         addBatch({
-          id: newId,
-          name,
-          area: form.area as Area,
-          branch: form.branch!,
-          day: form.day!,
-          timeSlot: slot,
-          subject: form.subject!,
-          standard: form.standard!,
-          teacherId: form.teacherId!,
-          teacherName,
-          capacity: Number(form.capacity),
-          studentIds: [],
-          type: form.type,
-          status: form.status,
+          id: `B${String(Date.now()).slice(-4)}`,
+          name, area: form.area as Area, branch: form.branch!, day: form.day!,
+          timeSlot: slot, subject: form.subject!, standard: form.standard!,
+          teacherId: form.teacherId!, teacherName,
+          capacity: Number(form.capacity), studentIds: [],
+          type: form.type, status: form.status,
           createdAt: new Date().toISOString().split("T")[0],
         });
       } else if (batchId) {
         const existing = getBatchById(batchId)!;
         updateBatch(batchId, {
-          ...existing,
-          name,
-          area: form.area as Area,
-          branch: form.branch!,
-          day: form.day!,
-          timeSlot: slot,
-          subject: form.subject!,
-          standard: form.standard!,
-          teacherId: form.teacherId!,
-          teacherName,
-          capacity: Number(form.capacity),
-          type: form.type,
-          status: form.status,
+          ...existing, name, area: form.area as Area, branch: form.branch!,
+          day: form.day!, timeSlot: slot, subject: form.subject!,
+          standard: form.standard!, teacherId: form.teacherId!, teacherName,
+          capacity: Number(form.capacity), type: form.type, status: form.status,
         });
       }
 
       setSaving(false);
-
-      // ── SweetAlert2 success ───────────────────────────────────────
       Swal.fire({
         title: mode === "create" ? "Batch Created!" : "Batch Updated!",
         html: `
@@ -490,336 +316,293 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
             <div>📅 ${form.day} &nbsp;·&nbsp; 🕐 ${slot}</div>
             <div>📚 ${form.subject} – ${form.standard}</div>
             <div>👤 ${teacherName} &nbsp;·&nbsp; 👥 Capacity: ${form.capacity}</div>
-          </div>
-        `,
-        icon: "success",
-        confirmButtonText: "Go to Batches",
-        background: "#1e293b",
-        color: "#f8fafc",
-        iconColor: "#4ade80",
+          </div>`,
+        icon: "success", confirmButtonText: "Go to Batches",
+        background: "#1e293b", color: "#f8fafc", iconColor: "#4ade80",
         confirmButtonColor: "#7c3aed",
-        customClass: {
-          popup: "rounded-xl border border-purple-500/30",
-          confirmButton: "rounded-lg px-6 py-2 font-medium",
-        },
+        customClass: { popup: "rounded-xl border border-purple-500/30", confirmButton: "rounded-lg px-6 py-2 font-medium" },
       }).then(() => navigate("/batches"));
     }, 600);
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
   if (notFound)
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <p className="text-slate-400">Batch not found.</p>
-        <Button
-          variant="subtle"
-          color="orange"
-          leftSection={<IconArrowLeft size={15} />}
-          onClick={() => navigate("/batches")}
-        >
+        <Text style={{ color: "var(--text-secondary)" }}>Batch not found.</Text>
+        <Button variant="subtle" color="orange" leftSection={<IconArrowLeft size={15} />} onClick={() => navigate("/batches")}>
           Back to Batches
         </Button>
       </div>
     );
 
-  const isEdit = mode === "edit";
+  const errorCount = Object.keys(errors).length;
 
   return (
-    <div className="max-w-6xl mx-auto pb-12 space-y-5">
-      {/* ── Header ───────────────────────────────────────────────────── */}
+    <Stack gap="md" maw={1100} mx="auto" pb="xl">
+
+      {/* ── Header ────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
         <Tooltip label="Back to Batches" position="right" withArrow>
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="lg"
-            radius="lg"
-            onClick={() => navigate("/batches")}
-            styles={{ root: { color: "#94a3b8" } }}
-          >
+          <ActionIcon variant="subtle" size="lg" radius="lg" onClick={() => navigate("/batches")}
+            styles={{ root: { color: "var(--text-secondary)" } }}>
             <IconArrowLeft size={20} />
           </ActionIcon>
         </Tooltip>
         <div>
-          <h2 className="text-2xl font-bold text-white">
-            {isEdit ? "Edit Batch" : "Create Batch"}
-          </h2>
-          <p className="text-slate-400 text-sm mt-0.5">
-            {isEdit
-              ? "Update the batch details below"
-              : "Fill in the details to create a new batch"}
-          </p>
+          <Title order={3} style={{ color: "var(--text-primary)" }}>
+            {mode === "edit" ? "Edit Batch" : "Create Batch"}
+          </Title>
+          <Text size="sm" style={{ color: "var(--text-secondary)" }}>
+            {mode === "edit" ? "Update the batch details below" : "Fill in the details to create a new batch"}
+          </Text>
         </div>
       </div>
 
-      {/* ── Batch name preview ───────────────────────────────────────── */}
-      <div
-        className={`rounded-2xl border p-4 flex items-start gap-3 transition-all duration-300 ${
-          isComplete
-            ? "border-orange-500/40 bg-orange-500/[0.08]"
+      {/* ── Batch name preview banner ──────────────────────────────────── */}
+      <Paper
+        className="p-4"
+        style={{
+          background: isComplete
+            ? "rgba(249,115,22,0.06)"
             : hasAny
-              ? "border-orange-500/20 bg-orange-500/[0.04]"
-              : "border-slate-700/50 bg-slate-800/30"
-        }`}
+              ? "rgba(249,115,22,0.03)"
+              : "var(--bg-card)",
+          border: `1px solid ${isComplete ? "rgba(249,115,22,0.35)" : hasAny ? "rgba(249,115,22,0.15)" : "var(--border-card)"}`,
+        }}
       >
-        <IconSparkles
-          size={18}
-          className={`mt-0.5 shrink-0 transition-colors ${isComplete ? "text-orange-400" : hasAny ? "text-orange-500/60" : "text-slate-600"}`}
-        />
-        <div className="flex-1 min-w-0">
-          <p className="text-slate-500 text-[11px] uppercase tracking-wider font-semibold mb-1">
-            Auto-generated Batch Name
-          </p>
-          <BatchNamePreview
-            area={form.area}
-            branch={form.branch}
-            day={form.day}
-            startTime={form.startTime}
-            endTime={form.endTime}
-          />
+        <Text size="xs" fw={600} mb={6} style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+          Auto-generated Batch Name
+        </Text>
+        <div className="flex items-start gap-2">
+          <IconSparkles size={16} style={{ color: isComplete ? "var(--accent-orange)" : "var(--text-muted)", marginTop: 2, flexShrink: 0 }} />
+          <BatchNamePreview area={form.area} branch={form.branch} day={form.day} startTime={form.startTime} endTime={form.endTime} />
         </div>
-      </div>
+      </Paper>
 
-      {/* ── 2-column grid ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* LEFT */}
-        <div className="space-y-5">
-          <SectionCard icon={<IconMapPin size={15} />} title="Location">
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Area"
-                placeholder="Select area"
-                value={form.area}
-                onChange={(v) => {
-                  set("area", v);
-                  set("branch", null);
-                }}
-                data={AREAS.map((a) => ({ value: a, label: a }))}
-                required
-                withAsterisk
-                error={errors.area}
-                {...selectStyles}
-              />
-              <Select
-                label="Branch"
-                placeholder={form.area ? "Select branch" : "Select area first"}
-                value={form.branch}
-                onChange={(v) => set("branch", v)}
-                data={branchOptions}
-                disabled={!form.area}
-                required
-                withAsterisk
-                error={errors.branch}
-                {...selectStyles}
-              />
-            </div>
-          </SectionCard>
-
-          <SectionCard icon={<IconCalendar size={15} />} title="Schedule">
-            <div className="space-y-4">
-              <Select
-                label="Day"
-                placeholder="Select day"
-                value={form.day}
-                onChange={(v) => set("day", v)}
-                data={DAYS.map((d) => ({ value: d, label: d }))}
-                required
-                withAsterisk
-                error={errors.day}
-                {...selectStyles}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <TimeInput
-                  label="Start Time"
-                  value={form.startTime}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    set("startTime", e.currentTarget.value)
-                  }
-                  leftSection={
-                    <IconClock size={15} className="text-violet-400" />
-                  }
-                  required
-                  withAsterisk
-                  error={errors.startTime}
-                  {...timeInputStyles}
-                />
-                <TimeInput
-                  label="End Time"
-                  value={form.endTime}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    set("endTime", e.currentTarget.value)
-                  }
-                  leftSection={
-                    <IconClock size={15} className="text-violet-400" />
-                  }
-                  required
-                  withAsterisk
-                  error={errors.endTime}
-                  {...timeInputStyles}
-                />
-              </div>
-
-              {form.startTime && form.endTime && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-500/10 border border-violet-500/20">
-                  <IconClock size={13} className="text-violet-400 shrink-0" />
-                  <span className="text-violet-300 text-sm font-medium">
-                    {timeSlot}
-                  </span>
-                </div>
-              )}
-            </div>
-          </SectionCard>
-        </div>
-
-        {/* RIGHT */}
-        <div className="space-y-5">
-          <SectionCard icon={<IconBook size={15} />} title="Academic Details">
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Subject"
-                placeholder="Select subject"
-                value={form.subject}
-                onChange={(v) => set("subject", v)}
-                data={SUBJECTS.map((s) => ({ value: s, label: s }))}
-                required
-                withAsterisk
-                error={errors.subject}
-                {...selectStyles}
-              />
-              <Select
-                label="Standard"
-                placeholder="Select standard"
-                value={form.standard}
-                onChange={(v) => set("standard", v)}
-                data={STANDARDS.map((s) => ({ value: s, label: s }))}
-                required
-                withAsterisk
-                error={errors.standard}
-                {...selectStyles}
-              />
-            </div>
-          </SectionCard>
-
-          <SectionCard icon={<IconUser size={15} />} title="Teacher & Capacity">
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Teacher"
-                placeholder="Select teacher"
-                value={form.teacherId}
-                onChange={(v) => set("teacherId", v)}
-                data={TEACHERS.map((t) => ({ value: t.id, label: t.name }))}
-                required
-                withAsterisk
-                error={errors.teacherId}
-                {...selectStyles}
-              />
-              <NumberInput
-                label="Capacity"
-                placeholder="Max students"
-                value={form.capacity}
-                onChange={(v) => set("capacity", v)}
-                min={1}
-                max={100}
-                required
-                withAsterisk
-                error={errors.capacity}
-                leftSection={<IconUsers size={15} className="text-green-400" />}
-                {...numberInputStyles}
-              />
-            </div>
-          </SectionCard>
-
-          {/* Batch Type + Status */}
-          <SectionCard
-            icon={<IconSparkles size={15} />}
-            title="Batch Type & Status"
-          >
-            <div className="grid grid-cols-2 gap-4 pt-1">
-              <Select
-                label="Batch Type"
-                value={form.type}
-                onChange={(v) => set("type", v as BatchType)}
-                data={BATCH_TYPES.map((t) => ({
-                  value: t,
-                  label: t,
-                  description: BATCH_TYPE_META[t as BatchType].description,
-                }))}
-                required
-                withAsterisk
-                {...selectStyles}
-              />
-              <Select
-                label="Status"
-                value={form.status}
-                onChange={(v) => set("status", v as BatchStatus)}
-                data={BATCH_STATUSES.map((s) => ({ value: s, label: s }))}
-                required
-                withAsterisk
-                {...selectStyles}
-              />
-            </div>
-            <div className="mt-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/40">
-              <p className="text-slate-500 text-xs">
-                <span className="text-orange-400 font-semibold">
-                  {form.type}:{" "}
-                </span>
-                {BATCH_TYPE_META[form.type]?.description}
-              </p>
-            </div>
-          </SectionCard>
-        </div>
-      </div>
-
-      {/* ── Error summary ────────────────────────────────────────────── */}
-      {Object.keys(errors).length > 0 && (
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          color="red"
-          variant="light"
-          radius="xl"
+      {/* ── Error alert ───────────────────────────────────────────────── */}
+      {errorCount > 0 && (
+        <Alert icon={<IconAlertCircle size={18} />}
+          title="Please fix the errors below before continuing"
+          color="red" variant="light"
+          classNames={{ title: "font-semibold" }}
           styles={{
-            root: {
-              backgroundColor: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.25)",
-            },
-            icon: { color: "#f87171" },
-            message: { color: "#f87171", fontSize: "14px" },
+            root:    { backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)" },
+            icon:    { color: "#f87171" },
+            title:   { color: "var(--text-primary)" },
+            message: { color: "var(--text-primary)" },
           }}
         >
-          Please fill in all required fields before saving.
+          {errorCount === 1 ? "1 required field is missing or invalid." : `${errorCount} required fields are missing or invalid.`}
         </Alert>
       )}
 
-      {/* ── Actions ──────────────────────────────────────────────────── */}
+      {/* ── Section 1: Location ───────────────────────────────────────── */}
+      <Paper className="p-4 sm:p-6"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
+          <span className="flex items-center gap-2">
+            <IconMapPin size={16} style={{ color: "var(--text-accent)" }} />
+            Location
+          </span>
+        </Title>
+        <Grid gutter="md">
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Select
+              label="Area" placeholder="Select area"
+              value={form.area}
+              onChange={(v) => { set("area", v); set("branch", null); }}
+              data={AREAS.map((a) => ({ value: a, label: a }))}
+              required withAsterisk error={errors.area}
+              {...selectStyles}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Select
+              label="Branch"
+              placeholder={form.area ? "Select branch" : "Select area first"}
+              value={form.branch}
+              onChange={(v) => set("branch", v)}
+              data={branchOpts}
+              disabled={!form.area}
+              required withAsterisk error={errors.branch}
+              {...selectStyles}
+            />
+          </Grid.Col>
+        </Grid>
+      </Paper>
+
+      {/* ── Section 2: Schedule ───────────────────────────────────────── */}
+      <Paper className="p-4 sm:p-6"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
+          <span className="flex items-center gap-2">
+            <IconCalendar size={16} style={{ color: "var(--text-accent)" }} />
+            Schedule
+          </span>
+        </Title>
+        <Grid gutter="md">
+          <Grid.Col span={{ base: 12, sm: 4 }}>
+            <Select
+              label="Day" placeholder="Select day"
+              value={form.day} onChange={(v) => set("day", v)}
+              data={DAYS.map((d) => ({ value: d, label: d }))}
+              required withAsterisk error={errors.day}
+              {...selectStyles}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 4 }}>
+            <TimeInput
+              label="Start Time"
+              value={form.startTime}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => set("startTime", e.currentTarget.value)}
+              leftSection={<IconClock size={15} style={{ color: "var(--text-accent)" }} />}
+              required withAsterisk error={errors.startTime}
+              {...timeInputStyles}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 4 }}>
+            <TimeInput
+              label="End Time"
+              value={form.endTime}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => set("endTime", e.currentTarget.value)}
+              leftSection={<IconClock size={15} style={{ color: "var(--text-accent)" }} />}
+              required withAsterisk error={errors.endTime}
+              {...timeInputStyles}
+            />
+          </Grid.Col>
+
+          {/* Time preview pill */}
+          {form.startTime && form.endTime && (
+            <Grid.Col span={12}>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-accent)" }}>
+                <IconClock size={13} style={{ color: "var(--text-accent)" }} className="shrink-0" />
+                <Text size="sm" fw={500} style={{ color: "var(--text-accent)" }}>{timeSlot}</Text>
+              </div>
+            </Grid.Col>
+          )}
+        </Grid>
+      </Paper>
+
+      {/* ── Section 3: Academic Details ───────────────────────────────── */}
+      <Paper className="p-4 sm:p-6"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
+          <span className="flex items-center gap-2">
+            <IconBook size={16} style={{ color: "var(--text-accent)" }} />
+            Academic Details
+          </span>
+        </Title>
+        <Grid gutter="md">
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Select
+              label="Subject" placeholder="Select subject"
+              value={form.subject} onChange={(v) => set("subject", v)}
+              data={SUBJECTS.map((s) => ({ value: s, label: s }))}
+              required withAsterisk error={errors.subject}
+              {...selectStyles}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <Select
+              label="Standard" placeholder="Select standard"
+              value={form.standard} onChange={(v) => set("standard", v)}
+              data={STANDARDS.map((s) => ({ value: s, label: s }))}
+              required withAsterisk error={errors.standard}
+              {...selectStyles}
+            />
+          </Grid.Col>
+        </Grid>
+      </Paper>
+
+      {/* ── Section 4: Teacher, Capacity & Type ───────────────────────── */}
+      <Paper className="p-4 sm:p-6"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
+          <span className="flex items-center gap-2">
+            <IconUser size={16} style={{ color: "var(--text-accent)" }} />
+            Teacher, Capacity & Type
+          </span>
+        </Title>
+        <Grid gutter="md">
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Select
+              label="Teacher" placeholder="Select teacher"
+              value={form.teacherId} onChange={(v) => set("teacherId", v)}
+              data={TEACHERS.map((t) => ({ value: t.id, label: t.name }))}
+              required withAsterisk error={errors.teacherId}
+              {...selectStyles}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <NumberInput
+              label="Capacity" placeholder="Max students"
+              value={form.capacity} onChange={(v) => set("capacity", v)}
+              min={1} max={100}
+              required withAsterisk error={errors.capacity}
+              leftSection={<IconUsers size={15} style={{ color: "var(--text-accent)" }} />}
+              {...numberInputStyles}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Select
+              label="Batch Type"
+              value={form.type} onChange={(v) => set("type", v as BatchType)}
+              data={BATCH_TYPES.map((t) => ({ value: t, label: t }))}
+              required withAsterisk
+              {...selectStyles}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+            <Select
+              label="Status"
+              value={form.status} onChange={(v) => set("status", v as BatchStatus)}
+              data={BATCH_STATUSES.map((s) => ({ value: s, label: s }))}
+              required withAsterisk
+              {...selectStyles}
+            />
+          </Grid.Col>
+
+          {/* Type description hint */}
+          <Grid.Col span={12}>
+            <div className="px-3 py-2 rounded-lg"
+              style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-default)" }}>
+              <Text size="xs" style={{ color: "var(--text-secondary)" }}>
+                <span style={{ color: "var(--accent-orange)", fontWeight: 600 }}>{form.type}: </span>
+                {BATCH_TYPE_META[form.type]?.description}
+              </Text>
+            </div>
+          </Grid.Col>
+        </Grid>
+      </Paper>
+
+      {/* ── Actions ───────────────────────────────────────────────────── */}
       <Group justify="flex-end" gap="sm">
         <Button
-          variant="default"
-          size="md"
+          variant="default" size="md"
           onClick={() => navigate("/batches")}
           leftSection={<IconX size={16} />}
           styles={{
             root: {
-              backgroundColor: "rgba(71,85,105,0.3)",
-              border: "1px solid rgba(71,85,105,0.5)",
-              color: "white",
+              backgroundColor: "var(--bg-tertiary)",
+              border: "1px solid var(--border-default)",
+              color: "var(--text-primary)",
             },
           }}
         >
           Cancel
         </Button>
         <Button
-          size="md"
-          color="orange"
-          loading={saving}
-          disabled={saving}
+          size="md" color="orange"
+          loading={saving} disabled={saving}
           leftSection={<IconDeviceFloppy size={16} />}
           onClick={handleSubmit}
         >
-          {isEdit ? "Save Changes" : "Create Batch"}
+          {mode === "edit" ? "Save Changes" : "Create Batch"}
         </Button>
       </Group>
-    </div>
+
+    </Stack>
   );
 };
 

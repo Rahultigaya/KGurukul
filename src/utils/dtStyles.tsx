@@ -1,9 +1,5 @@
 // src/utils/dtStyles.tsx
-//
-// Reusable dark theme styles for react-data-table-component.
-// Usage:
-//   import { dtStyles, sortIcon } from "../../../utils/dtStyles";
-//   <DataTable customStyles={dtStyles} sortIcon={sortIcon} ... />
+
 
 export const dtStyles = {
   table: {
@@ -11,51 +7,59 @@ export const dtStyles = {
   },
   headRow: {
     style: {
-      backgroundColor: "rgba(15,23,42,0.9)",
-      borderBottomColor: "rgba(100,116,139,0.3)",
+      backgroundColor: "var(--bg-secondary)",
+      borderBottomColor: "var(--border-default)",
     },
   },
   headCells: {
-    style: { color: "#e2e8f0" },
+    style: {
+      color: "var(--text-primary)",
+      fontWeight: 600,
+      fontSize: "13px",
+    },
   },
   sortIcon: {
-    style: { color: "#e2e8f0", fill: "#e2e8f0", opacity: 1 },
+    style: { color: "var(--text-primary)", fill: "var(--text-primary)", opacity: 1 },
   },
   rows: {
-    style: { backgroundColor: "rgba(15,23,42,0.6)" },
+    style: {
+      backgroundColor: "var(--bg-card)",
+      borderBottomColor: "var(--border-default)",
+      color: "var(--text-primary)",
+    },
     highlightOnHoverStyle: {
-      backgroundColor: "rgba(30,41,59,0.9)",
-      borderBottomColor: "rgba(100,116,139,0.2)",
+      backgroundColor: "var(--bg-card-hover)",
+      borderBottomColor: "var(--border-default)",
       outline: "none",
       cursor: "default",
     },
   },
   pagination: {
     style: {
-      backgroundColor: "rgba(15,23,42,0.9)",
-      borderTopColor: "rgba(100,116,139,0.3)",
-      color: "#cbd5e1",
+      backgroundColor: "var(--bg-secondary)",
+      borderTopColor: "var(--border-default)",
+      color: "var(--text-secondary)",
     },
     pageButtonsStyle: {
-      fill: "#e2e8f0",
-      "&:disabled": { fill: "rgba(148,163,184,0.25)" },
+      fill: "var(--text-secondary)",
+      "&:disabled": { fill: "var(--text-muted)" },
       "&:hover:not(:disabled)": {
-        backgroundColor: "rgba(100,116,139,0.25)",
-        fill: "#f97316",
+        backgroundColor: "var(--bg-tertiary)",
+        fill: "var(--accent-orange)",
       },
     },
   },
   noData: {
-    style: { backgroundColor: "rgba(15,23,42,0.6)", color: "#64748b" },
+    style: {
+      backgroundColor: "var(--bg-card)",
+      color: "var(--text-muted)",
+    },
   },
-  // ── Rows-per-page select dropdown ────────────────────────────────────────
-  // The native <select> and its <option> elements need inline background
-  // because CSS-in-JS cannot target <option> tags in most browsers.
   select: {
     style: {
-      backgroundColor: "#0f172a", // dark background for the select box
-      color: "#e2e8f0", // light text
-      border: "1px solid rgba(100,116,139,0.4)",
+      backgroundColor: "var(--bg-secondary)",
+      color: "var(--text-primary)",
+      border: "1px solid var(--border-default)",
       borderRadius: "6px",
       padding: "2px 6px",
       cursor: "pointer",
@@ -65,20 +69,23 @@ export const dtStyles = {
 };
 
 export const sortIcon = (
-  <span style={{ color: "#e2e8f0", fontSize: 12, marginLeft: 4 }}>↕</span>
+  <span style={{ color: "var(--text-secondary)", fontSize: 12, marginLeft: 4 }}>↕</span>
 );
-
-
 
 export const selectDropdownStyles = {
   comboboxProps: {
     styles: {
       dropdown: {
-        background: "#1c2739",
-        border: "1px solid rgba(139,92,246,0.3)",
-        color: "white",
+        background: "var(--bg-secondary)",
+        border: "1px solid var(--border-accent)",
+        color: "var(--text-primary)",
       },
     },
   },
-  styles: { option: { color: "white", backgroundColor: "#1c2739" } },
+  styles: {
+    option: {
+      color: "var(--text-primary)",
+      backgroundColor: "var(--bg-secondary)",
+    },
+  },
 };

@@ -2,6 +2,12 @@
 <html lang="en">
 
 <head>
+  <script>
+      (function () {
+        const theme = localStorage.getItem("kg-theme") || "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
   <meta charset="UTF-8" />
   <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
   <link rel="icon" type="image/svg+xml" href="/logo-gurukul-new.png" />

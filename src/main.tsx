@@ -1,17 +1,30 @@
-// src/main.tsx ✅ CORRECT
+// src/main.tsx
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./app/router";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, ColorSchemeScript } from "@mantine/core";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 
 import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
 import "./index.css";
+
+// Inner component so it can read ThemeContext
+const AppWithMantine = () => {
+  const { theme } = useTheme();
+  return (
+    <MantineProvider colorScheme={theme}>
+      <RouterProvider router={router} />
+    </MantineProvider>
+  );
+};
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MantineProvider defaultColorScheme="dark">
-      <RouterProvider router={router} />
-    </MantineProvider>
-  </StrictMode>,
+    <ThemeProvider>
+      <AppWithMantine />
+    </ThemeProvider>
+  </StrictMode>
 );

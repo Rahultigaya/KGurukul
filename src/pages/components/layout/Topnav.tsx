@@ -1,3 +1,5 @@
+// src/pages/components/layout/Topnav.tsx
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -5,8 +7,11 @@ import {
   IconLogout,
   IconChevronDown,
   IconMenu2,
-  IconX,
+  IconSun,
+  IconMoon,
+  IconSettings,
 } from "@tabler/icons-react";
+import { useTheme } from "../../../context/ThemeContext";
 
 interface TopNavProps {
   isMobileMenuOpen: boolean;
@@ -18,10 +23,11 @@ const TopNav: React.FC<TopNavProps> = ({
   setIsMobileMenuOpen,
 }) => {
   const navigate = useNavigate();
+  const { toggleTheme, isDark } = useTheme();
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // Sample user data - replace with real data from your auth context
   const user = {
     name: "John Doe",
     email: "john.doe@kgurukul.com",
@@ -29,54 +35,65 @@ const TopNav: React.FC<TopNavProps> = ({
     role: "Admin",
   };
 
-  // Sample notifications
   const notifications = [
-    { id: 1, message: "New student enrolled", time: "5 min ago", unread: true },
-    {
-      id: 2,
-      message: "Assignment submitted",
-      time: "1 hour ago",
-      unread: true,
-    },
-    { id: 3, message: "Meeting scheduled", time: "2 hours ago", unread: false },
+    { id: 1, message: "New student enrolled",  time: "5 min ago",   unread: true  },
+    { id: 2, message: "Assignment submitted",  time: "1 hour ago",  unread: true  },
+    { id: 3, message: "Meeting scheduled",     time: "2 hours ago", unread: false },
   ];
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleLogout = () => {
-    // Clear auth data
     localStorage.removeItem("authToken");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("isAuthenticated");
-
-    // Redirect to login
     navigate("/auth/login");
   };
 
+  // ── style helpers (use CSS vars so both themes work) ──────────────────────
+  
+  const navBorder = "var(--border-default)";
+  const dropBg   = isDark ? "#1e293b" : "#ffffff";
+  const dropBorder = "var(--border-default)";
+  const dropHeaderBg = isDark ? "rgba(15,23,42,0.6)" : "rgba(241,245,249,0.8)";
+
   return (
-    <nav className="sticky top-0 z-[60] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50 shadow-lg backdrop-blur-sm">
+    <nav
+      className="sticky top-0 z-[60] shadow-md backdrop-blur-sm"
+      style={{
+        background: "var(--bg-topnav)",
+        borderBottom: `1px solid ${navBorder}`,
+        color: "var(--text-primary)",
+        transition: "background 0.3s, border-color 0.3s",
+      }}
+    >
       <div className="px-4 md:px-6 py-3">
         <div className="flex items-center justify-between">
-          {/* Left side - Welcome message */}
+
+          {/* Left — Welcome */}
           <div className="flex items-center gap-4">
-            {/* Mobile Burger Button - Only show when sidebar is CLOSED */}
+            {/* Mobile burger */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className={`md:hidden p-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg shadow-lg transition-all ${
-                isMobileMenuOpen
-                  ? "opacity-0 pointer-events-none"
-                  : "opacity-100"
+              className={`md:hidden p-2 rounded-lg shadow-lg transition-all ${
+                isMobileMenuOpen ? "opacity-0 pointer-events-none" : "opacity-100"
               }`}
+              style={{
+                background: "var(--bg-secondary)",
+                color: "var(--text-primary)",
+              }}
             >
               <IconMenu2 size={24} />
             </button>
 
-            {/* Welcome message - hidden on mobile */}
             <div className="hidden md:block">
-              <h2 className="text-xl font-semibold text-white">
+              <h2
+                className="text-xl font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 Welcome back, {user.name.split(" ")[0]}! 👋
               </h2>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 {new Date().toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
@@ -87,16 +104,39 @@ const TopNav: React.FC<TopNavProps> = ({
             </div>
           </div>
 
-          {/* Right side - Notifications & User Profile */}
-          <div className="flex items-center gap-2 md:gap-4">
-            {/* Notifications */}
+          {/* Right — Theme toggle + Notifications + User */}
+          <div className="flex items-center gap-2 md:gap-3">
+
+            {/* ── Theme Toggle ─────────────────────────────────────── */}
+            <button
+              onClick={toggleTheme}
+              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              className="relative p-2 rounded-xl transition-all duration-300 group"
+              style={{
+                background: isDark
+                  ? "rgba(124,58,237,0.15)"
+                  : "rgba(234,108,0,0.1)",
+                border: `1px solid ${isDark ? "rgba(124,58,237,0.3)" : "rgba(234,108,0,0.25)"}`,
+                color: isDark ? "#a78bfa" : "#ea6c00",
+              }}
+            >
+              <span
+                className="block transition-transform duration-500"
+                style={{ transform: isDark ? "rotate(0deg)" : "rotate(180deg)" }}
+              >
+                {isDark ? <IconMoon size={20} /> : <IconSun size={20} />}
+              </span>
+            </button>
+
+            {/* ── Notifications ────────────────────────────────────── */}
             <div className="relative">
               <button
                 onClick={() => {
                   setShowNotifications(!showNotifications);
                   setShowUserMenu(false);
                 }}
-                className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-all"
+                className="relative p-2 rounded-lg transition-all"
+                style={{ color: "var(--text-secondary)" }}
               >
                 <IconBell size={24} />
                 {unreadCount > 0 && (
@@ -106,38 +146,59 @@ const TopNav: React.FC<TopNavProps> = ({
                 )}
               </button>
 
-              {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
-                  <div className="px-4 py-3 border-b border-slate-700 bg-slate-900/50">
-                    <h3 className="text-white font-semibold">Notifications</h3>
+                <div
+                  className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden"
+                  style={{
+                    background: dropBg,
+                    border: `1px solid ${dropBorder}`,
+                    boxShadow: "var(--shadow-card)",
+                  }}
+                >
+                  <div
+                    className="px-4 py-3"
+                    style={{
+                      borderBottom: `1px solid ${dropBorder}`,
+                      background: dropHeaderBg,
+                    }}
+                  >
+                    <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                      Notifications
+                    </h3>
                   </div>
                   <div className="max-h-96 overflow-y-auto">
-                    {notifications.map((notification) => (
+                    {notifications.map((n) => (
                       <div
-                        key={notification.id}
-                        className={`px-4 py-3 border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors cursor-pointer ${
-                          notification.unread ? "bg-purple-900/10" : ""
-                        }`}
+                        key={n.id}
+                        className="px-4 py-3 cursor-pointer transition-colors"
+                        style={{
+                          borderBottom: `1px solid ${dropBorder}`,
+                          background: n.unread
+                            ? isDark ? "rgba(124,58,237,0.07)" : "rgba(124,58,237,0.04)"
+                            : "transparent",
+                        }}
                       >
                         <div className="flex items-start gap-3">
-                          {notification.unread && (
-                            <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                          {n.unread && (
+                            <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 flex-shrink-0" />
                           )}
                           <div className="flex-1">
-                            <p className="text-white text-sm">
-                              {notification.message}
+                            <p className="text-sm" style={{ color: "var(--text-primary)" }}>
+                              {n.message}
                             </p>
-                            <p className="text-slate-400 text-xs mt-1">
-                              {notification.time}
+                            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                              {n.time}
                             </p>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="px-4 py-3 bg-slate-900/50 text-center">
-                    <button className="text-purple-400 hover:text-purple-300 text-sm font-medium">
+                  <div
+                    className="px-4 py-3 text-center"
+                    style={{ background: dropHeaderBg }}
+                  >
+                    <button className="text-sm font-medium" style={{ color: "var(--text-accent)" }}>
                       View all notifications
                     </button>
                   </div>
@@ -145,14 +206,15 @@ const TopNav: React.FC<TopNavProps> = ({
               )}
             </div>
 
-            {/* User Profile Dropdown */}
+            {/* ── User Menu ────────────────────────────────────────── */}
             <div className="relative">
               <button
                 onClick={() => {
                   setShowUserMenu(!showUserMenu);
                   setShowNotifications(false);
                 }}
-                className="flex items-center gap-3 p-2 hover:bg-slate-700/50 rounded-lg transition-all"
+                className="flex items-center gap-3 p-2 rounded-lg transition-all"
+                style={{ color: "var(--text-primary)" }}
               >
                 <img
                   src={user.avatar}
@@ -160,21 +222,37 @@ const TopNav: React.FC<TopNavProps> = ({
                   className="w-10 h-10 rounded-full border-2 border-purple-500"
                 />
                 <div className="text-left hidden md:block">
-                  <p className="text-white text-sm font-medium">{user.name}</p>
-                  <p className="text-slate-400 text-xs">{user.role}</p>
+                  <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                    {user.name}
+                  </p>
+                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                    {user.role}
+                  </p>
                 </div>
                 <IconChevronDown
                   size={16}
-                  className={`text-slate-400 hidden md:block transition-transform ${
-                    showUserMenu ? "rotate-180" : ""
-                  }`}
+                  className={`hidden md:block transition-transform ${showUserMenu ? "rotate-180" : ""}`}
+                  style={{ color: "var(--text-muted)" }}
                 />
               </button>
 
-              {/* User Menu Dropdown */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
-                  <div className="px-4 py-3 border-b border-slate-700 bg-slate-900/50">
+                <div
+                  className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden"
+                  style={{
+                    background: dropBg,
+                    border: `1px solid ${dropBorder}`,
+                    boxShadow: "var(--shadow-card)",
+                  }}
+                >
+                  {/* User info header */}
+                  <div
+                    className="px-4 py-3"
+                    style={{
+                      borderBottom: `1px solid ${dropBorder}`,
+                      background: dropHeaderBg,
+                    }}
+                  >
                     <div className="flex items-center gap-3">
                       <img
                         src={user.avatar}
@@ -182,8 +260,12 @@ const TopNav: React.FC<TopNavProps> = ({
                         className="w-12 h-12 rounded-full"
                       />
                       <div>
-                        <p className="text-white font-semibold">{user.name}</p>
-                        <p className="text-slate-400 text-sm">{user.email}</p>
+                        <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                          {user.name}
+                        </p>
+                        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                          {user.email}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -191,24 +273,32 @@ const TopNav: React.FC<TopNavProps> = ({
                   <div className="py-2">
                     <button
                       onClick={() => navigate("/Users/profile")}
-                      className="w-full px-4 py-2 text-left text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors flex items-center gap-3"
+                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors"
+                      style={{ color: "var(--text-secondary)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
                       <IconBell size={18} />
                       <span>My Profile</span>
                     </button>
                     <button
                       onClick={() => navigate("/settings")}
-                      className="w-full px-4 py-2 text-left text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors flex items-center gap-3"
+                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors"
+                      style={{ color: "var(--text-secondary)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
-                      <IconBell size={18} />
+                      <IconSettings size={18} />
                       <span>Settings</span>
                     </button>
                   </div>
 
-                  <div className="border-t border-slate-700 py-2">
+                  <div className="py-2" style={{ borderTop: `1px solid ${dropBorder}` }}>
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-3"
+                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors text-red-400 hover:text-red-300"
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.08)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
                       <IconLogout size={18} />
                       <span>Logout</span>
@@ -217,6 +307,7 @@ const TopNav: React.FC<TopNavProps> = ({
                 </div>
               )}
             </div>
+
           </div>
         </div>
       </div>

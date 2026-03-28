@@ -1,14 +1,70 @@
-.mantine-TextInput-input:focus,
-.mantine-Textarea-input:focus,
-.mantine-Select-input:focus,
-.mantine-NumberInput-input:focus,
-.mantine-FileInput-input:focus,
-.mantine-Radio-radio:focus,
-.mantine-DateInput-input:focus {
-  border-color: rgb(139 92 246) !important;
-  box-shadow: 0 0 0 1px rgb(139 92 246) !important;
+/* src/pages/components/layout/AppLayout.css */
+:root,
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-card: rgba(30, 41, 59, 0.6);
+  --bg-card-hover: rgba(30, 41, 59, 0.9);
+  --bg-sidebar: linear-gradient(
+    to bottom right,
+    #0f172a,
+    #1e293b,
+    #0f172a
+  ); /* ← updated */
+  --bg-topnav: linear-gradient(to right, #0f172a, #1e293b, #0f172a);
+  --bg-input: rgba(30, 41, 59, 0.8);
+
+  --border-default: rgba(71, 85, 105, 0.5);
+  --border-card: rgba(71, 85, 105, 0.6);
+  --border-accent: rgba(139, 92, 246, 0.3);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-accent: #a78bfa;
+  --text-accent-primary: #7c3aed;
+  --text-accent-secondary: #8c70e0;
+
+  --accent-purple: #7c3aed;
+  --accent-orange: #f97316;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+
+  --btn-tertiary: #334155;
 }
 
+[data-theme="light"] {
+  --bg-primary: #edeaf2;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #ede9fe;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card-hover: #eeebf4;
+  --bg-sidebar: linear-gradient(to bottom right, #ffffff, #f8f5ff, #ffffff);
+  --bg-topnav: linear-gradient(to bottom right, #ffffff, #f8f5ff, #ffffff);
+  --bg-input: rgba(241, 245, 249, 1);
+
+  --border-default: rgba(148, 163, 184, 0.5);
+  --border-card: rgba(148, 163, 184, 0.4);
+  --border-accent: rgba(139, 92, 246, 0.35);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-accent-primary: #7c3aed;
+  --text-accent-secondary: #a78bfa;
+
+  --accent-purple: #7c3aed;
+  --accent-orange: #ea6c00;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+
+  --btn-tertiary: #94a3c0;
+}
+
+/* ─────────────────────────────────────────────
+   MANTINE INPUT OVERRIDES
+───────────────────────────────────────────── */
 .mantine-TextInput-input,
 .mantine-Textarea-input,
 .mantine-Select-input,
@@ -16,25 +72,122 @@
 .mantine-FileInput-input,
 .mantine-Radio-radio,
 .mantine-DateInput-input {
-  background-color: #1c2739 !important;
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
+
+.mantine-TextInput-input:focus,
+.mantine-Textarea-input:focus,
+.mantine-Select-input:focus,
+.mantine-NumberInput-input:focus,
+.mantine-FileInput-input:focus,
+.mantine-Radio-radio:focus,
+.mantine-DateInput-input:focus {
+  border-color: var(--accent-purple) !important;
+  box-shadow: 0 0 0 1px var(--accent-purple) !important;
+}
+
+
+/* Keep placeholder gray even when input has error */
+.mantine-TextInput-input::placeholder,
+.mantine-Textarea-input::placeholder,
+.mantine-Select-input::placeholder,
+.mantine-NumberInput-input::placeholder,
+.mantine-FileInput-input::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 1 !important;
 }
 
 /* Purple selected date */
 .mantine-DateInput-day[data-selected],
 .mantine-DateInput-monthsListControl[data-selected],
 .mantine-DateInput-yearsListControl[data-selected] {
-  background-color: #9333ea !important;
+  background-color: var(--accent-purple) !important;
   color: white !important;
 }
 
-/* Purple hover */
 .mantine-DateInput-day:hover,
 .mantine-DateInput-calendarHeaderLevel:hover,
 .mantine-DateInput-monthsListControl:hover,
 .mantine-DateInput-yearsListControl:hover,
 .mantine-DateInput-calendarHeaderControl:hover {
-  background-color: #7c3aed !important;
+  background-color: var(--accent-purple) !important;
   color: white !important;
 }
 
+/* ─────────────────────────────────────────────
+   MANTINE STEPPER OVERRIDES
+───────────────────────────────────────────── */
 
+/* Connector line between steps */
+.mantine-Stepper-separator {
+  background-color: var(--border-default) !important;
+  height: 2px !important;
+  opacity: 1 !important;
+}
+
+/* Completed step connector — purple */
+.mantine-Stepper-separator[data-active] {
+  background-color: var(--accent-purple) !important;
+}
+
+/* Step icon — default (upcoming) */
+.mantine-Stepper-stepIcon {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-muted) !important;
+}
+
+/* Step icon — active (current step) */
+.mantine-Stepper-stepIcon[data-progress] {
+  border-color: var(--accent-purple) !important;
+  color: var(--accent-purple) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Step icon — completed */
+.mantine-Stepper-stepIcon[data-completed] {
+  background-color: var(--accent-purple) !important;
+  border-color: var(--accent-purple) !important;
+  color: #ffffff !important;
+}
+
+/* Step label */
+.mantine-Stepper-stepLabel {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+}
+
+/* Active step label */
+.mantine-Stepper-step[data-progress] .mantine-Stepper-stepLabel {
+  color: var(--accent-purple) !important;
+  font-weight: 600;
+}
+
+/* Completed step label */
+.mantine-Stepper-step[data-completed] .mantine-Stepper-stepLabel {
+  color: var(--accent-purple) !important;
+}
+
+/* Step description */
+.mantine-Stepper-stepDescription {
+  color: var(--text-muted) !important;
+}
+
+/* Active step description */
+.mantine-Stepper-step[data-progress] .mantine-Stepper-stepDescription {
+  color: var(--text-secondary) !important;
+}
+
+/* ─────────────────────────────────────────────
+   TIME INPUT CLOCK ICON
+───────────────────────────────────────────── */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.4);
+  cursor: pointer;
+}
+
+[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4) opacity(0.6);
+}

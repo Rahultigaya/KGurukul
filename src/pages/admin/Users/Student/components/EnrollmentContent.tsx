@@ -12,26 +12,26 @@ interface EnrollmentProps {
   errors: ValidationErrors;
 }
 
-const datePickerStyles = {
-  calendarHeader: { color: "white", backgroundColor: "#30345c" },
-  calendarHeaderLevel: { color: "white" },
-  calendarHeaderControl: { color: "white" },
-  weekday: { color: "#cbd5e1" },
-  day: { color: "white" },
-};
-
 const EnrollmentContent = React.memo<EnrollmentProps>(
   ({ formData, handleInputChange, errors }) => (
     <Stack gap="md">
-      <Paper className="p-4 sm:p-6 border border-purple-500/30 bg-slate-700/50">
+      <Paper
+        className="p-4 sm:p-6"
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-accent)",
+        }}
+      >
         <Title
           order={5}
           mb="md"
-          className="text-purple-400 text-base sm:text-lg"
+          style={{ color: "var(--text-accent)", fontSize: "clamp(14px, 2vw, 18px)" }}
         >
           Enrollment Information
         </Title>
+
         <Grid gutter="md">
+          {/* Registration Date */}
           <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
             <DateInput
               label="Registration Date"
@@ -43,13 +43,24 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               error={errors.registrationDate}
               onKeyDown={(e) => e.preventDefault()}
               size="md"
-              classNames={{ label: "text-white mb-2" }}
               popoverProps={{
-                styles: { dropdown: { backgroundColor: "#30345c" } },
+                styles: {
+                  dropdown: { backgroundColor: "var(--bg-secondary)" },
+                },
               }}
-              styles={datePickerStyles}
+              styles={{
+                label:                    { color: "var(--text-primary)",   marginBottom: 6 },
+                input:                    { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+                calendarHeader:           { color: "var(--text-primary)",   backgroundColor: "var(--bg-secondary)"  },
+                calendarHeaderLevel:      { color: "var(--text-primary)"  },
+                calendarHeaderControl:    { color: "var(--text-primary)"  },
+                weekday:                  { color: "var(--text-secondary)" },
+                day:                      { color: "var(--text-primary)"  },
+              }}
             />
           </Grid.Col>
+
+          {/* Subject */}
           <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
             <TextInput
               label="Subject"
@@ -60,9 +71,14 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               withAsterisk
               size="md"
               error={errors.subject}
-              classNames={{ label: "text-white mb-2" }}
+              styles={{
+                label: { color: "var(--text-primary)", marginBottom: 6 },
+                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+              }}
             />
           </Grid.Col>
+
+          {/* Branch */}
           <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
             <TextInput
               label="Branch"
@@ -73,11 +89,19 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               withAsterisk
               size="md"
               error={errors.branch}
-              classNames={{ label: "text-white mb-2" }}
+              styles={{
+                label: { color: "var(--text-primary)", marginBottom: 6 },
+                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+              }}
             />
           </Grid.Col>
+
+          {/* Course Type */}
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <label className="text-white text-sm font-medium block mb-2">
+            <label
+              className="text-sm font-medium block mb-2"
+              style={{ color: "var(--text-primary)" }}
+            >
               Course Type <span className="text-red-500">*</span>
             </label>
             <Radio.Group
@@ -86,41 +110,23 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               required
               size="md"
             >
+              {/* Mobile — stack */}
               <Stack gap="xs" className="sm:hidden">
-                <Radio
-                  value="Regular"
-                  label="Regular"
-                  color="violet"
-                  classNames={{ label: "text-white" }}
-                />
-                <Radio
-                  value="Crash (Backlog)"
-                  label="Crash (Backlog)"
-                  color="violet"
-                  classNames={{ label: "text-white" }}
-                />
+                <Radio value="Regular"        label="Regular"        color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
+                <Radio value="Crash (Backlog)" label="Crash (Backlog)" color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
               </Stack>
+              {/* Desktop — row */}
               <Group className="hidden sm:flex">
-                <Radio
-                  value="Regular"
-                  label="Regular"
-                  color="violet"
-                  classNames={{ label: "text-white" }}
-                />
-                <Radio
-                  value="Crash (Backlog)"
-                  label="Crash (Backlog)"
-                  color="violet"
-                  classNames={{ label: "text-white" }}
-                />
+                <Radio value="Regular"        label="Regular"        color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
+                <Radio value="Crash (Backlog)" label="Crash (Backlog)" color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
               </Group>
             </Radio.Group>
             {errors.courseType && (
-              <Text size="xs" c="red" mt={4}>
-                {errors.courseType}
-              </Text>
+              <Text size="xs" c="red" mt={4}>{errors.courseType}</Text>
             )}
           </Grid.Col>
+
+          {/* Reference */}
           <Grid.Col span={{ base: 12, md: 6 }}>
             <TextInput
               label="Reference"
@@ -128,7 +134,10 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               value={formData.reference}
               onChange={(e) => handleInputChange("reference", e.target.value)}
               size="md"
-              classNames={{ label: "text-white mb-2" }}
+              styles={{
+                label: { color: "var(--text-primary)", marginBottom: 6 },
+                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+              }}
             />
           </Grid.Col>
         </Grid>

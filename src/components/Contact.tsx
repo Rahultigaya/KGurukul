@@ -30,12 +30,14 @@ const Contact = () => {
         <section
             className="
         relative py-12 px-4
-        bg-[url('/map-bg-removebg.png')]
-        bg-cover bg-center
+        bg-gradient-to-br from-slate-900 via-gray-900 to-black
       "
         >
+            {/* Map Background Overlay */}
+            <div className="absolute inset-0 bg-[url('/map-bg-removebg.png')] bg-cover bg-center opacity-30" />
+
             {/* Dark Overlay */}
-            <div className="absolute inset-0 bg-black/75" />
+            <div className="absolute inset-0 bg-black/60" />
 
             {/* CONTENT */}
             <div className="relative z-10 max-w-6xl mx-auto grid md:grid-cols-2 gap-12">

@@ -44,13 +44,13 @@ const FloatingActions = () => {
                 // rel="noopener noreferrer"
                 title="Chat on WhatsApp"
                 className="
-          w-12 h-12 rounded-xl
-          bg-green-500 text-white text-2xl
-          flex items-center justify-center
-          shadow-lg
-          hover:bg-green-600 hover:-translate-y-1
-          transition-all duration-300
-        "
+              w-12 h-12 rounded-xl
+              bg-green-500 text-white text-2xl
+              flex items-center justify-center
+              shadow-lg
+              hover:bg-green-600 hover:-translate-y-1
+              transition-all duration-300
+            "
             >
                 <i className="fa fa-whatsapp" />
             </a>

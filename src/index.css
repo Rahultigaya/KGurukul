@@ -2,19 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Default to light so there's no dark flash */
-:root {
-  --bg-body: #f8fafc;
-}
-
-[data-theme="dark"] {
-  --bg-body: linear-gradient(135deg, #1f2937, #111827);
-}
-
 body {
   height: 100vh;
-  font-family: 'Outfit', sans-serif;
-  background: var(--bg-body);
+  font-family: 'outfit';
+  /* background-color:#122d7d; */
+  /* background: linear-gradient(135deg, #766ec7, #298ebd, #100d25); */
+  background: linear-gradient(135deg, #1f2937, #111827);
+  /* background-image: url('/logo.png'); */
+  /* path to your image */
+  /* opacity: 0.5; */
   color: black;
   transition: background 0.3s, color 0.3s;
   margin: 0;
@@ -29,8 +25,15 @@ html {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fadeIn {
@@ -38,6 +41,33 @@ html {
 }
 
 /* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar       { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.25); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}

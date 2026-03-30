@@ -1,13 +1,49 @@
-import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import Product from "../Cources";
-import reviews from "../review";
+import { useNavigate } from "react-router-dom";
+// import reviews from "../review";
+import { reviews as fetchReviewsAPI } from "../api/api";
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const today = new Date().getDay();
 
 const Services = () => {
     const navigate = useNavigate();
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchReviews = async () => {
+        try {
+            console.log("Fetching reviews from API...");
+            const res = await fetchReviewsAPI();
+            console.log("Full API Response:", res);
+            console.log("Response data:", res.data);
+            console.log("Response type:", typeof res);
+
+            // Handle different response structures
+            let reviewsData = [];
+            if (res && Array.isArray(res.data)) {
+                reviewsData = res.data;
+            } else if (Array.isArray(res)) {
+                reviewsData = res;
+            }
+
+            console.log("Setting reviews:", reviewsData);
+            console.log("Reviews length:", reviewsData.length);
+            setReviews(reviewsData);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching reviews:", error);
+            console.error("Error message:", error.message);
+            console.error("Error response:", error.response);
+            setReviews([]);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchReviews();
+    }, []);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll reviews every 4 seconds
@@ -222,13 +258,23 @@ const Services = () => {
                             className="flex gap-4 overflow-x-auto overflow-y-hidden scroll-smooth px-2"
                             style={{
                                 scrollbarWidth: 'none',
-                                msOverflowStyle: 'none'
+                                msOverflowStyle: 'none',
+                                WebkitScrollbar: 'none'
                             }}
                         >
-                            {reviews.map((review, i) => (
-                                <div
-                                    key={i}
-                                    className="
+                            {reviews?.length > 0 ? (
+                                reviews.map((review, i) => {
+                                    console.log(`Review ${i}:`, review);
+
+                                    // Try different possible message field names
+                                    const messages = review.messages || review.message || review.text || review.review || review.content || [];
+                                    const messagesArray = Array.isArray(messages) ? messages : [messages];
+                                    console.log(`Messages for review ${i}:`, messagesArray);
+
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="
                                         min-w-[280px] max-w-[280px]
                                         bg-[#0b141a]
                                         rounded-2xl
@@ -237,37 +283,38 @@ const Services = () => {
                                         flex flex-col
                                         border border-[#1f2c34]
                                     "
-                                >
-                                    {/* Header - Dark WhatsApp Theme */}
-                                    <div className="bg-[#1f2c34] text-white px-4 py-3 flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-lg font-bold">
-                                            {review.name.charAt(0)}
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-sm">{review.name}</p>
-                                            <p className="text-[10px] text-slate-400">{review.org}</p>
-                                        </div>
-                                        <div className="flex gap-0.5">
-                                            <span className="w-1 h-1 rounded-full bg-white/60"></span>
-                                            <span className="w-1 h-1 rounded-full bg-white/60"></span>
-                                            <span className="w-1 h-1 rounded-full bg-white/60"></span>
-                                        </div>
-                                    </div>
+                                        >
+                                            {/* Header - Dark WhatsApp Theme */}
+                                            <div className="bg-[#1f2c34] text-white px-4 py-3 flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-lg font-bold">
+                                                    {review.name?.charAt(0) || "?"}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-sm">{review.name || "Anonymous"}</p>
+                                                    <p className="text-[10px] text-slate-400">{review.org || "N/A"}</p>
+                                                </div>
+                                                <div className="flex gap-0.5">
+                                                    <span className="w-1 h-1 rounded-full bg-white/60"></span>
+                                                    <span className="w-1 h-1 rounded-full bg-white/60"></span>
+                                                    <span className="w-1 h-1 rounded-full bg-white/60"></span>
+                                                </div>
+                                            </div>
 
-                                    {/* Chat Body - Dark Theme */}
-                                    <div
-                                        className="
+                                            {/* Chat Body - Dark Theme */}
+                                            <div
+                                                className="
                                             bg-[#0b141a]
                                             flex-1
                                             p-4
                                             min-h-[220px]
                                             space-y-3
                                         "
-                                    >
-                                        {review.messages.map((msg, idx) => (
-                                            <div
-                                                key={idx}
-                                                className="
+                                            >
+                                                {messagesArray && messagesArray.length > 0 ? (
+                                                    messagesArray.map((msg, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="
                                                     max-w-[90%]
                                                     bg-[#005c4b]
                                                     px-4 py-2.5
@@ -277,40 +324,49 @@ const Services = () => {
                                                     shadow-md
                                                     relative
                                                 "
-                                            >
-                                                {msg}
+                                                        >
+                                                            {msg}
 
-                                                {/* WhatsApp checkmarks */}
-                                                <div className="absolute -right-5 -bottom-1 flex gap-0.5">
-                                                    <svg className="w-3 h-3 text-[#53bdeb]" fill="currentColor" viewBox="0 0 16 15">
-                                                        <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z" />
-                                                    </svg>
-                                                </div>
+                                                            {/* WhatsApp checkmarks */}
+                                                            <div className="absolute -right-5 -bottom-1 flex gap-0.5">
+                                                                <svg className="w-3 h-3 text-[#53bdeb]" fill="currentColor" viewBox="0 0 16 15">
+                                                                    <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z" />
+                                                                </svg>
+                                                            </div>
 
-                                                {/* Bubble Tail - Left */}
-                                                <span
-                                                    className="
+                                                            {/* Bubble Tail - Left */}
+                                                            <span
+                                                                className="
                                                         absolute left-[-6px] top-3
                                                         w-0 h-0
                                                         border-t-[6px] border-t-transparent
                                                         border-b-[6px] border-b-transparent
                                                         border-r-[6px] border-r-[#005c4b]
                                                     "
-                                                />
+                                                            />
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-white/70 text-sm">No message</p>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
 
-                                    {/* Footer - Input Area */}
-                                    <div className="bg-[#1f2c34] px-3 py-2 flex items-center gap-2">
-                                        <span className="text-slate-400 text-lg">😊</span>
-                                        <div className="flex-1 bg-[#2a3942] rounded-full px-4 py-2 text-xs text-slate-400">
-                                            Type a message...
+                                            {/* Footer - Input Area */}
+                                            <div className="bg-[#1f2c34] px-3 py-2 flex items-center gap-2">
+                                                <span className="text-slate-400 text-lg">😊</span>
+                                                <div className="flex-1 bg-[#2a3942] rounded-full px-4 py-2 text-xs text-slate-400">
+                                                    Type a message...
+                                                </div>
+                                                <span className="text-emerald-500 text-lg">➤</span>
+                                            </div>
                                         </div>
-                                        <span className="text-emerald-500 text-lg">➤</span>
-                                    </div>
-                                </div>
-                            ))}
+                                    );
+                                })
+                            ) : (
+                                <p className="text-white/70 text-center py-8 w-full">
+                                    {loading ? "Loading reviews..." : "No reviews available"}
+                                </p>
+                            )}
                         </div>
                     </div>
 

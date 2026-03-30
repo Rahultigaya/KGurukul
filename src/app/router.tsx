@@ -15,6 +15,7 @@ import BatchList from "../pages/batches/BatchList";
 import BatchForm from "../pages/batches/BatchForm";
 import BatchDetail from "../pages/batches/BatchDetail";
 import BatchAssign from "../pages/batches/BatchAssign";
+import TeacherRegistration from "../pages/admin/Users/Teacher/TeacherRegistration";
 
 export const router = createBrowserRouter([
   {
@@ -71,11 +72,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "Users/add-teacher",
-        element: <StudentRegistration />, // Temporary - create AddEditTeacher later
+        element: <TeacherRegistration />, // Temporary - create AddEditTeacher later
       },
       {
         path: "Users/edit-teacher/:id",
-        element: <StudentRegistration />, // Temporary - create AddEditTeacher later
+        element: <TeacherRegistration />, // Temporary - create AddEditTeacher later
       },
     ],
   },

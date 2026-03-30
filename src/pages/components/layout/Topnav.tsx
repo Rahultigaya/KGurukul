@@ -1,6 +1,6 @@
 // src/pages/components/layout/Topnav.tsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   IconBell,
@@ -18,6 +18,14 @@ interface TopNavProps {
   setIsMobileMenuOpen: (open: boolean) => void;
 }
 
+interface UserData {
+  name?: string;
+  email?: string;
+  role?: string;
+  avatar?: string;
+  [key: string]: any;
+}
+
 const TopNav: React.FC<TopNavProps> = ({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
@@ -27,13 +35,48 @@ const TopNav: React.FC<TopNavProps> = ({
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [userData, setUserData] = useState<UserData>({});
 
-  const user = {
-    name: "John Doe",
-    email: "john.doe@kgurukul.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-    role: "Admin",
-  };
+  // Load user data from localStorage on mount
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const storedUser = localStorage.getItem("userData");
+        const userEmail = localStorage.getItem("userEmail");
+
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUserData(parsedUser);
+        } else if (userEmail) {
+          // Fallback to email if userData is not available
+          setUserData({ email: userEmail });
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      }
+    };
+
+    loadUserData();
+
+    // Listen for storage changes (for multi-tab support)
+    const handleStorageChange = () => {
+      loadUserData();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Memoize user object with defaults
+  const user = useMemo(() => {
+    return {
+      name: userData.name || userData.full_name || userData.username || "User",
+      email: userData.email || localStorage.getItem("userEmail") || "user@kgurukul.com",
+      role: userData.role || "Student",
+      avatar: userData.avatar || userData.profile_image ||
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.email || "User"}`,
+    };
+  }, [userData]);
 
   const notifications = [
     { id: 1, message: "New student enrolled",  time: "5 min ago",   unread: true  },
@@ -44,9 +87,8 @@ const TopNav: React.FC<TopNavProps> = ({
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("isAuthenticated");
+    // Use the logout function from common.ts
+    localStorage.clear();
     navigate("/auth/login");
   };
 

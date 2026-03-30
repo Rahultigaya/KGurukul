@@ -3,11 +3,11 @@ import { TextInput, Button, PinInput, Alert } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import {
   IconMail,
-  IconArrowLeft,
   IconCheck,
   IconAlertCircle,
   IconClock,
 } from "@tabler/icons-react";
+import { sendOTP, verifyOTP, type AuthResponse } from "../../../api/api";
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(600); // 10 minutes
   const [isExpired, setIsExpired] = useState(false);
 
   // Email validation function
@@ -66,15 +66,53 @@ const LoginForm: React.FC = () => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await sendOTP(email);
       console.log("OTP sent successfully to:", email);
       setIsLoading(false);
       setStep("otp");
-      setTimer(60);
+      setTimer(600); // 10 minutes
       setIsExpired(false);
       setOtp("");
-    }, 1500);
+      setSuccessMessage(`OTP sent successfully to ${email}`);
+
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 5000);
+    } catch (err: any) {
+      setIsLoading(false);
+      console.error("Error sending OTP:", err);
+
+      // Extract error message from response
+      let errorMessage = "Failed to send OTP. Please try again.";
+
+      if (err.response?.data) {
+        const data = err.response.data;
+
+        // Handle FastAPI validation error format
+        if (data.detail) {
+          if (typeof data.detail === 'string') {
+            errorMessage = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            // FastAPI validation errors are often arrays
+            errorMessage = data.detail.map((e: any) => e.msg || e.message || String(e)).join(', ');
+          } else if (typeof data.detail === 'object') {
+            errorMessage = data.detail.msg || data.detail.message || JSON.stringify(data.detail);
+          }
+        } else if (data.msg) {
+          errorMessage = data.msg;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+    }
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
@@ -101,34 +139,88 @@ const LoginForm: React.FC = () => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("OTP verified:", otp);
+    try {
+      const response = await verifyOTP(email, otp);
+      console.log("OTP verified successfully:", response.data);
 
-      // Store authentication data
-      localStorage.setItem("authToken", "sample-token-12345");
+      // Store authentication data from response with proper typing
+      const authData: AuthResponse = response.data;
+      const { access_token, refresh_token, user } = authData;
+
+      // Store tokens safely - only set if they exist
+      if (access_token) {
+        localStorage.setItem("access_token", access_token);
+        localStorage.setItem("authToken", access_token); // Keep for backward compatibility
+      }
+
+      if (refresh_token) {
+        localStorage.setItem("refresh_token", refresh_token);
+      }
+
       localStorage.setItem("userEmail", email);
       localStorage.setItem("isAuthenticated", "true");
+
+      if (user) {
+        localStorage.setItem("userData", JSON.stringify(user));
+      }
 
       setIsLoading(false);
       setStep("success");
 
       // Redirect to admin dashboard
       setTimeout(() => {
-        navigate("/adminDashboard"); // ✅ Updated to new route structure
+        navigate("/adminDashboard");
       }, 1500);
-    }, 1500);
+    } catch (err: any) {
+      setIsLoading(false);
+      console.error("Error verifying OTP:", err);
+
+      // Extract error message from response
+      let errorMessage = "Failed to verify OTP. Please try again.";
+
+      if (err.response?.data) {
+        const data = err.response.data;
+
+        // Handle FastAPI validation error format
+        if (data.detail) {
+          if (typeof data.detail === 'string') {
+            errorMessage = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errorMessage = data.detail.map((e: any) => e.msg || e.message || String(e)).join(', ');
+          } else if (typeof data.detail === 'object') {
+            errorMessage = data.detail.msg || data.detail.message || JSON.stringify(data.detail);
+          }
+        } else if (data.msg) {
+          errorMessage = data.msg;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      // Specific error messages
+      if (err.response?.status === 401) {
+        errorMessage = "Invalid OTP. Please check and try again.";
+      } else if (err.response?.status === 400) {
+        errorMessage = "Invalid or expired OTP. Please request a new code.";
+      }
+
+      setError(errorMessage);
+    }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     setError("");
     setSuccessMessage("");
     setIsLoading(true);
 
-    // Simulate API call for resending OTP
-    setTimeout(() => {
+    try {
+      await sendOTP(email);
       console.log("New OTP sent successfully to:", email);
-      setTimer(60);
+      setTimer(600); // 10 minutes
       setIsExpired(false);
       setOtp("");
       setIsLoading(false);
@@ -138,7 +230,39 @@ const LoginForm: React.FC = () => {
       setTimeout(() => {
         setSuccessMessage("");
       }, 5000);
-    }, 1500);
+    } catch (err: any) {
+      setIsLoading(false);
+      console.error("Error resending OTP:", err);
+
+      // Extract error message from response
+      let errorMessage = "Failed to resend OTP. Please try again.";
+
+      if (err.response?.data) {
+        const data = err.response.data;
+
+        // Handle FastAPI validation error format
+        if (data.detail) {
+          if (typeof data.detail === 'string') {
+            errorMessage = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            // FastAPI validation errors are often arrays
+            errorMessage = data.detail.map((e: any) => e.msg || e.message || String(e)).join(', ');
+          } else if (typeof data.detail === 'object') {
+            errorMessage = data.detail.msg || data.detail.message || JSON.stringify(data.detail);
+          }
+        } else if (data.msg) {
+          errorMessage = data.msg;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+    }
   };
 
   const handleBack = () => {
@@ -146,7 +270,7 @@ const LoginForm: React.FC = () => {
     setOtp("");
     setError("");
     setSuccessMessage("");
-    setTimer(60);
+    setTimer(600); // 10 minutes
     setIsExpired(false);
   };
 
@@ -260,15 +384,6 @@ const LoginForm: React.FC = () => {
       {/* Step 2: OTP Entry */}
       {step === "otp" && (
         <div className="animate-fade-in">
-          <button
-            onClick={handleBack}
-            className="flex items-center text-gray-600 hover:text-gray-800 mb-6 transition-colors"
-            disabled={isLoading}
-          >
-            <IconArrowLeft size={18} className="mr-2" />
-            Back
-          </button>
-
           <div className="mb-1">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">
               Enter verification code

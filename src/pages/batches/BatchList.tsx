@@ -1,8 +1,8 @@
 // src/pages/batches/BatchList.tsx
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Select } from "@mantine/core";
+import { Select, Loader } from "@mantine/core";
 import {
   IconPlus, IconSearch, IconFilter, IconMapPin, IconClock,
   IconUser, IconUsers, IconBook, IconEdit, IconTrash,
@@ -10,7 +10,7 @@ import {
   IconAlertTriangle, IconCircleCheck, IconCalendar,
 } from "@tabler/icons-react";
 import {
-  getAllBatches, deleteBatch, AREAS, BRANCHES, DAYS, BATCH_TYPES,
+  getAllBatchesAPI, AREAS, BRANCHES, DAYS, BATCH_TYPES,
   type Batch, type Area, type BatchType,
 } from "./batchStore";
 import { useTheme } from "../../context/ThemeContext";
@@ -19,16 +19,16 @@ import { useTheme } from "../../context/ThemeContext";
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TODAY_DAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+const TODAY_DAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][new Date().getDay()];
 
 const areaColor: Record<Area, { badge: string; dot: string }> = {
-  Thane:  { badge: "bg-orange-500/15 text-orange-400 border border-orange-500/25", dot: "bg-orange-400" },
+  Thane: { badge: "bg-orange-500/15 text-orange-400 border border-orange-500/25", dot: "bg-orange-400" },
   Mulund: { badge: "bg-violet-500/15 text-violet-400 border border-violet-500/25", dot: "bg-violet-400" },
 };
 
 const dayColor: Record<string, string> = {
-  Monday:"text-blue-400", Tuesday:"text-green-400", Wednesday:"text-yellow-400",
-  Thursday:"text-orange-400", Friday:"text-violet-400", Saturday:"text-pink-400", Sunday:"text-red-400",
+  Monday: "text-blue-400", Tuesday: "text-green-400", Wednesday: "text-yellow-400",
+  Thursday: "text-orange-400", Friday: "text-violet-400", Saturday: "text-pink-400", Sunday: "text-red-400",
 };
 
 const typeColor: Record<BatchType, string> = {
@@ -154,10 +154,10 @@ const BatchCard: React.FC<{
 
         {/* Actions */}
         <div className="flex items-center gap-0.5 shrink-0">
-          <button onClick={onView}   title="View"   className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--text-muted)" }}><IconEye      size={14} /></button>
-          <button onClick={onAssign} title="Assign" className="p-1.5 rounded-lg transition-colors hover:text-green-400"  style={{ color: "var(--text-muted)" }}><IconUserPlus size={14} /></button>
-          <button onClick={onEdit}   title="Edit"   className="p-1.5 rounded-lg transition-colors hover:text-orange-400" style={{ color: "var(--text-muted)" }}><IconEdit     size={14} /></button>
-          <button onClick={onDelete} title="Delete" className="p-1.5 rounded-lg transition-colors hover:text-red-400"    style={{ color: "var(--text-muted)" }}><IconTrash    size={14} /></button>
+          <button onClick={onView} title="View" className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--text-muted)" }}><IconEye size={14} /></button>
+          <button onClick={onAssign} title="Assign" className="p-1.5 rounded-lg transition-colors hover:text-green-400" style={{ color: "var(--text-muted)" }}><IconUserPlus size={14} /></button>
+          <button onClick={onEdit} title="Edit" className="p-1.5 rounded-lg transition-colors hover:text-orange-400" style={{ color: "var(--text-muted)" }}><IconEdit size={14} /></button>
+          {/* <button onClick={onDelete} title="Delete" className="p-1.5 rounded-lg transition-colors hover:text-red-400" style={{ color: "var(--text-muted)" }}><IconTrash size={14} /></button> */}
         </div>
       </div>
 
@@ -204,15 +204,47 @@ const BatchList: React.FC = () => {
   const navigate = useNavigate();
   const { isDark } = useTheme();
 
-  const [batches, setBatches]         = useState(() => getAllBatches());
-  const [search, setSearch]           = useState("");
-  const [filterArea, setFilterArea]   = useState<string | null>(null);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterArea, setFilterArea] = useState<string | null>(null);
   const [filterBranch, setFilterBranch] = useState<string | null>(null);
-  const [filterDay, setFilterDay]     = useState<string | null>(null);
+  const [filterDay, setFilterDay] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [filterType, setFilterType]   = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Batch | null>(null);
+
+  // Fetch batches from API
+  const fetchBatches = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getAllBatchesAPI();
+      setBatches(data);
+    } catch (err: any) {
+      console.error("Error fetching batches:", err);
+      setError(err.message || "Failed to load batches");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBatches();
+  }, []);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      // TODO: Call delete API
+      setBatches((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error("Error deleting batch:", err);
+    }
+  };
 
   // Mantine Select styles — respects current theme
   const selectStyles = {
@@ -235,7 +267,7 @@ const BatchList: React.FC = () => {
         height: "36px",
       },
       section: { color: "var(--text-muted)" },
-      option:  { color: "var(--text-primary)", backgroundColor: isDark ? "#1c2739" : "#ffffff" },
+      option: { color: "var(--text-primary)", backgroundColor: isDark ? "#1c2739" : "#ffffff" },
     },
   };
 
@@ -256,18 +288,18 @@ const BatchList: React.FC = () => {
         const q = search.toLowerCase();
         return (
           (!q || b.name.toLowerCase().includes(q) || b.subject.toLowerCase().includes(q) ||
-           b.teacherName.toLowerCase().includes(q) || b.branch.toLowerCase().includes(q)) &&
-          (!filterArea   || b.area   === filterArea) &&
+            b.teacherName.toLowerCase().includes(q) || b.branch.toLowerCase().includes(q)) &&
+          (!filterArea || b.area === filterArea) &&
           (!filterBranch || b.branch === filterBranch) &&
-          (!filterDay    || b.day    === filterDay) &&
-          (!filterType   || b.type   === filterType) &&
+          (!filterDay || b.day === filterDay) &&
+          (!filterType || b.type === filterType) &&
           (!filterStatus || (filterStatus === "today"
             ? b.day === TODAY_DAY && b.status === "Active"
             : b.status === filterStatus))
         );
       })
       .sort((a, b) => {
-        if (a.area   !== b.area)   return a.area.localeCompare(b.area);
+        if (a.area !== b.area) return a.area.localeCompare(b.area);
         if (a.branch !== b.branch) return a.branch.localeCompare(b.branch);
         return DAYS.indexOf(a.day) - DAYS.indexOf(b.day);
       }),
@@ -285,195 +317,211 @@ const BatchList: React.FC = () => {
   }, [filtered]);
 
   const activeFilters = [
-    filterArea   && { label: filterArea,   clear: () => { setFilterArea(null); setFilterBranch(null); } },
+    filterArea && { label: filterArea, clear: () => { setFilterArea(null); setFilterBranch(null); } },
     filterBranch && { label: filterBranch, clear: () => setFilterBranch(null) },
-    filterDay    && { label: filterDay,    clear: () => setFilterDay(null)    },
-    filterType   && { label: filterType,   clear: () => setFilterType(null)   },
+    filterDay && { label: filterDay, clear: () => setFilterDay(null) },
+    filterType && { label: filterType, clear: () => setFilterType(null) },
     filterStatus && { label: filterStatus, clear: () => setFilterStatus(null) },
   ].filter(Boolean) as { label: string; clear: () => void }[];
-
-  const confirmDelete = () => {
-    if (!deleteTarget) return;
-    deleteBatch(deleteTarget.id);
-    setBatches(getAllBatches());
-    setDeleteTarget(null);
-  };
 
   return (
     <div className="max-w-6xl mx-auto pb-10 space-y-5 px-2 sm:px-0">
 
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Batches</h2>
-          <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-            Manage all batches across areas and branches
-          </p>
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <Loader size="lg" color="orange" />
         </div>
-        <button
-          onClick={() => navigate("/batches/create")}
-          className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-orange-500/20"
-        >
-          <IconPlus size={16} /> Create Batch
-        </button>
-      </div>
+      )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <StatCard icon={<IconSchool      size={18} className="text-orange-400" />} label="Total Batches"    value={stats.total}        iconBg="bg-orange-500/15" sub={`${stats.active} active`} />
-        <StatCard icon={<IconCircleCheck size={18} className="text-green-400"  />} label="Today's Batches"  value={stats.todayBatches} iconBg="bg-green-500/15"  sub={TODAY_DAY} />
-        <StatCard icon={<IconUsers       size={18} className="text-violet-400" />} label="Total Students"   value={stats.totalStudents} iconBg="bg-violet-500/15" sub="across all batches" />
-      </div>
-
-      {/* Search + filter toggle */}
-      <div className="space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="flex-1 min-w-[180px] relative">
-            <IconSearch size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
-            <input
-              type="text"
-              placeholder="Search batch, subject, teacher…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full text-sm rounded-xl pl-9 pr-4 py-2.5 outline-none transition-colors"
-              style={{
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-default)",
-                color: "var(--text-primary)",
-              }}
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>
-                <IconX size={13} />
-              </button>
-            )}
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors"
-            style={{
-              background: showFilters || activeFilters.length > 0 ? "rgba(249,115,22,0.1)" : "var(--bg-card)",
-              border: showFilters || activeFilters.length > 0 ? "1px solid rgba(249,115,22,0.3)" : "1px solid var(--border-default)",
-              color: showFilters || activeFilters.length > 0 ? "#f97316" : "var(--text-secondary)",
-            }}
-          >
-            <IconFilter size={14} /> Filters
-            {activeFilters.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center">
-                {activeFilters.length}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Filter dropdowns */}
-        {showFilters && (
-          <div
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-4 rounded-xl"
-            style={{ background: "var(--bg-card)", border: "1px solid var(--border-card)" }}
-          >
-            <Select placeholder="All Areas"    value={filterArea}    onChange={(v) => { setFilterArea(v); setFilterBranch(null); }} data={AREAS.map((a) => ({ value: a, label: a }))} clearable {...selectStyles} />
-            <Select placeholder="All Branches" value={filterBranch}  onChange={setFilterBranch} data={availableBranches.map((b) => ({ value: b, label: b }))} clearable {...selectStyles} />
-            <Select placeholder="All Days"     value={filterDay}     onChange={setFilterDay}    data={DAYS.map((d) => ({ value: d, label: d }))} clearable {...selectStyles} />
-            <Select placeholder="All Types"    value={filterType}    onChange={setFilterType}   data={BATCH_TYPES.map((t) => ({ value: t, label: t }))} clearable {...selectStyles} />
-            <Select placeholder="All Status"   value={filterStatus}  onChange={setFilterStatus}
-              data={[
-                { value: "Active",    label: "Active"    },
-                { value: "Inactive",  label: "Inactive"  },
-                { value: "Completed", label: "Completed" },
-                { value: "today",     label: "Today"     },
-              ]}
-              clearable {...selectStyles}
-            />
-          </div>
-        )}
-
-        {/* Active filter chips */}
-        {activeFilters.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Filtered by:</span>
-            {activeFilters.map((f) => (
-              <span key={f.label} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/25 text-orange-400 text-xs font-medium">
-                {f.label}
-                <button onClick={f.clear}><IconX size={10} /></button>
-              </span>
-            ))}
-            <button
-              onClick={() => { setFilterArea(null); setFilterBranch(null); setFilterDay(null); setFilterType(null); setFilterStatus(null); }}
-              className="text-xs transition-colors"
-              style={{ color: "var(--text-muted)" }}
-            >
-              Clear all
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Result count */}
-      <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-        {filtered.length === batches.length
-          ? `${batches.length} batches total`
-          : `${filtered.length} of ${batches.length} batches`}
-      </p>
-
-      {/* Cards */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+      {/* Error state */}
+      {error && (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border-card)" }}>
-            <IconSchool size={24} style={{ color: "var(--text-muted)" }} />
+            <IconAlertTriangle size={24} style={{ color: "var(--text-muted)" }} />
           </div>
-          <p className="font-medium" style={{ color: "var(--text-secondary)" }}>No batches found</p>
-          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Try adjusting your search or filters</p>
+          <p className="font-medium" style={{ color: "var(--text-secondary)" }}>Failed to load batches</p>
+          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{error}</p>
+          <button
+            onClick={fetchBatches}
+            className="mt-4 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg"
+          >
+            Retry
+          </button>
         </div>
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([area, branches]) => (
-            <div key={area}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-2 h-2 rounded-full ${areaColor[area as Area].dot}`} />
-                <span className={`text-xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full ${areaColor[area as Area].badge}`}>
-                  {area}
-                </span>
-                <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  {Object.values(branches).flat().length} batches · {Object.keys(branches).length} branches
-                </span>
-                <div className="flex-1 h-px" style={{ background: "var(--border-default)" }} />
-              </div>
+      )}
 
-              <div className="space-y-4">
-                {Object.entries(branches).map(([branch, batchList]) => (
-                  <div key={branch}>
-                    <div className="flex items-center gap-2 mb-2 px-1">
-                      <IconMapPin size={12} style={{ color: "var(--text-muted)" }} />
-                      <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{branch}</span>
-                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-                        {batchList.length} batch{batchList.length !== 1 ? "es" : ""}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {batchList.map((batch) => (
-                        <BatchCard
-                          key={batch.id}
-                          batch={batch}
-                          onView={()   => navigate(`/batches/${batch.id}`)}
-                          onAssign={() => navigate(`/batches/${batch.id}/assign`)}
-                          onEdit={()   => navigate(`/batches/${batch.id}/edit`)}
-                          onDelete={()  => setDeleteTarget(batch)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+      {!loading && !error && (
+        <>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Batches</h2>
+              <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                Manage all batches across areas and branches
+              </p>
             </div>
-          ))}
-        </div>
+            <button
+              onClick={() => navigate("/batches/create")}
+              className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-orange-500/20"
+            >
+              <IconPlus size={16} /> Create Batch
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <StatCard icon={<IconSchool size={18} className="text-orange-400" />} label="Total Batches" value={stats.total} iconBg="bg-orange-500/15" sub={`${stats.active} active`} />
+            <StatCard icon={<IconCircleCheck size={18} className="text-green-400" />} label="Todays Batches" value={stats.todayBatches} iconBg="bg-green-500/15" sub={TODAY_DAY} />
+            <StatCard icon={<IconUsers size={18} className="text-violet-400" />} label="Total Students" value={stats.totalStudents} iconBg="bg-violet-500/15" sub="across all batches" />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex gap-2 flex-wrap">
+              <div className="flex-1 min-w-[180px] relative">
+                <IconSearch size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
+                <input
+                  type="text"
+                  placeholder="Search batch, subject, teacher…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full text-sm rounded-xl pl-9 pr-4 py-2.5 outline-none transition-colors"
+                  style={{
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-default)",
+                    color: "var(--text-primary)",
+                  }}
+                />
+                {search && (
+                  <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>
+                    <IconX size={13} />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors"
+                style={{
+                  background: showFilters || activeFilters.length > 0 ? "rgba(249,115,22,0.1)" : "var(--bg-card)",
+                  border: showFilters || activeFilters.length > 0 ? "1px solid rgba(249,115,22,0.3)" : "1px solid var(--border-default)",
+                  color: showFilters || activeFilters.length > 0 ? "#f97316" : "var(--text-secondary)",
+                }}
+              >
+                <IconFilter size={14} /> Filters
+                {activeFilters.length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {activeFilters.length}
+                  </span>
+                )}
+              </button>
+            </div>  {/* closes "flex gap-2 flex-wrap" */}
+
+            {showFilters && (
+              <div
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-4 rounded-xl"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border-card)" }}
+              >
+                <Select placeholder="All Areas" value={filterArea} onChange={(v) => { setFilterArea(v); setFilterBranch(null); }} data={AREAS.map((a) => ({ value: a, label: a }))} clearable {...selectStyles} />
+                <Select placeholder="All Branches" value={filterBranch} onChange={setFilterBranch} data={availableBranches.map((b) => ({ value: b, label: b }))} clearable {...selectStyles} />
+                <Select placeholder="All Days" value={filterDay} onChange={setFilterDay} data={DAYS.map((d) => ({ value: d, label: d }))} clearable {...selectStyles} />
+                <Select placeholder="All Types" value={filterType} onChange={setFilterType} data={BATCH_TYPES.map((t) => ({ value: t, label: t }))} clearable {...selectStyles} />
+                <Select placeholder="All Status" value={filterStatus} onChange={setFilterStatus}
+                  data={[
+                    { value: "Active", label: "Active" },
+                    { value: "Inactive", label: "Inactive" },
+                    { value: "Completed", label: "Completed" },
+                    { value: "today", label: "Today" },
+                  ]}
+                  clearable {...selectStyles}
+                />
+              </div>
+            )}
+
+            {activeFilters.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>Filtered by:</span>
+                {activeFilters.map((f) => (
+                  <span key={f.label} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/25 text-orange-400 text-xs font-medium">
+                    {f.label}
+                    <button onClick={f.clear}><IconX size={10} /></button>
+                  </span>
+                ))}
+                <button
+                  onClick={() => { setFilterArea(null); setFilterBranch(null); setFilterDay(null); setFilterType(null); setFilterStatus(null); }}
+                  className="text-xs transition-colors"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
+          </div>  {/* closes "space-y-3" */}
+
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+            {filtered.length === batches.length
+              ? `${batches.length} batches total`
+              : `${filtered.length} of ${batches.length} batches`}
+          </p>
+
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border-card)" }}>
+                <IconSchool size={24} style={{ color: "var(--text-muted)" }} />
+              </div>
+              <p className="font-medium" style={{ color: "var(--text-secondary)" }}>No batches found</p>
+              <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Try adjusting your search or filters</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(grouped).map(([area, branches]) => (
+                <div key={area}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-2 h-2 rounded-full ${areaColor[area as Area].dot}`} />
+                    <span className={`text-xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full ${areaColor[area as Area].badge}`}>
+                      {area}
+                    </span>
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                      {Object.values(branches).flat().length} batches · {Object.keys(branches).length} branches
+                    </span>
+                    <div className="flex-1 h-px" style={{ background: "var(--border-default)" }} />
+                  </div>
+
+                  <div className="space-y-4">
+                    {Object.entries(branches).map(([branch, batchList]) => (
+                      <div key={branch}>
+                        <div className="flex items-center gap-2 mb-2 px-1">
+                          <IconMapPin size={12} style={{ color: "var(--text-muted)" }} />
+                          <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{branch}</span>
+                          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                            {batchList.length} batch{batchList.length !== 1 ? "es" : ""}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {batchList.map((batch) => (
+                            <BatchCard
+                              key={batch.id}
+                              batch={batch}
+                              onView={() => navigate(`/batches/${batch.id}`)}
+                              onAssign={() => navigate(`/batches/${batch.id}/assign`)}
+                              onEdit={() => navigate(`/batches/${batch.id}/edit`)}
+                              onDelete={() => setDeleteTarget(batch)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}  {/* closes ternary */}
+
+          {deleteTarget && (
+            <DeleteModal batch={deleteTarget} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
+          )}
+        </>
       )}
 
-      {deleteTarget && (
-        <DeleteModal batch={deleteTarget} onConfirm={confirmDelete} onCancel={() => setDeleteTarget(null)} />
-      )}
     </div>
   );
 };

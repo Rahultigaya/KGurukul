@@ -32,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { path: "/Users", icon: IconUser, label: "Users" },
     { path: "/Batches", icon: IconUsersGroup, label: "Batches" },
     { path: "/attendance", icon: IconCalendarCheck, label: "Attendance" },
+    { path: "/master", icon: IconCalendarCheck, label: "Master" },
     { path: "/grades", icon: IconTrophy, label: "My Grades" },
     { path: "/tasks", icon: IconChecklist, label: "Tasks" },
     { path: "/analytics", icon: IconChartBar, label: "Analytics" },

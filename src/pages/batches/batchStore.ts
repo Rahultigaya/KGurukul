@@ -1,5 +1,17 @@
 // src/pages/batches/batchStore.ts
 
+import { fetchWithAuth } from "../../api/common";
+import {
+  getAllAreas,
+  getAllBranches,
+  getAllStandards,
+  getAllSubjects,
+  getAllTeachers,
+  getTeacherFullName,
+} from "../admin/Master/masterStore";
+
+const API_BASE_URL = "http://127.0.0.1:8000";
+
 export type Area = "Thane" | "Mulund";
 export type BatchType = "Regular" | "Backlog" | "Recovery";
 export type BatchStatus = "Active" | "Inactive" | "Completed";
@@ -357,7 +369,7 @@ export function removeStudentFromBatch(
     (id) => id !== studentId,
   );
 }
-
+     
 export function completeBatch(batchId: string): void {
   const batch = getBatchById(batchId);
   if (!batch) return;
@@ -368,3 +380,168 @@ export function completeBatch(batchId: string): void {
 export function getStudentBatches(studentId: string): Batch[] {
   return getAllBatches().filter((b) => b.studentIds.includes(studentId));
 }
+
+// ── API Functions ──────────────────────────────────────────────────────────────
+
+export interface CreateBatchPayload {
+  area_id: number;
+  branch_id: number;
+  day: string;
+  start_time: string;
+  end_time: string;
+  time_slot: string;
+  subject_id: number;
+  standard_id: number;
+  teacher_id: number;
+  capacity: number;
+  type: BatchType;
+  status: BatchStatus;
+}
+
+export const createBatchAPI = async (payload: CreateBatchPayload): Promise<any> => {
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/add-batch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error creating batch:", error);
+    throw error;
+  }
+};
+
+export const getAllBatchesAPI = async (): Promise<Batch[]> => {
+  try {
+    const [batchesResponse, areas, branches, standards, subjects, teachers] = await Promise.all([
+      fetchWithAuth(`${API_BASE_URL}/batches`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }),
+      getAllAreas(),
+      getAllBranches(),
+      getAllStandards(),
+      getAllSubjects(),
+      getAllTeachers(),
+    ]);
+
+    if (!batchesResponse.ok) {
+      throw new Error(`HTTP error! status: ${batchesResponse.status}`);
+    }
+
+    const data = await batchesResponse.json();
+
+    // Transform API response to Batch format with names
+    return data.map((batch: any) => {
+      const area = areas.find((a) => a.id === batch.area_id);
+      const branch = branches.find((b) => b.id === batch.branch_id);
+      const subject = subjects.find((s) => s.id === batch.subject_id);
+      const standard = standards.find((s) => s.id === batch.standard_id);
+      const teacher = teachers.find((t) => t.id === batch.teacher_id);
+
+      return {
+        id: String(batch.id),
+        name: batch.name || `${area?.name || ""} – ${branch?.name || ""} – ${batch.day || ""} – ${batch.time_slot || ""}`,
+        type: batch.type as BatchType,
+        status: batch.status as BatchStatus,
+        area: (area?.name as Area) || ("Thane" as Area),
+        branch: branch?.name || "",
+        day: batch.day || "",
+        timeSlot: batch.time_slot || "",
+        subject: subject?.name || "",
+        standard: standard?.name || "",
+        teacherId: String(batch.teacher_id || ""),
+        teacherName: teacher ? getTeacherFullName(teacher) : "",
+        capacity: batch.capacity || 0,
+        studentIds: batch.student_ids || [],
+        createdAt: batch.created_at || "",
+        completedAt: batch.completed_at,
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching batches:", error);
+    throw error;
+  }
+};
+
+export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
+  try {
+    const [batchResponse, areas, branches, standards, subjects, teachers] = await Promise.all([
+      fetchWithAuth(`${API_BASE_URL}/batch/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }),
+      getAllAreas(),
+      getAllBranches(),
+      getAllStandards(),
+      getAllSubjects(),
+      getAllTeachers(),
+    ]);
+
+    if (!batchResponse.ok) {
+      if (batchResponse.status === 404) return null;
+      throw new Error(`HTTP error! status: ${batchResponse.status}`);
+    }
+
+    const batch = await batchResponse.json();
+
+    const area = areas.find((a) => a.id === batch.area_id);
+    const branch = branches.find((b) => b.id === batch.branch_id);
+    const subject = subjects.find((s) => s.id === batch.subject_id);
+    const standard = standards.find((s) => s.id === batch.standard_id);
+    const teacher = teachers.find((t) => t.id === batch.teacher_id);
+
+    return {
+      id: String(batch.id),
+      name: batch.name || `${area?.name || ""} – ${branch?.name || ""} – ${batch.day || ""} – ${batch.time_slot || ""}`,
+      type: batch.type as BatchType,
+      status: batch.status as BatchStatus,
+      area: (area?.name as Area) || ("Thane" as Area),
+      branch: branch?.name || "",
+      day: batch.day || "",
+      timeSlot: batch.time_slot || "",
+      subject: subject?.name || "",
+      standard: standard?.name || "",
+      teacherId: String(batch.teacher_id || ""),
+      teacherName: teacher ? getTeacherFullName(teacher) : "",
+      capacity: batch.capacity || 0,
+      studentIds: batch.student_ids || [],
+      createdAt: batch.created_at || "",
+      completedAt: batch.completed_at,
+    };
+  } catch (error) {
+    console.error("Error fetching batch:", error);
+    throw error;
+  }
+};
+
+export const updateBatchAPI = async (id: string, payload: CreateBatchPayload): Promise<any> => {
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/batch/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error updating batch:", error);
+    throw error;
+  }
+};

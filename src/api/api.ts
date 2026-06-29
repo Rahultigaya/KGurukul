@@ -111,6 +111,8 @@ export const createTeacher = (data: {
   middle_name?: string;
   last_name: string;
   joining_date: string;
+  photo?: string;
+  status: "Active" | "Inactive";
 }) => API.post("/create-teacher", data);
 
 export interface TeacherResponse {
@@ -121,9 +123,23 @@ export interface TeacherResponse {
   email: string;
   joining_date: string;
   status: "Active" | "Inactive";
+  photo?: string;
 }
 
 export const getTeachers = () =>
   API.get<TeacherResponse[]>("/teachers");
+
+export const updateTeacher = (id: string, data: {
+  email: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  joining_date: string;
+  photo?: string;
+  status: "Active" | "Inactive";
+}) => {
+  console.log("API.updateTeacher called with id:", id, "data:", JSON.stringify(data, null, 2));
+  return API.put(`/teacher/${id}`, data);
+};
 
 export default API;

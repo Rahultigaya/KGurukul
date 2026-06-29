@@ -1,6 +1,6 @@
 // src/pages/admin/Users/Teacher/teacherStore.ts
 
-import { createTeacher, getTeachers, type TeacherResponse } from "../../../../api/api";
+import { createTeacher, getTeachers, updateTeacher as updateTeacherAPI, type TeacherResponse } from "../../../../api/api";
 
 // ✅ Strict status type
 export type Status = "Active" | "Inactive";
@@ -20,7 +20,7 @@ export interface TeacherData {
 // ✅ Form data type
 export type TeacherFormData = Pick<
   TeacherData,
-  "photo" | "firstName" | "middleName" | "lastName" | "email" | "joiningDate"
+  "photo" | "firstName" | "middleName" | "lastName" | "email" | "joiningDate" | "status"
 >;
 
 // ✅ Empty form default
@@ -31,6 +31,7 @@ export const emptyTeacherForm: TeacherFormData = {
   lastName: "",
   email: "",
   joiningDate: new Date().toISOString().split("T")[0],
+  status: "Active",
 };
 
 // 🔧 Helper: Build full name
@@ -49,9 +50,10 @@ function formatJoined(date: string): string {
 
 // 🔧 Helper: Transform API response to UI model (derived fields)
 export function mapTeacher(data: TeacherResponse): TeacherData {
+  console.log("mapTeacher called with data:", data);
   return {
     id: data.id,
-    photo: null,
+    photo: data.photo || null,
     firstName: data.first_name,
     middleName: data.middle_name,
     lastName: data.last_name,
@@ -79,10 +81,12 @@ export async function getAllTeachers(): Promise<TeacherData[]> {
   try {
     const response = await getTeachers();
     const teachers = response.data;
+    console.log("Teachers from API:", teachers);
 
     // Update cache
     teachers.forEach((teacher) => {
       teacherStore[String(teacher.id)] = mapTeacher(teacher);
+      console.log("Stored teacher:", String(teacher.id), mapTeacher(teacher));
     });
 
     // Return formatted teachers
@@ -106,19 +110,26 @@ export async function getAllTeachers(): Promise<TeacherData[]> {
 // 📥 Get one teacher (from cache or API)
 export async function getTeacherById(id: string): Promise<TeacherData | null> {
   try {
+    console.log("getTeacherById called with id:", id);
+    console.log("teacherStore keys:", Object.keys(teacherStore));
+
     // First try cache
     if (teacherStore[id]) {
+      console.log("Found in cache:", teacherStore[id]);
       return formatTeacherForUI(teacherStore[id]);
     }
 
     // If not in cache, fetch all teachers
     await getAllTeachers();
+    console.log("After getAllTeachers, teacherStore keys:", Object.keys(teacherStore));
 
     // Try cache again
     if (teacherStore[id]) {
+      console.log("Found after fetch:", teacherStore[id]);
       return formatTeacherForUI(teacherStore[id]);
     }
 
+    console.log("Teacher not found");
     return null;
   } catch (error) {
     console.error("Error fetching teacher:", error);
@@ -135,6 +146,8 @@ export async function addTeacher(data: TeacherFormData): Promise<string> {
       middle_name: data.middleName || "",
       last_name: data.lastName,
       joining_date: data.joiningDate,
+      photo: data.photo || undefined,
+      status: data.status,
     });
 
     // The response contains the message "Teacher created successfully"
@@ -150,7 +163,7 @@ export async function addTeacher(data: TeacherFormData): Promise<string> {
       lastName: data.lastName,
       email: data.email,
       joiningDate: data.joiningDate,
-      status: "Active",
+      status: data.status,
     };
 
     return id;
@@ -170,16 +183,44 @@ export async function addTeacher(data: TeacherFormData): Promise<string> {
   }
 }
 
-// ✏️ Update teacher (local only - add API endpoint when available)
+// ✏️ Update teacher (API-based)
 export async function updateTeacher(id: string, data: TeacherFormData): Promise<void> {
-  const existing = teacherStore[id];
-  if (!existing) return;
+  try {
+    const payload = {
+      email: data.email,
+      first_name: data.firstName,
+      middle_name: data.middleName || "",
+      last_name: data.lastName,
+      joining_date: data.joiningDate,
+      photo: data.photo || undefined,
+      status: data.status,
+    };
+    console.log("updateTeacher API call - id:", id);
+    console.log("updateTeacher payload:", payload);
 
-  // TODO: Add API call when update endpoint is available
-  // await updateTeacherAPI(id, data);
+    // Call the API to update the teacher
+    await updateTeacherAPI(id, payload);
 
-  teacherStore[id] = {
-    ...existing,
-    ...data,
-  };
+    // Update local cache
+    const existing = teacherStore[id];
+    if (existing) {
+      teacherStore[id] = {
+        ...existing,
+        ...data,
+      };
+    }
+  } catch (error: any) {
+    console.error("Error updating teacher:", error);
+
+    // Extract error message
+    if (error.response?.data?.detail) {
+      if (typeof error.response.data.detail === 'string') {
+        throw new Error(error.response.data.detail);
+      } else if (Array.isArray(error.response.data.detail)) {
+        throw new Error(error.response.data.detail.map((e: any) => e.msg || e.message).join(', '));
+      }
+    }
+
+    throw error;
+  }
 }

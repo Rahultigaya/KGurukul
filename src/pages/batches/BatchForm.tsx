@@ -6,31 +6,53 @@ import {
   Stack, Paper, Title, Grid, Select, NumberInput,
   Button, ActionIcon, Alert, Group, Tooltip, Badge, Text,
 } from "@mantine/core";
-import { TimeInput } from "@mantine/dates";
 import {
   IconArrowLeft, IconDeviceFloppy, IconMapPin,
   IconCalendar, IconClock, IconBook, IconUser,
   IconUsers, IconSparkles, IconAlertCircle, IconCheck, IconX,
+  IconLoader,
 } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import {
-  AREAS, BRANCHES, DAYS, BATCH_TYPES, BATCH_STATUSES, BATCH_TYPE_META,
-  generateBatchName, getBatchById, addBatch, updateBatch,
+  DAYS, BATCH_TYPES, BATCH_STATUSES, BATCH_TYPE_META,
+  generateBatchName,
+  createBatchAPI, updateBatchAPI, getBatchByIdAPI,
   type Area, type BatchType, type BatchStatus,
 } from "./batchStore";
+import {
+  getAllAreas,
+  getAllBranches,
+  getAllStandards,
+  getAllSubjects,
+  getAllTeachers,
+  getBranchesByArea,
+  getTeacherFullName,
+  type Area as MasterArea,
+  type Branch as MasterBranch,
+  type Standard as MasterStandard,
+  type Subject as MasterSubject,
+  type Teacher as MasterTeacher,
+} from "../admin/Master/masterStore";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Constants
+// Time slots for batch scheduling
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TEACHERS = [
-  { id: "T001", name: "Rahul Sir"   },
-  { id: "T002", name: "Priya Ma'am" },
-  { id: "T003", name: "Anita Ma'am" },
-];
+const generateTimeSlots = () => {
+  const slots = [];
+  for (let hour = 6; hour <= 23; hour++) {
+    for (let min = 0; min < 60; min += 30) {
+      const h = hour % 24;
+      const period = h >= 12 ? "PM" : "AM";
+      const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const time = `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+      slots.push({ value: time, label: `${displayHour}:${String(min).padStart(2, "0")} ${period}` });
+    }
+  }
+  return slots;
+};
 
-const STANDARDS = ["5th","6th","7th","8th","9th","10th","11th","12th","JEE","NEET","Other"];
-const SUBJECTS  = ["Mathematics","Science","English","Physics","Chemistry","Biology","History","Geography","SSC","HSC","Other"];
+const TIME_SLOTS = generateTimeSlots();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared input styles — uses CSS vars, matches EnrollmentContent pattern
@@ -125,14 +147,14 @@ function parseTimeSlot(slot: string): { startTime: string; endTime: string } {
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface FormData {
-  area:       string | null;
-  branch:     string | null;
+  area_id:    number | null;
+  branch_id:  number | null;
   day:        string | null;
   startTime:  string;
   endTime:    string;
-  subject:    string | null;
-  standard:   string | null;
-  teacherId:  string | null;
+  subject_id: number | null;
+  standard_id: number | null;
+  teacher_id: number | null;
   capacity:   number | string;
   type:       BatchType;
   status:     BatchStatus;
@@ -140,9 +162,9 @@ interface FormData {
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
 const emptyForm: FormData = {
-  area: null, branch: null, day: null,
+  area_id: null, branch_id: null, day: null,
   startTime: "", endTime: "",
-  subject: null, standard: null, teacherId: null,
+  subject_id: null, standard_id: null, teacher_id: null,
   capacity: 30, type: "Regular", status: "Active",
 };
 
@@ -237,25 +259,91 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
   const [saving, setSaving]   = useState(false);
   const [notFound, setNotFound] = useState(false);
 
+  // Master data state
+  const [areas, setAreas] = useState<MasterArea[]>([]);
+  const [branches, setBranches] = useState<MasterBranch[]>([]);
+  const [standards, setStandards] = useState<MasterStandard[]>([]);
+  const [subjects, setSubjects] = useState<MasterSubject[]>([]);
+  const [teachers, setTeachers] = useState<MasterTeacher[]>([]);
+  const [loadingMasterData, setLoadingMasterData] = useState(false);
+
   useEffect(() => {
-    if (mode !== "edit" || !batchId) return;
-    const batch = getBatchById(batchId);
-    if (!batch) { setNotFound(true); return; }
-    const { startTime, endTime } = parseTimeSlot(batch.timeSlot);
-    setForm({
-      area: batch.area, branch: batch.branch, day: batch.day,
-      startTime, endTime,
-      subject: batch.subject, standard: batch.standard,
-      teacherId: batch.teacherId, capacity: batch.capacity,
-      type: batch.type, status: batch.status,
-    });
-  }, [mode, batchId]);
+    const loadBatchForEdit = async () => {
+      if (mode !== "edit" || !batchId) return;
+      try {
+        const batch = await getBatchByIdAPI(batchId);
+        if (!batch) { setNotFound(true); return; }
+        const { startTime, endTime } = parseTimeSlot(batch.timeSlot);
+        // Find IDs from names
+        const areaObj = areas.find(a => a.name === batch.area);
+        const branchObj = branches.find(b => b.name === batch.branch);
+        const subjectObj = subjects.find(s => s.name === batch.subject);
+        const standardObj = standards.find(s => s.name === batch.standard);
+        const teacherObj = teachers.find(t => t.id === batch.teacherId || getTeacherFullName(t) === batch.teacherName);
+
+        setForm({
+          area_id: areaObj?.id || null,
+          branch_id: branchObj?.id || null,
+          day: batch.day,
+          startTime, endTime,
+          subject_id: subjectObj?.id || null,
+          standard_id: standardObj?.id || null,
+          teacher_id: teacherObj?.id || null,
+          capacity: batch.capacity,
+          type: batch.type,
+          status: batch.status,
+        });
+      } catch (err) {
+        console.error("Error loading batch:", err);
+        setNotFound(true);
+      }
+    };
+    loadBatchForEdit();
+  }, [mode, batchId, areas, branches, subjects, standards, teachers]);
+
+  // Load master data from backend
+  useEffect(() => {
+    const loadMasterData = async () => {
+      try {
+        setLoadingMasterData(true);
+        const [areasData, standardsData, branchesData, subjectsData, teachersData] = await Promise.all([
+          getAllAreas(),
+          getAllStandards(),
+          getAllBranches(),
+          getAllSubjects(),
+          getAllTeachers(),
+        ]);
+        setAreas(areasData);
+        setStandards(standardsData);
+        setBranches(branchesData);
+        setSubjects(subjectsData);
+        setTeachers(teachersData);
+      } catch (error: any) {
+        console.error("Error loading master data:", error);
+        console.error("Error message:", error.message);
+        console.error("Error response:", error.response);
+      } finally {
+        setLoadingMasterData(false);
+      }
+    };
+
+    loadMasterData();
+  }, []);
 
   const timeSlot    = buildTimeSlot(form.startTime, form.endTime);
-  const hasAny      = !!(form.area || form.branch || form.day || form.startTime || form.endTime);
-  const isComplete  = !!(form.area && form.branch && form.day && form.startTime && form.endTime);
-  const branchOpts  = form.area ? (BRANCHES[form.area as Area] ?? []).map((b) => ({ value: b, label: b })) : [];
-  const teacherName = TEACHERS.find((t) => t.id === form.teacherId)?.name ?? "";
+  const hasAny      = !!(form.area_id || form.branch_id || form.day || form.startTime || form.endTime);
+  const isComplete  = !!(form.area_id && form.branch_id && form.day && form.startTime && form.endTime);
+
+  // Filter branches based on selected area (only active branches)
+  const branchOpts  = form.area_id
+    ? branches
+        .filter(b => b.area_id === form.area_id && b.is_active === 1)
+        .map(b => ({ value: String(b.id), label: b.name }))
+    : [];
+
+  const teacherName = teachers.find((t) => t.id === form.teacher_id)
+    ? getTeacherFullName(teachers.find((t) => t.id === form.teacher_id)!)
+    : "";
 
   const set = (field: keyof FormData, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -264,45 +352,67 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
 
   const validate = (): boolean => {
     const e: FormErrors = {};
-    if (!form.area)      e.area      = "Required";
-    if (!form.branch)    e.branch    = "Required";
-    if (!form.day)       e.day       = "Required";
-    if (!form.startTime) e.startTime = "Required";
-    if (!form.endTime)   e.endTime   = "Required";
+    if (!form.area_id)    e.area_id    = "Required";
+    if (!form.branch_id)  e.branch_id  = "Required";
+    if (!form.day)        e.day        = "Required";
+    if (!form.startTime)  e.startTime  = "Required";
+    if (!form.endTime)    e.endTime    = "Required";
     if (form.startTime && form.endTime && form.startTime >= form.endTime)
       e.endTime = "End time must be after start time";
-    if (!form.subject)   e.subject   = "Required";
-    if (!form.standard)  e.standard  = "Required";
-    if (!form.teacherId) e.teacherId = "Required";
+    if (!form.subject_id) e.subject_id = "Required";
+    if (!form.standard_id) e.standard_id = "Required";
+    if (!form.teacher_id)  e.teacher_id  = "Required";
     if (!form.capacity || Number(form.capacity) < 1) e.capacity = "Minimum 1";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
     setSaving(true);
-    setTimeout(() => {
+
+    try {
       const slot = buildTimeSlot(form.startTime, form.endTime);
-      const name = generateBatchName(form.area!, form.branch!, form.day!, slot);
+
+      // Get names for display
+      const areaName = areas.find(a => a.id === form.area_id)?.name || "";
+      const branchName = branches.find(b => b.id === form.branch_id)?.name || "";
+      const subjectName = subjects.find(s => s.id === form.subject_id)?.name || "";
+      const standardName = standards.find(s => s.id === form.standard_id)?.name || "";
+      const teacherName = teachers.find(t => t.id === form.teacher_id)
+        ? getTeacherFullName(teachers.find(t => t.id === form.teacher_id)!)
+        : "";
+      const name = generateBatchName(areaName, branchName, form.day!, slot);
 
       if (mode === "create") {
-        addBatch({
-          id: `B${String(Date.now()).slice(-4)}`,
-          name, area: form.area as Area, branch: form.branch!, day: form.day!,
-          timeSlot: slot, subject: form.subject!, standard: form.standard!,
-          teacherId: form.teacherId!, teacherName,
-          capacity: Number(form.capacity), studentIds: [],
-          type: form.type, status: form.status,
-          createdAt: new Date().toISOString().split("T")[0],
+        await createBatchAPI({
+          area_id: form.area_id!,
+          branch_id: form.branch_id!,
+          day: form.day!,
+          start_time: form.startTime,
+          end_time: form.endTime,
+          time_slot: slot,
+          subject_id: form.subject_id!,
+          standard_id: form.standard_id!,
+          teacher_id: form.teacher_id!,
+          capacity: Number(form.capacity),
+          type: form.type,
+          status: form.status,
         });
       } else if (batchId) {
-        const existing = getBatchById(batchId)!;
-        updateBatch(batchId, {
-          ...existing, name, area: form.area as Area, branch: form.branch!,
-          day: form.day!, timeSlot: slot, subject: form.subject!,
-          standard: form.standard!, teacherId: form.teacherId!, teacherName,
-          capacity: Number(form.capacity), type: form.type, status: form.status,
+        await updateBatchAPI(batchId, {
+          area_id: form.area_id!,
+          branch_id: form.branch_id!,
+          day: form.day!,
+          start_time: form.startTime,
+          end_time: form.endTime,
+          time_slot: slot,
+          subject_id: form.subject_id!,
+          standard_id: form.standard_id!,
+          teacher_id: form.teacher_id!,
+          capacity: Number(form.capacity),
+          type: form.type,
+          status: form.status,
         });
       }
 
@@ -312,9 +422,9 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         html: `
           <div style="color:#94a3b8; font-size:14px; line-height:1.8">
             <div style="color:#f97316; font-weight:700; font-size:16px; margin-bottom:8px">${name}</div>
-            <div>📍 ${form.branch} · ${form.area}</div>
+            <div>📍 ${branchName} · ${areaName}</div>
             <div>📅 ${form.day} &nbsp;·&nbsp; 🕐 ${slot}</div>
-            <div>📚 ${form.subject} – ${form.standard}</div>
+            <div>📚 ${subjectName} – ${standardName}</div>
             <div>👤 ${teacherName} &nbsp;·&nbsp; 👥 Capacity: ${form.capacity}</div>
           </div>`,
         icon: "success", confirmButtonText: "Go to Batches",
@@ -322,7 +432,16 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         confirmButtonColor: "#7c3aed",
         customClass: { popup: "rounded-xl border border-purple-500/30", confirmButton: "rounded-lg px-6 py-2 font-medium" },
       }).then(() => navigate("/batches"));
-    }, 600);
+    } catch (error: any) {
+      setSaving(false);
+      Swal.fire({
+        title: "Error",
+        text: error.message || "Failed to create batch",
+        icon: "error",
+        background: "#1e293b",
+        color: "#f8fafc",
+      });
+    }
   };
 
   if (notFound)
@@ -339,6 +458,13 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
 
   return (
     <Stack gap="md" maw={1100} mx="auto" pb="xl">
+
+      {/* Loading indicator for master data */}
+      {loadingMasterData && (
+        <Alert icon={<IconLoader size={18} />} title="Loading data" color="blue">
+          Loading areas, branches, standards, subjects, and teachers from server...
+        </Alert>
+      )}
 
       {/* ── Header ────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
@@ -375,7 +501,13 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         </Text>
         <div className="flex items-start gap-2">
           <IconSparkles size={16} style={{ color: isComplete ? "var(--accent-orange)" : "var(--text-muted)", marginTop: 2, flexShrink: 0 }} />
-          <BatchNamePreview area={form.area} branch={form.branch} day={form.day} startTime={form.startTime} endTime={form.endTime} />
+          <BatchNamePreview
+            area={areas.find(a => a.id === form.area_id)?.name}
+            branch={branches.find(b => b.id === form.branch_id)?.name}
+            day={form.day}
+            startTime={form.startTime}
+            endTime={form.endTime}
+          />
         </div>
       </Paper>
 
@@ -409,22 +541,25 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
           <Grid.Col span={{ base: 12, sm: 6 }}>
             <Select
               label="Area" placeholder="Select area"
-              value={form.area}
-              onChange={(v) => { set("area", v); set("branch", null); }}
-              data={AREAS.map((a) => ({ value: a, label: a }))}
-              required withAsterisk error={errors.area}
+              value={form.area_id ? String(form.area_id) : null}
+              onChange={(v) => { set("area_id", v ? Number(v) : null); set("branch_id", null); }}
+              data={areas
+                .filter(a => a.is_active === 1) // Only active areas
+                .map(a => ({ value: String(a.id), label: a.name }))}
+              required withAsterisk error={errors.area_id}
               {...selectStyles}
+              disabled={loadingMasterData || mode === "edit"}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6 }}>
             <Select
               label="Branch"
-              placeholder={form.area ? "Select branch" : "Select area first"}
-              value={form.branch}
-              onChange={(v) => set("branch", v)}
+              placeholder={form.area_id ? "Select branch" : "Select area first"}
+              value={form.branch_id ? String(form.branch_id) : null}
+              onChange={(v) => set("branch_id", v ? Number(v) : null)}
               data={branchOpts}
-              disabled={!form.area}
-              required withAsterisk error={errors.branch}
+              disabled={!form.area_id || mode === "edit"}
+              required withAsterisk error={errors.branch_id}
               {...selectStyles}
             />
           </Grid.Col>
@@ -451,23 +586,31 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 4 }}>
-            <TimeInput
+            <Select
               label="Start Time"
+              placeholder="Select start time"
               value={form.startTime}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => set("startTime", e.currentTarget.value)}
+              onChange={(value) => set("startTime", value)}
+              data={TIME_SLOTS}
               leftSection={<IconClock size={15} style={{ color: "var(--text-accent)" }} />}
               required withAsterisk error={errors.startTime}
-              {...timeInputStyles}
+              searchable
+              clearable
+              {...selectStyles}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 4 }}>
-            <TimeInput
+            <Select
               label="End Time"
+              placeholder="Select end time"
               value={form.endTime}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => set("endTime", e.currentTarget.value)}
+              onChange={(value) => set("endTime", value)}
+              data={TIME_SLOTS}
               leftSection={<IconClock size={15} style={{ color: "var(--text-accent)" }} />}
               required withAsterisk error={errors.endTime}
-              {...timeInputStyles}
+              searchable
+              clearable
+              {...selectStyles}
             />
           </Grid.Col>
 
@@ -497,19 +640,27 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
           <Grid.Col span={{ base: 12, sm: 6 }}>
             <Select
               label="Subject" placeholder="Select subject"
-              value={form.subject} onChange={(v) => set("subject", v)}
-              data={SUBJECTS.map((s) => ({ value: s, label: s }))}
-              required withAsterisk error={errors.subject}
+              value={form.subject_id ? String(form.subject_id) : null}
+              onChange={(v) => set("subject_id", v ? Number(v) : null)}
+              data={subjects
+                .filter(s => s.is_active === 1)
+                .map(s => ({ value: String(s.id), label: s.name }))}
+              required withAsterisk error={errors.subject_id}
               {...selectStyles}
+              disabled={loadingMasterData}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6 }}>
             <Select
               label="Standard" placeholder="Select standard"
-              value={form.standard} onChange={(v) => set("standard", v)}
-              data={STANDARDS.map((s) => ({ value: s, label: s }))}
-              required withAsterisk error={errors.standard}
+              value={form.standard_id ? String(form.standard_id) : null}
+              onChange={(v) => set("standard_id", v ? Number(v) : null)}
+              data={standards
+                .filter(s => s.is_active === 1) // Only active standards
+                .map(s => ({ value: String(s.id), label: s.name }))}
+              required withAsterisk error={errors.standard_id}
               {...selectStyles}
+              disabled={loadingMasterData}
             />
           </Grid.Col>
         </Grid>
@@ -528,10 +679,14 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
           <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
             <Select
               label="Teacher" placeholder="Select teacher"
-              value={form.teacherId} onChange={(v) => set("teacherId", v)}
-              data={TEACHERS.map((t) => ({ value: t.id, label: t.name }))}
-              required withAsterisk error={errors.teacherId}
+              value={form.teacher_id ? String(form.teacher_id) : null}
+              onChange={(v) => set("teacher_id", v ? Number(v) : null)}
+              data={teachers
+                .filter(t => t.status === "Active")
+                .map(t => ({ value: String(t.id), label: getTeacherFullName(t) }))}
+              required withAsterisk error={errors.teacher_id}
               {...selectStyles}
+              disabled={loadingMasterData}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>

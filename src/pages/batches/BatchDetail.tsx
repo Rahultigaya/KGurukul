@@ -1,14 +1,14 @@
 // src/pages/batches/BatchDetail.tsx
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Stack, Paper, Title, Grid, Text, ActionIcon, Tooltip } from "@mantine/core";
+import { Stack, Paper, Title, Grid, Text, ActionIcon, Tooltip, Loader } from "@mantine/core";
 import {
   IconArrowLeft, IconEdit, IconMapPin, IconBuilding,
   IconCalendar, IconClock, IconBook, IconUser, IconUsers,
   IconCircleCheck, IconCircleOff, IconCircleX,
 } from "@tabler/icons-react";
-import { getBatchById, BATCH_TYPE_META, BATCH_STATUS_META, type Area } from "./batchStore";
+import { getBatchByIdAPI, BATCH_TYPE_META, BATCH_STATUS_META, type Area, type Batch } from "./batchStore";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -43,12 +43,41 @@ const InfoRow: React.FC<{
 const BatchDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id }   = useParams<{ id: string }>();
-  const batch     = id ? getBatchById(id) : null;
 
-  if (!batch)
+  const [batch, setBatch] = useState<Batch | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBatch = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getBatchByIdAPI(id);
+        setBatch(data);
+      } catch (err: any) {
+        console.error("Error fetching batch:", err);
+        setError(err.message || "Failed to load batch");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBatch();
+  }, [id]);
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader size="lg" color="orange" />
+      </div>
+    );
+
+  if (error || !batch)
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <Text style={{ color: "var(--text-secondary)" }}>Batch not found.</Text>
+        <Text style={{ color: "var(--text-secondary)" }}>{error || "Batch not found."}</Text>
         <button onClick={() => navigate("/batches")}
           className="flex items-center gap-1 text-sm"
           style={{ color: "var(--accent-orange)" }}>
@@ -91,12 +120,6 @@ const BatchDetail: React.FC = () => {
             </Text>
           </div>
         </div>
-        <button
-          onClick={() => navigate(`/batches/${batch.id}/edit`)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors shadow-lg shadow-orange-500/20"
-        >
-          <IconEdit size={15} /> Edit Batch
-        </button>
       </div>
 
       {/* ── Banner ────────────────────────────────────────────────────── */}

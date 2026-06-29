@@ -81,15 +81,6 @@ export function useTeacherColumns(): TableColumn<TeacherData>[] {
           >
             <IconPencil size={15} style={{ color: "var(--text-secondary)" }} />
           </button>
-          <button
-            className="p-2 rounded-lg transition-colors"
-            title="Share"
-            style={{ background: "var(--bg-tertiary)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
-          >
-            <IconShare size={15} style={{ color: "var(--text-secondary)" }} />
-          </button>
         </div>
       ),
     },

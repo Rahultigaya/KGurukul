@@ -20,6 +20,7 @@ import {
   emptyTeacherForm, getTeacherById, addTeacher, updateTeacher,
   type TeacherFormData,
 } from "./teacherStore";
+import { uploadToCloudinary, validateImage } from "../../../../utils/cloudinary";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Validation
@@ -73,24 +74,32 @@ const TeacherRegistration: React.FC = () => {
   // ── Load for edit ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isEdit || !id) return;
-    const t = getTeacherById(id);
-    if (!t) {
-      Swal.fire({
-        title: "Teacher not found", icon: "error",
-        background: isDark ? "#1e293b" : "#fff",
-        color: isDark ? "#f8fafc" : "#0f172a",
-        confirmButtonColor: "#7c3aed",
-      }).then(() => navigate("/Users"));
-      return;
-    }
-    setForm({
-      photo:       t.photo,
-      firstName:   t.firstName,
-      middleName:  t.middleName,
-      lastName:    t.lastName,
-      email:       t.email,
-      joiningDate: t.joiningDate,
-    });
+
+    const loadTeacher = async () => {
+      console.log("Loading teacher with id:", id);
+      const t = await getTeacherById(id);
+      console.log("Teacher data:", t);
+      if (!t) {
+        Swal.fire({
+          title: "Teacher not found", icon: "error",
+          background: isDark ? "#1e293b" : "#fff",
+          color: isDark ? "#f8fafc" : "#0f172a",
+          confirmButtonColor: "#7c3aed",
+        }).then(() => navigate("/Users"));
+        return;
+      }
+      setForm({
+        photo:       t.photo,
+        firstName:   t.firstName,
+        middleName:  t.middleName,
+        lastName:    t.lastName,
+        email:       t.email,
+        joiningDate: t.joiningDate,
+        status:      t.status,
+      });
+    };
+
+    loadTeacher();
   }, [id, isEdit, navigate, isDark]);
 
   const showToast = (msg: string, ok: boolean) => {
@@ -107,8 +116,41 @@ const TeacherRegistration: React.FC = () => {
   const handlePhotoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file (type and size)
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      Swal.fire({
+        title: "Invalid File",
+        text: validation.error,
+        icon: "warning",
+        background: isDark ? "#1e293b" : "#ffffff",
+        color: isDark ? "#f8fafc" : "#0f172a",
+        confirmButtonColor: "#f97316",
+      });
+      return;
+    }
+
+    // Convert to base64 for upload
     const reader = new FileReader();
-    reader.onloadend = () => set("photo", reader.result as string);
+    reader.onloadend = async () => {
+      try {
+        const base64 = reader.result as string;
+        // Upload to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(base64, "kgurukul/teachers");
+        set("photo", cloudinaryUrl);
+      } catch (error) {
+        console.error("Error uploading photo:", error);
+        Swal.fire({
+          title: "Upload Failed",
+          text: "Could not upload photo. Please try again.",
+          icon: "error",
+          background: isDark ? "#1e293b" : "#ffffff",
+          color: isDark ? "#f8fafc" : "#0f172a",
+          confirmButtonColor: "#ef4444",
+        });
+      }
+    };
     reader.readAsDataURL(file);
   }, [set]);
 
@@ -126,8 +168,12 @@ const TeacherRegistration: React.FC = () => {
     }
     setSaving(true);
 
+    console.log("Form data before submit:", form);
+    console.log("Status value:", form.status);
+
     try {
       if (isEdit && id) {
+        console.log("Editing teacher with id:", id);
         await updateTeacher(id, form);
       } else {
         await addTeacher(form);
@@ -270,7 +316,7 @@ const TeacherRegistration: React.FC = () => {
 
               {/* Upload button */}
               <label className="cursor-pointer">
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                <input type="file" accept="image/jpeg,image/jpg,image/png" className="hidden" onChange={handlePhotoUpload} />
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                   style={{ background: "var(--bg-tertiary)", color: "var(--text-secondary)", border: "1px solid var(--border-default)" }}>
                   <IconUpload size={13} />
@@ -279,7 +325,7 @@ const TeacherRegistration: React.FC = () => {
               </label>
 
               <Text size="xs" ta="center" style={{ color: "var(--text-muted)" }}>
-                Optional · passport size
+                Optional · JPG, PNG · Max 500KB
               </Text>
 
               {/* Name preview */}
@@ -387,6 +433,28 @@ const TeacherRegistration: React.FC = () => {
                     />
                   </Grid.Col>
                 </Grid>
+              </div>
+
+              {/* Active Status */}
+              <div>
+                <Text size="xs" fw={700} mb={8}
+                  style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                  Status
+                </Text>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.status === "Active"}
+                      onChange={(e) => set("status", e.target.checked ? "Active" : "Inactive")}
+                      className="w-4 h-4 rounded"
+                      style={{ accentColor: "var(--accent-orange)" }}
+                    />
+                    <span className="text-sm" style={{ color: "var(--text-primary)" }}>
+                      Active
+                    </span>
+                  </label>
+                </div>
               </div>
 
             </Stack>

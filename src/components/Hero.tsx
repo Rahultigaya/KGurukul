@@ -23,7 +23,7 @@ const Hero: React.FC = () => {
                 <div className="max-w-xl">
                     <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-tight">
                         Learn Smarter <br />
-                        With <span className="text-purple-500">KGurukul</span>
+                        With <span className="text-purple-500">KGurukul</span><span>'s</span>
                     </h1>
 
                     <p className="mt-6 text-slate-300 text-lg leading-relaxed">

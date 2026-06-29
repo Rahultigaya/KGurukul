@@ -293,7 +293,7 @@ const LoginForm: React.FC = () => {
           />
         </div>
         <span className="ml-3 text-xl font-semibold text-gray-800">
-          KGurukul Computer Classes
+          KGurukul's Computer Classes
         </span>
       </div>
 

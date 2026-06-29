@@ -43,7 +43,7 @@ const Navbar = () => {
                 {/* Logo */}
                 <div className="flex items-center gap-3 text-white font-mono">
                     <img src={LOGO} alt="Logo" className="w-14 h-14" />
-                    <span className="text-2xl font-semibold">KGurukul Computer Classes</span>
+                    <span className="text-2xl font-semibold">KGurukul's Computer Classes</span>
                 </div>
 
 

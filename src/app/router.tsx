@@ -16,6 +16,12 @@ import BatchForm from "../pages/batches/BatchForm";
 import BatchDetail from "../pages/batches/BatchDetail";
 import BatchAssign from "../pages/batches/BatchAssign";
 import TeacherRegistration from "../pages/admin/Users/Teacher/TeacherRegistration";
+import Attendance from "../pages/admin/Attendance/Attendance";
+import Master from "../pages/admin/Master/Master";
+import Area from "../pages/admin/Master/Area";
+import Branch from "../pages/admin/Master/Branch";
+import Standard from "../pages/admin/Master/Standard";
+import Subject from "../pages/admin/Master/Subject";
 
 export const router = createBrowserRouter([
   {
@@ -77,6 +83,30 @@ export const router = createBrowserRouter([
       {
         path: "Users/edit-teacher/:id",
         element: <TeacherRegistration />, // Temporary - create AddEditTeacher later
+      },
+      {
+        path: "attendance",
+        element: <Attendance />,
+      },
+      {
+        path: "master",
+        element: <Master />,
+      },
+      {
+        path: "master/area",
+        element: <Area />,
+      },
+      {
+        path: "master/branch",
+        element: <Branch />,
+      },
+      {
+        path: "master/standard",
+        element: <Standard />,
+      },
+      {
+        path: "master/subject",
+        element: <Subject />,
       },
     ],
   },

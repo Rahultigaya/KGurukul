@@ -20,6 +20,7 @@
     "ag-grid-community": "^35.1.0",
     "ag-grid-react": "^35.1.0",
     "axios": "^1.13.5",
+    "cloudinary": "^2.10.0",
     "dayjs": "^1.11.19",
     "framer-motion": "^12.34.0",
     "mantine-datatable": "^8.3.13",

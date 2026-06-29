@@ -8,7 +8,7 @@ export const BRANCH_ADDRESS = "Thane West - XXXXXX;";
 
 export const LOGO = "/logo-gurukul-new.png";
 
-export const EMAIL = "riyaachipdey@gmail.com";
+export const EMAIL = "kgurukuls09@gmail.com";
 
 export const SLOGAN = "Every Topper Starts With A Question";
 

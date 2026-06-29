@@ -133,7 +133,7 @@ const TopNav: React.FC<TopNavProps> = ({
                 className="text-xl font-semibold"
                 style={{ color: "var(--text-primary)" }}
               >
-                Welcome back, {user.name.split(" ")[0]}! 👋
+                Welcome back, {user.name.split(" ")[0]} !!!
               </h2>
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 {new Date().toLocaleDateString("en-US", {

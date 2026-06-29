@@ -2,7 +2,7 @@ from auth import get_current_user
 from sqlalchemy.orm import Session
 import models, schemas, crud
 from database import engine, SessionLocal
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from fastapi_mail import FastMail, MessageSchema
 from database import SessionLocal
@@ -14,10 +14,23 @@ import pytz
 from auth import create_access_token, create_refresh_token
 from jose import jwt, JWTError
 import os
-from models import User, Teacher
+from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
+from models import User, Teacher, Area, Branch, Subject, Batch
+
+# Load environment variables from .env file
+load_dotenv()
 
 SECRET_KEY=os.getenv("SECRET_KEY")
 ALGORITHM=os.getenv("ALGORITHM")
+
+# Cloudinary Configuration
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -44,6 +57,91 @@ def get_db():
 @app.post("/users")
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user)
+
+@app.post("/area")
+def create_area(area: schemas.AreaCreate, db: Session = Depends(get_db)):
+    return crud.create_area(db, area)
+
+@app.get("/areas")
+def get_areas(db: Session = Depends(get_db)):
+    return crud.get_areas(db)
+
+@app.put("/area/{area_id}")
+def update_area(area_id: int, area: schemas.AreaCreate, db: Session = Depends(get_db)):
+    updated_area = crud.update_area(db, area_id, area)
+    if not updated_area:
+        raise HTTPException(status_code=404, detail="Area not found")
+    return updated_area
+
+@app.post("/standards")
+def create_std(area: schemas.StdCreate, db: Session = Depends(get_db)):
+    return crud.create_std(db, area)
+
+@app.get("/standard")
+def get_std(db: Session = Depends(get_db)):
+    return crud.get_std(db)
+
+@app.put("/standard/{std_id}")
+def update_std(std_id: int, std: schemas.StdCreate, db: Session = Depends(get_db)):
+    updated_std = crud.update_std(db, std_id, std)
+    if not updated_std:
+        raise HTTPException(status_code=404, detail="Standard not found")
+    return updated_std
+
+@app.post("/branch")
+def create_branch(branch: schemas.BranchCreate, db: Session = Depends(get_db)):
+    return crud.create_branch(db, branch)
+
+@app.get("/branches")
+def get_branches(db: Session = Depends(get_db)):
+    return crud.get_branches(db)
+
+@app.put("/branch/{branch_id}")
+def update_branch(branch_id: int, branch: schemas.BranchUpdate, db: Session = Depends(get_db)):
+    updated_branch = crud.update_branch(db, branch_id, branch)
+    if not updated_branch:
+        raise HTTPException(status_code=404, detail="Branch not found")
+    return updated_branch
+
+@app.post("/subject")
+def create_subject(subject: schemas.SubjectCreate, db: Session = Depends(get_db)):
+    return crud.create_subject(db, subject)
+
+@app.get("/subjects")
+def get_subjects(db: Session = Depends(get_db)):
+    return crud.get_subjects(db)
+
+@app.put("/subject/{subject_id}")
+def update_subject(subject_id: int, subject: schemas.SubjectCreate, db: Session = Depends(get_db)):
+    updated_subject = crud.update_subject(db, subject_id, subject)
+    if not updated_subject:
+        raise HTTPException(status_code=404, detail="Subject not found")
+    return updated_subject
+
+@app.post("/add-batch")
+def add_batch(batch: schemas.BatchCreate, db: Session = Depends(get_db)):
+    new_batch, error = crud.create_batch(db, batch)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    return new_batch
+
+@app.get("/batches")
+def get_batches(db: Session = Depends(get_db)):
+    return crud.get_batches(db)
+
+@app.put("/batch/{batch_id}")
+def update_batch(batch_id: int, batch: schemas.BatchUpdate, db: Session = Depends(get_db)):
+    updated_batch = crud.update_batch(db, batch_id, batch)
+    if not updated_batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    return updated_batch
+
+@app.get("/batch/{batch_id}")
+def get_batch(batch_id: int, db: Session = Depends(get_db)):
+    batch = crud.get_batch_by_id(db, batch_id)
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    return batch
 
 @app.get("/users")
 def read_users(db: Session = Depends(get_db)):
@@ -215,13 +313,119 @@ def create_teacher(data: schemas.TeacherCreate, db: Session = Depends(get_db)):
         first_name=data.first_name,
         middle_name=data.middle_name,
         last_name=data.last_name,
-        joining_date=datetime.strptime(data.joining_date, "%Y-%m-%d").date()
+        joining_date=datetime.strptime(data.joining_date, "%Y-%m-%d").date(),
+        photo=data.photo  # Store Cloudinary URL
     )
 
     db.add(teacher)
     db.commit()
+    db.refresh(teacher)
 
-    return {"message": "Teacher created successfully"}
+    return {
+        "message": "Teacher created successfully",
+        "teacher_id": teacher.id,
+        "photo": teacher.photo
+    }
+
+@app.put("/teacher/{teacher_id}")
+def update_teacher(teacher_id: int, data: schemas.TeacherUpdate, db: Session = Depends(get_db)):
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    if data.first_name is not None:
+        teacher.first_name = data.first_name
+    if data.middle_name is not None:
+        teacher.middle_name = data.middle_name
+    if data.last_name is not None:
+        teacher.last_name = data.last_name
+    if data.photo is not None:
+        teacher.photo = data.photo
+
+    # Handle status field - convert "Active"/"Inactive" to isactive 1/0
+    if data.status is not None:
+        if data.status == "Active":
+            teacher.isactive = 1
+        elif data.status == "Inactive":
+            teacher.isactive = 0
+        else:
+            raise HTTPException(status_code=400, detail="Status must be 'Active' or 'Inactive'")
+
+    db.commit()
+    db.refresh(teacher)
+
+    return {
+        "message": "Teacher updated successfully",
+        "teacher_id": teacher.id,
+        "status": "Active" if teacher.isactive == 1 else "Inactive",
+        "photo": teacher.photo
+    }
+
+@app.post("/upload-image")
+async def upload_image(request: Request):
+    try:
+        # Check if Cloudinary is configured
+        cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+        api_key = os.getenv("CLOUDINARY_API_KEY")
+        api_secret = os.getenv("CLOUDINARY_API_SECRET")
+
+        if not all([cloud_name, api_key, api_secret]):
+            raise HTTPException(
+                status_code=500,
+                detail=f"Cloudinary not configured properly. Cloud name: {cloud_name}, API key: {api_key}"
+            )
+
+        body = await request.json()
+        file = body.get("file")  # base64 string
+        folder = body.get("folder", "kgurukul")  # folder name
+
+        if not file:
+            raise HTTPException(status_code=400, detail="No file provided in request body")
+
+        # Upload to Cloudinary using SDK
+        result = cloudinary.uploader.upload(file, folder=folder)
+        return {
+            "url": result["secure_url"],
+            "public_id": result["public_id"],
+            "message": "Image uploaded successfully"
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Upload error details: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+@app.get("/test-cloudinary")
+def test_cloudinary():
+    """Test endpoint to verify Cloudinary configuration"""
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+    api_key = os.getenv("CLOUDINARY_API_KEY")
+    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+
+    return {
+        "cloud_name": cloud_name,
+        "api_key": api_key,
+        "api_secret_set": bool(api_secret),
+        "configured": bool(cloud_name and api_key and api_secret)
+    }
+
+@app.delete("/delete-image")
+async def delete_image(request: Request):
+    try:
+        body = await request.json()
+        public_id = body.get("publicId")
+
+        if not public_id:
+            raise HTTPException(status_code=400, detail="No public_id provided")
+
+        # Delete from Cloudinary
+        result = cloudinary.uploader.destroy(public_id)
+        return {
+            "result": result,
+            "message": "Image deleted successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
 
 @app.get("/teachers", response_model=list[schemas.TeacherResponse])
 def get_teachers(db: Session = Depends(get_db)):
@@ -240,7 +444,8 @@ def get_teachers(db: Session = Depends(get_db)):
             "last_name": teacher.last_name,
             "email": user.email,
             "joining_date": str(teacher.joining_date),
-            "status": "Active" if teacher.isactive == 1 else "Inactive"
+            "status": "Active" if teacher.isactive == 1 else "Inactive",
+            "photo": teacher.photo
         })
 
     return teacher_list

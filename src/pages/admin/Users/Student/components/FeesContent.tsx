@@ -318,4 +318,4 @@ const FeesContent = React.memo<FeesProps>(({
   </Stack>
 ));
 
-export default FeesContent;
+export default FeesContent; 

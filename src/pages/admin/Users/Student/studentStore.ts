@@ -5,6 +5,7 @@ import type { StudentRegistrationData } from "./types";
 export const studentStore: Record<string, StudentRegistrationData> = {
   "1": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-24",
     subject: "Mathematics",
     branch: "Pune Main",
@@ -47,6 +48,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "2": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-20",
     subject: "Physics",
     branch: "Pune West",
@@ -89,6 +91,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "3": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-15",
     subject: "Chemistry",
     branch: "Pune East",
@@ -125,6 +128,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "4": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-10",
     subject: "Biology",
     branch: "Pune Main",
@@ -167,6 +171,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "5": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-12",
     subject: "Mathematics",
     branch: "Pune West",
@@ -209,6 +214,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "6": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-08",
     subject: "Physics",
     branch: "Pune East",
@@ -245,6 +251,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "7": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-05",
     subject: "Chemistry",
     branch: "Pune Main",
@@ -287,6 +294,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "8": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-14",
     subject: "Mathematics",
     branch: "Pune West",
@@ -329,6 +337,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "9": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-16",
     subject: "Biology",
     branch: "Pune East",
@@ -371,6 +380,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "10": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-16",
     subject: "Biology",
     branch: "Pune East",
@@ -413,6 +423,7 @@ export const studentStore: Record<string, StudentRegistrationData> = {
 
   "11": {
     photo: null,
+    academicYear: "2025-26",
     registrationDate: "2026-02-16",
     subject: "Biology",
     branch: "Pune East",

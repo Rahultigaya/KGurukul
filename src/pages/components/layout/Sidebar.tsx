@@ -31,8 +31,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     { path: "/adminDashboard", icon: IconLayoutDashboard, label: "Dashboard" },
     { path: "/Users", icon: IconUser, label: "Users" },
     { path: "/Batches", icon: IconUsersGroup, label: "Batches" },
-    { path: "/attendance", icon: IconCalendarCheck, label: "Attendance" },
+
+    // Bhavana Attendance Route
+    { path: "/attendance/mark", icon: IconCalendarCheck, label: "Attendance" },
+
+    // Rahul Attendance Route
+    // { path: "/attendance", icon: IconCalendarCheck, label: "Attendance" },
+
+    // Added
     { path: "/master", icon: IconCalendarCheck, label: "Master" },
+
     { path: "/grades", icon: IconTrophy, label: "My Grades" },
     { path: "/tasks", icon: IconChecklist, label: "Tasks" },
     { path: "/analytics", icon: IconChartBar, label: "Analytics" },
@@ -76,9 +84,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         className={`fixed md:static inset-y-0 left-0 z-[70]
           w-32 flex flex-col font-sans shadow-2xl
           transition-transform duration-300 ease-in-out h-screen
-          ${isMobileMenuOpen
-            ? "translate-x-0"
-            : "-translate-x-full md:translate-x-0"
+          ${
+            isMobileMenuOpen
+              ? "translate-x-0"
+              : "-translate-x-full md:translate-x-0"
           }`}
         style={{
           background: "var(--bg-sidebar)",
@@ -104,8 +113,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div
           className="flex flex-col items-center px-2 py-2"
           style={{
-            borderBottom: `1px solid ${isDark ? "rgba(71,85,105,0.5)" : "rgba(255,255,255,0.15)"
-              }`,
+            borderBottom: `1px solid ${
+              isDark
+                ? "rgba(71,85,105,0.5)"
+                : "rgba(255,255,255,0.15)"
+            }`,
           }}
         >
           <div className="w-15 h-14 mb-2 transition-transform hover:scale-105">
@@ -127,45 +139,35 @@ const Sidebar: React.FC<SidebarProps> = ({
               <div
                 key={item.path}
                 onClick={() => handleNavigation(item.path)}
-                className={`
-                  flex flex-col items-center px-2 py-4 cursor-pointer transition-all group
-                  ${active
+                className={`flex flex-col items-center px-2 py-4 cursor-pointer transition-all group ${
+                  active
                     ? "bg-[rgba(124,58,237,0.20)] border-l-2 border-[var(--accent-purple)]"
                     : "hover:bg-[var(--bg-card-hover)]"
-                  }
-                `}
+                }`}
               >
-                {/* Icon */}
                 <div
-                  className={`
-                    w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all
-                    ${active
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all ${
+                    active
                       ? "bg-[var(--accent-purple)] shadow-lg scale-105"
                       : "bg-[var(--bg-tertiary)] group-hover:bg-[var(--text-accent-secondary)] group-hover:scale-110"
-                    }
-                  `}
+                  }`}
                 >
                   <Icon
                     size={24}
-                    className={`
-                      transition-colors
-                      ${active
+                    className={`transition-colors ${
+                      active
                         ? "text-white"
                         : "text-slate-400 group-hover:text-white"
-                      }
-                    `}
+                    }`}
                   />
                 </div>
 
-                {/* Label */}
                 <span
-                  className={`
-                    text-xs text-center transition-colors
-                    ${active
+                  className={`text-xs text-center transition-colors ${
+                    active
                       ? "text-[var(--text-accent-primary)] font-bold"
                       : "text-[var(--text-accent-secondary)] group-hover:text-[var(--text-accent-primary)] group-hover:font-semibold"
-                    }
-                  `}
+                  }`}
                 >
                   {item.label}
                 </span>
@@ -174,25 +176,28 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Scrollbar */}
         <style>{`
           .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
           }
+
           .custom-scrollbar::-webkit-scrollbar-track {
             background: rgba(51, 65, 85, 0.3);
             border-radius: 10px;
           }
+
           .custom-scrollbar::-webkit-scrollbar-thumb {
             background: rgba(147, 51, 234, 0.5);
             border-radius: 10px;
           }
+
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(147, 51, 234, 0.7);
           }
+
           .custom-scrollbar {
             scrollbar-width: thin;
-              scrollbar-color: var(--accent-purple) var(--bg-tertiary);
+            scrollbar-color: var(--accent-purple) var(--bg-tertiary);
           }
         `}</style>
       </div>

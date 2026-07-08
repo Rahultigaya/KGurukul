@@ -18,16 +18,17 @@ import Swal from "sweetalert2";
 import type { GuardianDetails, Installment, StudentRegistrationData, ValidationErrors } from "./types";
 import { validateField, validateStep, applyFieldError } from "./validation";
 import { getStudentById, updateStudent } from "./studentStore";
-import EnrollmentContent     from "./components/EnrollmentContent";
+import EnrollmentContent from "./components/EnrollmentContent";
 import StudentDetailsContent from "./components/StudentDetailsContent";
-import GuardianContent       from "./components/GuardianContent";
-import FeesContent           from "./components/FeesContent";
-import { useTheme }          from "../../../../context/ThemeContext";
+import GuardianContent from "./components/GuardianContent";
+import FeesContent from "./components/FeesContent";
+import { useTheme } from "../../../../context/ThemeContext";
 
 // ── Initial state ─────────────────────────────────────────────────────────────
 
 const initialFormData: StudentRegistrationData = {
   photo: null,
+  academicYear: "",
   registrationDate: new Date().toISOString().split("T")[0],
   subject: "", branch: "", courseType: "", reference: "",
   surname: "", firstName: "", middleName: "", gender: "",
@@ -51,7 +52,7 @@ const StudentRegistration: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { isDark } = useTheme();
 
-  const isEditMode    = Boolean(id);
+  const isEditMode = Boolean(id);
   const isPaymentMode = searchParams.get("tab") === "fees";
 
   const pageTitle = isEditMode
@@ -64,9 +65,9 @@ const StudentRegistration: React.FC = () => {
       : "Edit student information — all steps available"
     : "Complete all steps to register a new student";
 
-  const [active,    setActive]    = useState(isPaymentMode ? 3 : 0);
-  const [errors,    setErrors]    = useState<ValidationErrors>({});
-  const [formData,  setFormData]  = useState<StudentRegistrationData>(initialFormData);
+  const [active, setActive] = useState(isPaymentMode ? 3 : 0);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [formData, setFormData] = useState<StudentRegistrationData>(initialFormData);
   const [isLoading, setIsLoading] = useState(isEditMode);
 
   // ── Prefill on edit ───────────────────────────────────────────────────────
@@ -96,7 +97,7 @@ const StudentRegistration: React.FC = () => {
       setErrors((prevErr) => {
         let next = applyFieldError(prevErr, field, value);
         if (field === "totalFees" || field === "discountAmount") {
-          const total    = parseFloat(field === "totalFees"    ? value : prev.totalFees)    || 0;
+          const total = parseFloat(field === "totalFees" ? value : prev.totalFees) || 0;
           const discount = parseFloat(field === "discountAmount" ? value : prev.discountAmount) || 0;
           if (discount > total) {
             next = { ...next, discountAmount: "Discount amount cannot be greater than total fees." };
@@ -119,7 +120,7 @@ const StudentRegistration: React.FC = () => {
 
   const handleGuardianChange = useCallback((id: string, field: keyof GuardianDetails, value: string) => {
     setFormData((prev) => {
-      const guardianIndex  = prev.guardians.findIndex((g) => g.id === id);
+      const guardianIndex = prev.guardians.findIndex((g) => g.id === id);
       const updatedGuardians = prev.guardians.map((g) => g.id === id ? { ...g, [field]: value } : g);
       if (guardianIndex === 0) {
         setErrors((prevErr) => applyFieldError(prevErr, `guardian_0_${field}`, value));
@@ -179,21 +180,21 @@ const StudentRegistration: React.FC = () => {
 
   // ── Calculators ───────────────────────────────────────────────────────────
   const calculateDiscountPercentage = useCallback(() => {
-    const total    = parseFloat(formData.totalFees)    || 0;
+    const total = parseFloat(formData.totalFees) || 0;
     const discount = parseFloat(formData.discountAmount) || 0;
     if (total === 0) return 0;
     return ((discount / total) * 100).toFixed(2);
   }, [formData.totalFees, formData.discountAmount]);
 
   const calculateFinalAmount = useCallback(() => {
-    const total    = parseFloat(formData.totalFees)    || 0;
+    const total = parseFloat(formData.totalFees) || 0;
     const discount = parseFloat(formData.discountAmount) || 0;
     return (total - discount).toFixed(2);
   }, [formData.totalFees, formData.discountAmount]);
 
   const calculateInstallmentTotal = useCallback(() =>
     formData.installments.reduce((sum, inst) => sum + (parseFloat(inst.amount) || 0), 0).toFixed(2),
-  [formData.installments]);
+    [formData.installments]);
 
   // ── Navigation ────────────────────────────────────────────────────────────
   const nextStep = useCallback(() => {
@@ -217,7 +218,7 @@ const StudentRegistration: React.FC = () => {
     if (isEditMode && id) updateStudent(id, formData);
 
     const title = isPaymentMode ? "Payment Updated! ✅" : isEditMode ? "Student Updated! ✅" : "Registration Successful! 🎉";
-    const html  = isPaymentMode
+    const html = isPaymentMode
       ? `<span style="color:var(--text-secondary)">Payment for <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> updated.</span>`
       : isEditMode
         ? `<span style="color:var(--text-secondary)"><strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong>'s details updated.</span>`
@@ -227,7 +228,7 @@ const StudentRegistration: React.FC = () => {
       title, html, icon: "success",
       confirmButtonText: "Go to Users",
       background: isDark ? "#1e293b" : "#ffffff",
-      color:      isDark ? "#f8fafc" : "#0f172a",
+      color: isDark ? "#f8fafc" : "#0f172a",
       iconColor: "#4ade80",
       confirmButtonColor: "#7c3aed",
       customClass: {
@@ -240,7 +241,7 @@ const StudentRegistration: React.FC = () => {
   const handleNavigateBack = useCallback(() => navigate("/Users"), [navigate]);
 
   const errorCount = Object.keys(errors).length;
-  const stepProps  = { formData, handleInputChange, errors };
+  const stepProps = { formData, handleInputChange, errors };
 
   // ── Loading guard ─────────────────────────────────────────────────────────
   if (isLoading) {
@@ -282,9 +283,9 @@ const StudentRegistration: React.FC = () => {
           {/* Payment-mode info banner */}
           {isEditMode && isPaymentMode && (
             <Alert color="green" variant="light" mb="md" icon={<IconCurrencyRupee size={18} />} title="Payment Update Mode"
-            styles={{
-              message: { color: "var(--text-primary)" },
-            }}
+              styles={{
+                message: { color: "var(--text-primary)" },
+              }}
             >
               You are updating payment details only. Steps 1–3 are locked. To change personal or enrollment info,{" "}
               <button
@@ -305,8 +306,8 @@ const StudentRegistration: React.FC = () => {
             color="red" variant="light" mb="md"
             classNames={{ title: "font-semibold" }}
             styles={{
-                message: { color: "var(--text-primary)" },
-              }}
+              message: { color: "var(--text-primary)" },
+            }}
           >
             {errorCount === 1 ? "1 required field is missing or invalid." : `${errorCount} required fields are missing or invalid.`}
           </Alert>
@@ -340,28 +341,28 @@ const StudentRegistration: React.FC = () => {
           size="sm"
           className="hidden sm:block"
           classNames={{
-            step:            "p-2 sm:p-3",
-            stepIcon:        "border-2",
+            step: "p-2 sm:p-3",
+            stepIcon: "border-2",
             stepDescription: "text-xs sm:text-sm",
-            stepLabel:       "text-sm sm:text-base",
+            stepLabel: "text-sm sm:text-base",
           }}
           styles={{
-            stepIcon:        { backgroundColor: "var(--bg-tertiary)", color: "var(--text-primary)" },
-            stepLabel:       { color: "var(--text-accent)"    },
+            stepIcon: { backgroundColor: "var(--bg-tertiary)", color: "var(--text-primary)" },
+            stepLabel: { color: "var(--text-accent)" },
             stepDescription: { color: "var(--text-secondary)" },
           }}
         >
-          <Stepper.Step label="Enrollment" description="Course details"  icon={<IconClipboardList size={18} />}>
+          <Stepper.Step label="Enrollment" description="Course details" icon={<IconClipboardList size={18} />}>
             <div className="mt-4"><EnrollmentContent {...stepProps} /></div>
           </Stepper.Step>
 
-          <Stepper.Step label="Student"    description="Personal details" icon={<IconUser size={18} />}>
+          <Stepper.Step label="Student" description="Personal details" icon={<IconUser size={18} />}>
             <div className="mt-4">
               <StudentDetailsContent {...stepProps} handleImageUpload={handleImageUpload} setFormData={setFormData} />
             </div>
           </Stepper.Step>
 
-          <Stepper.Step label="Guardian"   description="Parent details"   icon={<IconUsers size={18} />}>
+          <Stepper.Step label="Guardian" description="Parent details" icon={<IconUsers size={18} />}>
             <div className="mt-4">
               <GuardianContent
                 formData={formData} handleGuardianChange={handleGuardianChange}
@@ -370,7 +371,7 @@ const StudentRegistration: React.FC = () => {
             </div>
           </Stepper.Step>
 
-          <Stepper.Step label="Fees"       description="Payment details"  icon={<IconCurrencyRupee size={18} />}>
+          <Stepper.Step label="Fees" description="Payment details" icon={<IconCurrencyRupee size={18} />}>
             <div className="mt-4">
               <FeesContent
                 formData={formData} handleInputChange={handleInputChange}

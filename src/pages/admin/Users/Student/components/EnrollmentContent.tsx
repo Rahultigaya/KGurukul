@@ -1,7 +1,7 @@
 // src\pages\admin\Users\Student\components\EnrollmentContent.tsx
 
 import React from "react";
-import { Stack, Paper, Title, Grid, Text, Group, Radio } from "@mantine/core";
+import { Stack, Paper, Title, Grid, Text, Group, Radio, Select } from "@mantine/core";
 import { TextInput } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import type { StudentRegistrationData, ValidationErrors } from "../types";
@@ -11,6 +11,53 @@ interface EnrollmentProps {
   handleInputChange: (field: string, value: any) => void;
   errors: ValidationErrors;
 }
+
+// ── Generate academic year options ────────────────────────────────────────────
+// Academic year runs June → May, e.g. "2024-25", "2025-26"
+function getAcademicYears(): { value: string; label: string }[] {
+  const currentYear = new Date().getFullYear();
+  const years: { value: string; label: string }[] = [];
+  // show 2 past + current + 1 future
+  for (let y = currentYear - 2; y <= currentYear + 1; y++) {
+    const short = String(y + 1).slice(2); // "25" from 2025
+    const value = `${y}-${short}`;
+    const label = `${y}–${short} (Jun ${y} – May ${y + 1})`;
+    years.push({ value, label });
+  }
+  return years.reverse(); // newest first
+}
+
+const ACADEMIC_YEARS = getAcademicYears();
+
+const selectStyles = {
+  styles: {
+    label:       { color: "var(--text-primary)", marginBottom: 6 },
+    input:       { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+    section:     { color: "var(--text-muted)" },
+    option:      { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
+    placeholder: { color: "var(--text-muted)" },
+    error:       { color: "#f87171" },
+  },
+  comboboxProps: {
+    styles: {
+      dropdown: {
+        background: "var(--bg-secondary)",
+        border: "1px solid var(--border-accent)",
+        color: "var(--text-primary)",
+      },
+    },
+  },
+};
+
+const inputStyles = {
+  label: { color: "var(--text-primary)", marginBottom: 6 },
+  input: {
+    backgroundColor: "var(--bg-input)",
+    color: "var(--text-primary)",
+    borderColor: "var(--border-default)",
+  },
+  placeholder: { color: "var(--text-muted)" },
+};
 
 const EnrollmentContent = React.memo<EnrollmentProps>(
   ({ formData, handleInputChange, errors }) => (
@@ -31,6 +78,22 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
         </Title>
 
         <Grid gutter="md">
+
+          {/* Academic Year */}
+          <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
+            <Select
+              label="Academic Year"
+              placeholder="Select academic year"
+              value={formData.academicYear ?? null}
+              onChange={(value) => handleInputChange("academicYear", value)}
+              data={ACADEMIC_YEARS}
+              required
+              withAsterisk
+              error={errors.academicYear}
+              {...selectStyles}
+            />
+          </Grid.Col>
+
           {/* Registration Date */}
           <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
             <DateInput
@@ -43,19 +106,22 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               error={errors.registrationDate}
               onKeyDown={(e) => e.preventDefault()}
               size="md"
+              // Show only month + year in the header; user picks a day
+              // This is native DateInput — restrict to month/year level if needed
               popoverProps={{
                 styles: {
                   dropdown: { backgroundColor: "var(--bg-secondary)" },
                 },
               }}
               styles={{
-                label:                    { color: "var(--text-primary)",   marginBottom: 6 },
-                input:                    { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-                calendarHeader:           { color: "var(--text-primary)",   backgroundColor: "var(--bg-secondary)"  },
-                calendarHeaderLevel:      { color: "var(--text-primary)"  },
-                calendarHeaderControl:    { color: "var(--text-primary)"  },
-                weekday:                  { color: "var(--text-secondary)" },
-                day:                      { color: "var(--text-primary)"  },
+                label:                 { color: "var(--text-primary)", marginBottom: 6 },
+                input:                 { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+                placeholder:           { color: "var(--text-muted)" },
+                calendarHeader:        { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
+                calendarHeaderLevel:   { color: "var(--text-primary)" },
+                calendarHeaderControl: { color: "var(--text-primary)" },
+                weekday:               { color: "var(--text-secondary)" },
+                day:                   { color: "var(--text-primary)" },
               }}
             />
           </Grid.Col>
@@ -71,10 +137,7 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               withAsterisk
               size="md"
               error={errors.subject}
-              styles={{
-                label: { color: "var(--text-primary)", marginBottom: 6 },
-                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-              }}
+              styles={{ ...inputStyles, placeholder: { color: "var(--text-muted)" } }}
             />
           </Grid.Col>
 
@@ -89,15 +152,12 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               withAsterisk
               size="md"
               error={errors.branch}
-              styles={{
-                label: { color: "var(--text-primary)", marginBottom: 6 },
-                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-              }}
+              styles={{ ...inputStyles, placeholder: { color: "var(--text-muted)" } }}
             />
           </Grid.Col>
 
           {/* Course Type */}
-          <Grid.Col span={{ base: 12, md: 6 }}>
+          <Grid.Col span={{ base: 12, md: 4 }}>
             <label
               className="text-sm font-medium block mb-2"
               style={{ color: "var(--text-primary)" }}
@@ -110,16 +170,10 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               required
               size="md"
             >
-              {/* Mobile — stack */}
-              <Stack gap="xs" className="sm:hidden">
-                <Radio value="Regular"        label="Regular"        color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
+              <Stack gap="xs">
+                <Radio value="Regular"         label="Regular"         color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
                 <Radio value="Crash (Backlog)" label="Crash (Backlog)" color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
               </Stack>
-              {/* Desktop — row */}
-              <Group className="hidden sm:flex">
-                <Radio value="Regular"        label="Regular"        color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
-                <Radio value="Crash (Backlog)" label="Crash (Backlog)" color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
-              </Group>
             </Radio.Group>
             {errors.courseType && (
               <Text size="xs" c="red" mt={4}>{errors.courseType}</Text>
@@ -127,19 +181,17 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
           </Grid.Col>
 
           {/* Reference */}
-          <Grid.Col span={{ base: 12, md: 6 }}>
+          <Grid.Col span={{ base: 12, md: 4 }}>
             <TextInput
               label="Reference"
               placeholder="Enter reference (optional)"
               value={formData.reference}
               onChange={(e) => handleInputChange("reference", e.target.value)}
               size="md"
-              styles={{
-                label: { color: "var(--text-primary)", marginBottom: 6 },
-                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-              }}
+              styles={{ ...inputStyles, placeholder: { color: "var(--text-muted)" } }}
             />
           </Grid.Col>
+
         </Grid>
       </Paper>
     </Stack>

@@ -162,4 +162,4 @@ const GuardianContent = React.memo<GuardianProps>(
   ),
 );
 
-export default GuardianContent;
+export default GuardianContent; 

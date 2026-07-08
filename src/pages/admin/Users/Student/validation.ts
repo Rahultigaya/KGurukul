@@ -16,6 +16,8 @@ export function validateField(key: string, value: any): string | null {
 
   switch (key) {
     // ── Step 0 ──
+     case "academicYear":
+      return !value || !str.trim() ? "Academic year is required." : null;
     case "registrationDate":
       return !value ? "Registration date is required." : null;
     case "subject":
@@ -131,6 +133,7 @@ export function validateStep(
   };
 
   if (step === 0) {
+    check("academicYear", formData.academicYear);   // ← added
     check("registrationDate", formData.registrationDate);
     check("subject", formData.subject);
     check("branch", formData.branch);

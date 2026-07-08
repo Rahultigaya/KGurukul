@@ -20,6 +20,7 @@ export interface Installment {
 
 export interface StudentRegistrationData {
   photo: string | null;
+  academicYear: string;
   registrationDate: string;
   subject: string;
   branch: string;

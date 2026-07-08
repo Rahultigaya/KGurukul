@@ -220,4 +220,4 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
   ),
 );
 
-export default StudentDetailsContent;
+export default StudentDetailsContent; 

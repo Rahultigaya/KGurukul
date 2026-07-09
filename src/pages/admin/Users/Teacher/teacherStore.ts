@@ -108,7 +108,7 @@ export async function getAllTeachers(): Promise<TeacherData[]> {
 }
 
 // 📥 Get one teacher (from cache or API)
-export async function getTeacherById(id: string): Promise<TeacherData | null> {
+export async function getTeacherById(id: string) {
   try {
     console.log("getTeacherById called with id:", id);
     console.log("teacherStore keys:", Object.keys(teacherStore));
@@ -140,7 +140,7 @@ export async function getTeacherById(id: string): Promise<TeacherData | null> {
 // ➕ Add teacher (API-based)
 export async function addTeacher(data: TeacherFormData): Promise<string> {
   try {
-    const response = await createTeacher({
+    await createTeacher({
       email: data.email,
       first_name: data.firstName,
       middle_name: data.middleName || "",

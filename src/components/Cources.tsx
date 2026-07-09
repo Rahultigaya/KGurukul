@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import Product from "../Cources";
 import { useNavigate } from "react-router-dom";
+import { SiPython, SiCoffeescript } from "react-icons/si";
+import { FiCode, FiGlobe } from "react-icons/fi";
 // import reviews from "../review";
 import { reviews as fetchReviewsAPI } from "../api/api";
 
@@ -9,7 +11,7 @@ const today = new Date().getDay();
 
 const Services = () => {
     const navigate = useNavigate();
-    const [reviews, setReviews] = useState([]);
+    const [reviews, setReviews] = useState([] as any[]);
     const [loading, setLoading] = useState(true);
 
     const fetchReviews = async () => {
@@ -21,7 +23,7 @@ const Services = () => {
             console.log("Response type:", typeof res);
 
             // Handle different response structures
-            let reviewsData = [];
+            let reviewsData: any[] = [];
             if (res && Array.isArray(res.data)) {
                 reviewsData = res.data;
             } else if (Array.isArray(res)) {
@@ -34,8 +36,9 @@ const Services = () => {
             setLoading(false);
         } catch (error) {
             console.error("Error fetching reviews:", error);
-            console.error("Error message:", error.message);
-            console.error("Error response:", error.response);
+            const err = error as { message?: string; response?: unknown };
+            console.error("Error message:", err.message);
+            console.error("Error response:", err.response);
             setReviews([]);
             setLoading(false);
         }
@@ -163,53 +166,101 @@ const Services = () => {
                             grid grid-cols-1
                             sm:grid-cols-2
                             lg:grid-cols-4
-                            gap-3 md:gap-4
+                            gap-4 md:gap-6
                         "
                     >
-                        {Product.map((product, index) => (
+                        {Product.map((product, index) => {
+                            const detailsList = product.details.split(",").map(d => d.trim());
+                            return (
                             <div
                                 key={index}
                                 className="
                                     group
-                                    bg-gradient-to-br from-slate-800/80 to-slate-700/80
+                                    relative
+                                    bg-gradient-to-br from-slate-800/90 to-slate-700/90
                                     backdrop-blur-sm
-                                    rounded-xl
-                                    p-4
-                                    flex items-center gap-3
+                                    rounded-2xl
+                                    overflow-hidden
                                     shadow-lg
-                                    transition-all duration-300 ease-out
-                                    hover:-translate-y-2 hover:shadow-2xl hover:from-purple-900/80 hover:to-blue-900/80
+                                    transition-all duration-500 ease-out
+                                    hover:shadow-2xl hover:scale-[1.03]
+                                    hover:from-purple-900/95 hover:to-blue-900/95
                                     border border-white/10
+                                    hover:border-purple-500/30
+                                    cursor-pointer
                                 "
                             >
-                                {/* Icon on Left */}
-                                <div className="flex-shrink-0">
-                                    <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                        <span className="text-xl md:text-2xl">
-                                            {index === 0 ? "💻" : index === 1 ? "☕" : index === 2 ? "🐍" : "🌐"}
-                                        </span>
-                                    </div>
-                                </div>
+                                {/* Gradient overlay on hover */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                                {/* Content on Right */}
-                                <div className="flex-1 min-w-0">
+                                {/* Top accent bar */}
+                                <div className="h-1 w-full bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 group-hover:from-purple-400 group-hover:via-blue-400 group-hover:to-purple-400 transition-all duration-500" />
+
+                                <div className="p-5 relative z-10">
+                                    {/* Class Badge */}
+                                    <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-300 border border-purple-500/30 mb-3">
+                                        {product.class}
+                                    </span>
+
+                                    {/* Icon */}
+                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                                        {index === 0 ? (
+                                            <FiCode className="w-7 h-7 text-white" />
+                                        ) : index === 1 ? (
+                                            <SiCoffeescript className="w-7 h-7 text-white" />
+                                        ) : index === 2 ? (
+                                            <SiPython className="w-7 h-7 text-white" />
+                                        ) : (
+                                            <FiGlobe className="w-7 h-7 text-white" />
+                                        )}
+                                    </div>
+
                                     {/* Course Name */}
-                                    <h3 className="text-base md:text-lg font-bold text-white mb-1 group-hover:text-purple-300 transition-colors truncate">
+                                    <h3 className="text-xl font-bold text-white mb-1 group-hover:text-purple-200 transition-colors">
                                         {product.name}
                                     </h3>
 
                                     {/* Description */}
-                                    <p className="text-xs md:text-sm text-slate-300 line-clamp-2 mb-2">
+                                    <p className="text-sm text-slate-300 mb-4">
                                         {product.description}
                                     </p>
 
+                                    {/* Details - shown on hover */}
+                                    <div className="overflow-hidden transition-all duration-500 ease-out">
+                                        <div className="max-h-0 group-hover:max-h-48 transition-all duration-500 ease-out">
+                                            <p className="text-xs font-semibold text-purple-300 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                                <span className="w-4 h-px bg-purple-400" />
+                                                What you'll get
+                                            </p>
+                                            <ul className="space-y-1.5">
+                                                {detailsList.map((detail, i) => (
+                                                    <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                                                        {detail}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+
                                     {/* CTA Button */}
-                                    <button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-1.5 px-3 rounded-lg font-semibold text-xs hover:from-purple-400 hover:to-blue-400 hover:shadow-lg transition-all duration-300" onClick={() => navigate('/auth/login')}>
-                                        Learn More
+                                    <button
+                                        className="w-full mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2.5 px-4 rounded-xl font-semibold text-sm hover:from-purple-400 hover:to-blue-400 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
+                                        onClick={() => navigate('/auth/login')}
+                                    >
+                                        <span>Learn More</span>
+                                        <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
                                     </button>
                                 </div>
+
+                                {/* Decorative corner elements */}
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-bl-full group-hover:from-purple-500/20 transition-all duration-500" />
+                                <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-tr-full group-hover:from-blue-500/20 transition-all duration-500" />
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -257,9 +308,8 @@ const Services = () => {
                             ref={scrollContainerRef}
                             className="flex gap-4 overflow-x-auto overflow-y-hidden scroll-smooth px-2"
                             style={{
-                                scrollbarWidth: 'none',
-                                msOverflowStyle: 'none',
-                                WebkitScrollbar: 'none'
+                                scrollbarWidth: 'none' as const,
+                                msOverflowStyle: 'none' as const,
                             }}
                         >
                             {reviews?.length > 0 ? (

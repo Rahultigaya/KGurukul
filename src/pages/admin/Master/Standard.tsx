@@ -6,11 +6,9 @@ import {
   IconBooks,
   IconPlus,
   IconEdit,
-  IconTrash,
   IconSearch,
   IconArrowLeft,
   IconCircleCheck,
-  IconCircleX,
 } from "@tabler/icons-react";
 import { Modal, TextInput, ActionIcon, Group } from "@mantine/core";
 import { useTheme } from "../../../context/ThemeContext";
@@ -18,12 +16,10 @@ import {
   getAllStandards,
   createStandard,
   updateStandard,
-  deleteStandard,
-  toggleStandardActive,
   type Standard,
 } from "./masterStore";
 
-const Standard: React.FC = () => {
+const StandardPage: React.FC = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -34,8 +30,8 @@ const Standard: React.FC = () => {
   const [standardName, setStandardName] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [nameError, setNameError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState("");
 
   useEffect(() => {
     loadStandards();
@@ -112,36 +108,6 @@ const Standard: React.FC = () => {
     } catch (err: any) {
       console.error("Error saving standard:", err);
       setError(err.message || "Failed to save standard");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string | number, name: string) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      try {
-        setLoading(true);
-        setError("");
-        await deleteStandard(id);
-        await loadStandards();
-      } catch (err: any) {
-        console.error("Error deleting standard:", err);
-        setError(err.message || "Failed to delete standard");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleToggleActive = async (id: string | number) => {
-    try {
-      setLoading(true);
-      setError("");
-      await toggleStandardActive(id);
-      await loadStandards();
-    } catch (err: any) {
-      console.error("Error toggling standard status:", err);
-      setError(err.message || "Failed to toggle standard status");
     } finally {
       setLoading(false);
     }
@@ -281,9 +247,8 @@ const Standard: React.FC = () => {
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        standard.is_active === 1 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                      }`}
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${standard.is_active === 1 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                        }`}
                     >
                       {standard.is_active === 1 ? "Active" : "Inactive"}
                     </span>
@@ -329,7 +294,7 @@ const Standard: React.FC = () => {
         onClose={handleCloseModal}
         title={
           <span style={{
-            color: isDark ?  "#1e293b" :"#ffffff",
+            color: "#ffffff",
             fontWeight: 600,
             fontSize: "1.1rem"
           }}>
@@ -415,4 +380,4 @@ const Standard: React.FC = () => {
   );
 };
 
-export default Standard;
+export default StandardPage;

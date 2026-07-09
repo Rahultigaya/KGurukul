@@ -1,7 +1,7 @@
 // src\pages\admin\Users\Student\components\EnrollmentContent.tsx
 
 import React from "react";
-import { Stack, Paper, Title, Grid, Text, Group, Radio, Select } from "@mantine/core";
+import { Stack, Paper, Title, Grid, Text, Radio, Select } from "@mantine/core";
 import { TextInput } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import type { StudentRegistrationData, ValidationErrors } from "../types";
@@ -116,7 +116,6 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               styles={{
                 label:                 { color: "var(--text-primary)", marginBottom: 6 },
                 input:                 { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-                placeholder:           { color: "var(--text-muted)" },
                 calendarHeader:        { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
                 calendarHeaderLevel:   { color: "var(--text-primary)" },
                 calendarHeaderControl: { color: "var(--text-primary)" },
@@ -137,7 +136,7 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               withAsterisk
               size="md"
               error={errors.subject}
-              styles={{ ...inputStyles, placeholder: { color: "var(--text-muted)" } }}
+              styles={inputStyles}
             />
           </Grid.Col>
 
@@ -152,7 +151,7 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               withAsterisk
               size="md"
               error={errors.branch}
-              styles={{ ...inputStyles, placeholder: { color: "var(--text-muted)" } }}
+              styles={inputStyles}
             />
           </Grid.Col>
 
@@ -188,7 +187,7 @@ const EnrollmentContent = React.memo<EnrollmentProps>(
               value={formData.reference}
               onChange={(e) => handleInputChange("reference", e.target.value)}
               size="md"
-              styles={{ ...inputStyles, placeholder: { color: "var(--text-muted)" } }}
+              styles={inputStyles}
             />
           </Grid.Col>
 

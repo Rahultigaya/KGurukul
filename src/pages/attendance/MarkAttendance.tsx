@@ -334,16 +334,6 @@ const AddGuestPanel: React.FC<{
     });
   };
 
-  const selectSt = {
-    styles: {
-      label:   { color: "var(--text-primary)", marginBottom: 4 },
-      input:   { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)", fontSize: "13px" },
-      section: { color: "var(--text-muted)" },
-      option:  { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-    },
-    comboboxProps: { styles: { dropdown: { background: "var(--bg-secondary)", border: "1px solid var(--border-accent)" } } },
-  };
-
   return (
     <div className="rounded-2xl p-4 space-y-4"
       style={{ background: "rgba(139,92,246,0.04)", border: "1px solid rgba(139,92,246,0.25)" }}>

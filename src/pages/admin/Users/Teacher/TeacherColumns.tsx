@@ -2,10 +2,12 @@
 
 import { type TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
-import { IconPencil, IconShare } from "@tabler/icons-react";
+import { IconPencil } from "@tabler/icons-react";
 import { type TeacherData } from "./teacherStore";
 
-export function useTeacherColumns(): TableColumn<TeacherData>[] {
+type FormattedTeacher = TeacherData & { name: string; avatar: string; joined: string };
+
+export function useTeacherColumns(): TableColumn<FormattedTeacher>[] {
   const navigate = useNavigate();
 
   return [

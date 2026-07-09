@@ -67,7 +67,7 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await sendOTP(email);
+      await sendOTP(email);
       console.log("OTP sent successfully to:", email);
       setIsLoading(false);
       setStep("otp");
@@ -263,15 +263,6 @@ const LoginForm: React.FC = () => {
 
       setError(errorMessage);
     }
-  };
-
-  const handleBack = () => {
-    setStep("email");
-    setOtp("");
-    setError("");
-    setSuccessMessage("");
-    setTimer(600); // 10 minutes
-    setIsExpired(false);
   };
 
   // Format timer display

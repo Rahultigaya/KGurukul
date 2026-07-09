@@ -4,7 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./app/router";
-import { MantineProvider, ColorSchemeScript } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 
 import "@mantine/core/styles.css";
@@ -15,7 +15,7 @@ import "./index.css";
 const AppWithMantine = () => {
   const { theme } = useTheme();
   return (
-    <MantineProvider colorScheme={theme}>
+    <MantineProvider defaultColorScheme={theme}>
       <RouterProvider router={router} />
     </MantineProvider>
   );

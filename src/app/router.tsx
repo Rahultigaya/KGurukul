@@ -30,10 +30,10 @@ import Attendance from "../pages/admin/Attendance/Attendance";
 
 // Master
 import Master from "../pages/admin/Master/Master";
-import Area from "../pages/admin/Master/Area";
-import Branch from "../pages/admin/Master/Branch";
-import Standard from "../pages/admin/Master/Standard";
-import Subject from "../pages/admin/Master/Subject";
+import AreaPage from "../pages/admin/Master/Area";
+import BranchPage from "../pages/admin/Master/Branch";
+import StandardPage from "../pages/admin/Master/Standard";
+import SubjectPage from "../pages/admin/Master/Subject";
 
 export const router = createBrowserRouter([
   {
@@ -147,19 +147,19 @@ export const router = createBrowserRouter([
       },
       {
         path: "master/area",
-        element: <Area />,
+        element: <AreaPage />,
       },
       {
         path: "master/branch",
-        element: <Branch />,
+        element: <BranchPage />,
       },
       {
         path: "master/standard",
-        element: <Standard />,
+        element: <StandardPage />,
       },
       {
         path: "master/subject",
-        element: <Subject />,
+        element: <SubjectPage />,
       },
     ],
   },

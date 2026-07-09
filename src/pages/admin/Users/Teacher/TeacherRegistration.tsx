@@ -102,11 +102,6 @@ const TeacherRegistration: React.FC = () => {
     loadTeacher();
   }, [id, isEdit, navigate, isDark]);
 
-  const showToast = (msg: string, ok: boolean) => {
-    setToast({ msg, ok });
-    setTimeout(() => setToast(null), 3000);
-  };
-
   // ── Field helpers ──────────────────────────────────────────────────────────
   const set = useCallback(<K extends keyof TeacherFormData>(field: K, value: TeacherFormData[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -411,7 +406,11 @@ const TeacherRegistration: React.FC = () => {
                       label="Joining Date"
                       placeholder="Select date"
                       value={form.joiningDate ? new Date(form.joiningDate + "T00:00:00") : null}
-                      onChange={(v) => set("joiningDate", v ? v.toISOString().split("T")[0] : "")}
+                      onChange={(v) => {
+                        if (!v) { set("joiningDate", ""); return; }
+                        const d = typeof v === "string" ? new Date(v) : v;
+                        set("joiningDate", d.toISOString().split("T")[0]);
+                      }}
                       maxDate={new Date()}
                       required withAsterisk
                       error={errors.joiningDate}
@@ -422,7 +421,6 @@ const TeacherRegistration: React.FC = () => {
                       styles={{
                         label:                 { color: "var(--text-primary)", marginBottom: 6 },
                         input:                 { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-                        placeholder:           { color: "var(--text-muted)" },
                         error:                 { color: "#f87171" },
                         calendarHeader:        { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
                         calendarHeaderLevel:   { color: "var(--text-primary)" },

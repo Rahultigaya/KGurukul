@@ -6,25 +6,20 @@ import {
   IconBuildingFactory,
   IconPlus,
   IconEdit,
-  IconTrash,
   IconSearch,
   IconArrowLeft,
   IconCircleCheck,
-  IconCircleX,
-  IconChevronRight,
 } from "@tabler/icons-react";
-import { Modal, TextInput, ActionIcon, Group, Text } from "@mantine/core";
+import { Modal, TextInput, ActionIcon, Group } from "@mantine/core";
 import { useTheme } from "../../../context/ThemeContext";
 import {
   getAllAreas,
   createArea,
   updateArea,
-  deleteArea,
-  toggleAreaActive,
   type Area,
 } from "./masterStore";
 
-const Area: React.FC = () => {
+const AreaPage: React.FC = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -35,8 +30,8 @@ const Area: React.FC = () => {
   const [areaName, setAreaName] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [nameError, setNameError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState("");
 
   useEffect(() => {
     loadAreas();
@@ -113,36 +108,6 @@ const Area: React.FC = () => {
     } catch (err: any) {
       console.error("Error saving area:", err);
       setError(err.message || "Failed to save area");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string | number, name: string) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"? This will also delete all branches associated with this area.`)) {
-      try {
-        setLoading(true);
-        setError("");
-        await deleteArea(id);
-        await loadAreas();
-      } catch (err: any) {
-        console.error("Error deleting area:", err);
-        setError(err.message || "Failed to delete area");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleToggleActive = async (id: string | number) => {
-    try {
-      setLoading(true);
-      setError("");
-      await toggleAreaActive(id);
-      await loadAreas();
-    } catch (err: any) {
-      console.error("Error toggling area status:", err);
-      setError(err.message || "Failed to toggle area status");
     } finally {
       setLoading(false);
     }
@@ -337,7 +302,7 @@ const Area: React.FC = () => {
         onClose={handleCloseModal}
         title={
           <span style={{
-            color: isDark ? "#1e293b" : "#ffffff",
+            color: "#ffffff",
             fontWeight: 600,
             fontSize: "1.1rem"
           }}>
@@ -423,4 +388,4 @@ const Area: React.FC = () => {
   );
 };
 
-export default Area;
+export default AreaPage;

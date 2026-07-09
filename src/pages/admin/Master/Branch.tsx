@@ -6,11 +6,9 @@ import {
   IconBuilding,
   IconPlus,
   IconEdit,
-  IconTrash,
   IconSearch,
   IconArrowLeft,
   IconCircleCheck,
-  IconCircleX,
   IconFilter,
 } from "@tabler/icons-react";
 import { Modal, TextInput, Select, ActionIcon, Group } from "@mantine/core";
@@ -21,13 +19,11 @@ import {
   getBranchesByArea,
   createBranch,
   updateBranch,
-  deleteBranch,
-  toggleBranchActive,
   type Branch,
   type Area,
 } from "./masterStore";
 
-const Branch: React.FC = () => {
+const BranchPage: React.FC = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -44,8 +40,8 @@ const Branch: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const [nameError, setNameError] = useState("");
   const [areaError, setAreaError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState("");
 
   useEffect(() => {
     loadAreas();
@@ -155,36 +151,6 @@ const Branch: React.FC = () => {
     } catch (err: any) {
       console.error("Error saving branch:", err);
       setError(err.message || "Failed to save branch");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string | number, name: string) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      try {
-        setLoading(true);
-        setError("");
-        await deleteBranch(id);
-        await loadBranches();
-      } catch (err: any) {
-        console.error("Error deleting branch:", err);
-        setError(err.message || "Failed to delete branch");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleToggleActive = async (id: string | number) => {
-    try {
-      setLoading(true);
-      setError("");
-      await toggleBranchActive(id);
-      await loadBranches();
-    } catch (err: any) {
-      console.error("Error toggling branch status:", err);
-      setError(err.message || "Failed to toggle branch status");
     } finally {
       setLoading(false);
     }
@@ -364,9 +330,8 @@ const Branch: React.FC = () => {
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        branch.is_active === 1 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                      }`}
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${branch.is_active === 1 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                        }`}
                     >
                       {branch.is_active === 1 ? "Active" : "Inactive"}
                     </span>
@@ -412,7 +377,7 @@ const Branch: React.FC = () => {
         onClose={handleCloseModal}
         title={
           <span style={{
-            color: isDark ? "#1e293b" : "#ffffff",
+            color: "#ffffff",
             fontWeight: 600,
             fontSize: "1.1rem"
           }}>
@@ -528,4 +493,4 @@ const Branch: React.FC = () => {
   );
 };
 
-export default Branch;
+export default BranchPage;

@@ -17,7 +17,7 @@ import {
   DAYS, BATCH_TYPES, BATCH_STATUSES, BATCH_TYPE_META,
   generateBatchName,
   createBatchAPI, updateBatchAPI, getBatchByIdAPI,
-  type Area, type BatchType, type BatchStatus,
+  type BatchType, type BatchStatus,
 } from "./batchStore";
 import {
   getAllAreas,
@@ -25,7 +25,6 @@ import {
   getAllStandards,
   getAllSubjects,
   getAllTeachers,
-  getBranchesByArea,
   getTeacherFullName,
   type Area as MasterArea,
   type Branch as MasterBranch,
@@ -54,21 +53,6 @@ const generateTimeSlots = () => {
 
 const TIME_SLOTS = generateTimeSlots();
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared input styles — uses CSS vars, matches EnrollmentContent pattern
-// ─────────────────────────────────────────────────────────────────────────────
-
-const inputStyles = {
-  label: { color: "var(--text-primary)", marginBottom: 6 },
-  input: {
-    backgroundColor: "var(--bg-input)",
-    color: "var(--text-primary)",
-    borderColor: "var(--border-default)",
-  },
-  placeholder: { color: "var(--text-muted)" },
-  error: { color: "#f87171" },
-};
-
 const selectStyles = {
   styles: {
     label:       { color: "var(--text-primary)", marginBottom: 6 },
@@ -94,15 +78,6 @@ const numberInputStyles = {
     label:   { color: "var(--text-primary)", marginBottom: 6 },
     input:   { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
     control: { borderColor: "var(--border-default)", color: "var(--text-muted)" },
-    error:   { color: "#f87171" },
-  },
-};
-
-const timeInputStyles = {
-  styles: {
-    label:   { color: "var(--text-primary)", marginBottom: 6 },
-    input:   { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)", paddingLeft: "36px" },
-    section: { color: "var(--text-muted)" },
     error:   { color: "#f87171" },
   },
 };
@@ -282,13 +257,13 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         const teacherObj = teachers.find(t => t.id === batch.teacherId || getTeacherFullName(t) === batch.teacherName);
 
         setForm({
-          area_id: areaObj?.id || null,
-          branch_id: branchObj?.id || null,
+          area_id: areaObj?.id != null ? Number(areaObj.id) || null : null,
+          branch_id: branchObj?.id != null ? Number(branchObj.id) || null : null,
           day: batch.day,
           startTime, endTime,
-          subject_id: subjectObj?.id || null,
-          standard_id: standardObj?.id || null,
-          teacher_id: teacherObj?.id || null,
+          subject_id: subjectObj?.id != null ? Number(subjectObj.id) || null : null,
+          standard_id: standardObj?.id != null ? Number(standardObj.id) || null : null,
+          teacher_id: teacherObj?.id != null ? Number(teacherObj.id) || null : null,
           capacity: batch.capacity,
           type: batch.type,
           status: batch.status,
@@ -340,10 +315,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         .filter(b => b.area_id === form.area_id && b.is_active === 1)
         .map(b => ({ value: String(b.id), label: b.name }))
     : [];
-
-  const teacherName = teachers.find((t) => t.id === form.teacher_id)
-    ? getTeacherFullName(teachers.find((t) => t.id === form.teacher_id)!)
-    : "";
 
   const set = (field: keyof FormData, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -502,8 +473,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         <div className="flex items-start gap-2">
           <IconSparkles size={16} style={{ color: isComplete ? "var(--accent-orange)" : "var(--text-muted)", marginTop: 2, flexShrink: 0 }} />
           <BatchNamePreview
-            area={areas.find(a => a.id === form.area_id)?.name}
-            branch={branches.find(b => b.id === form.branch_id)?.name}
+            area={areas.find(a => a.id === form.area_id)?.name ?? null}
+            branch={branches.find(b => b.id === form.branch_id)?.name ?? null}
             day={form.day}
             startTime={form.startTime}
             endTime={form.endTime}

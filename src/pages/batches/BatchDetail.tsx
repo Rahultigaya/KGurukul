@@ -4,11 +4,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Stack, Paper, Title, Grid, Text, ActionIcon, Tooltip, Loader } from "@mantine/core";
 import {
-  IconArrowLeft, IconEdit, IconMapPin, IconBuilding,
+  IconArrowLeft, IconMapPin, IconBuilding,
   IconCalendar, IconClock, IconBook, IconUser, IconUsers,
   IconCircleCheck, IconCircleOff, IconCircleX,
 } from "@tabler/icons-react";
-import { getBatchByIdAPI, BATCH_TYPE_META, BATCH_STATUS_META, type Area, type Batch } from "./batchStore";
+import { getBatchByIdAPI, BATCH_TYPE_META, type Area, type Batch } from "./batchStore";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers

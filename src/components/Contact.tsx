@@ -88,7 +88,7 @@ const Contact = () => {
                         name="user_name"
                         placeholder="Name"
                         required
-                        className="w-full border-b border-white-300 py-2 px-2 rounded-md focus:border-black"
+                        className="w-full border-b border-red-300 py-2 px-2 rounded-md text-white focus:border-black"
                     />
 
                     <input
@@ -96,14 +96,14 @@ const Contact = () => {
                         type="email"
                         placeholder="E-mail"
                         required
-                        className="w-full border-b border-red-300 py-2 px-2 rounded-md focus:border-black"
+                        className="w-full border-b border-red-300 py-2 px-2 rounded-md text-white focus:border-black"
                     />
 
                     <input
                         name="user_phone"
                         type="text" maxLength={10}
                         placeholder="Phone"
-                        className="w-full border-b border-red-300 py-2 px-2 rounded-md focus:border-black"
+                        className="w-full border-b border-red-300 py-2 px-2 rounded-md text-white focus:border-black"
                     />
 
                     <textarea
@@ -111,7 +111,7 @@ const Contact = () => {
                         placeholder="Message"
                         rows={2}
                         required
-                        className="w-full border-b border-red-300 py-2 px-2 rounded-md focus:border-black"
+                        className="w-full border-b border-red-300 py-2 px-2 rounded-md text-white focus:border-black"
                     />
 
                     <button

@@ -365,7 +365,6 @@ const BatchAssign: React.FC = () => {
             styles={{
               input: { backgroundColor: "var(--bg-input)", border: "1px solid var(--border-default)", color: "var(--text-primary)", borderRadius: "10px", fontSize: "13px" },
               section: { color: "var(--text-muted)" },
-              placeholder: { color: "var(--text-muted)" },
             }}
           />
 

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Select, Loader } from "@mantine/core";
 import {
   IconPlus, IconSearch, IconFilter, IconMapPin, IconClock,
-  IconUser, IconUsers, IconBook, IconEdit, IconTrash,
+  IconUser, IconUsers, IconBook, IconEdit,
   IconEye, IconUserPlus, IconX, IconSchool,
   IconAlertTriangle, IconCircleCheck, IconCalendar,
 } from "@tabler/icons-react";
@@ -112,8 +112,7 @@ const DeleteModal: React.FC<{
 const BatchCard: React.FC<{
   batch: Batch;
   onView: () => void; onAssign: () => void; onEdit: () => void; onDelete: () => void;
-}> = ({ batch, onView, onAssign, onEdit, onDelete }) => {
-  const area = areaColor[batch.area];
+}> = ({ batch, onView, onAssign, onEdit, onDelete: _onDelete }) => {
   const isToday = batch.day === TODAY_DAY && batch.status === "Active";
   const fillPct = Math.min((batch.studentIds.length / batch.capacity) * 100, 100);
   const fillColor = batch.studentIds.length >= batch.capacity

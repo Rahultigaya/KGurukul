@@ -5,15 +5,12 @@ import {
   IconCalendarCheck,
   IconUsers,
   IconSearch,
-  IconFilter,
   IconCheck,
   IconX,
   IconClock,
 } from "@tabler/icons-react";
-import { useTheme } from "../../../context/ThemeContext";
 
 const Attendance: React.FC = () => {
-  const { isDark } = useTheme();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedBatch, setSelectedBatch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");

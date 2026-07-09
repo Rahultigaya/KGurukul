@@ -9,7 +9,6 @@ import {
   IconSearch,
   IconArrowLeft,
   IconCircleCheck,
-  IconCircleX,
 } from "@tabler/icons-react";
 import { Modal, TextInput, ActionIcon, Group } from "@mantine/core";
 import { useTheme } from "../../../context/ThemeContext";
@@ -17,12 +16,10 @@ import {
   getAllSubjects,
   createSubject,
   updateSubject,
-  deleteSubject,
-  toggleSubjectActive,
   type Subject,
 } from "./masterStore";
 
-const Subject: React.FC = () => {
+const SubjectPage: React.FC = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -33,8 +30,8 @@ const Subject: React.FC = () => {
   const [subjectName, setSubjectName] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [nameError, setNameError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState("");
 
   useEffect(() => {
     loadSubjects();
@@ -108,36 +105,6 @@ const Subject: React.FC = () => {
     } catch (err: any) {
       console.error("Error saving subject:", err);
       setError(err.message || "Failed to save subject");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string | number, name: string) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      try {
-        setLoading(true);
-        setError("");
-        await deleteSubject(id);
-        await loadSubjects();
-      } catch (err: any) {
-        console.error("Error deleting subject:", err);
-        setError(err.message || "Failed to delete subject");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleToggleActive = async (id: string | number) => {
-    try {
-      setLoading(true);
-      setError("");
-      await toggleSubjectActive(id);
-      await loadSubjects();
-    } catch (err: any) {
-      console.error("Error toggling subject status:", err);
-      setError(err.message || "Failed to toggle subject status");
     } finally {
       setLoading(false);
     }
@@ -316,7 +283,7 @@ const Subject: React.FC = () => {
         onClose={handleCloseModal}
         title={
           <span style={{
-            color: isDark ? "#1e293b" : "#ffffff",
+            color: "#ffffff",
             fontWeight: 600,
             fontSize: "1.1rem"
           }}>
@@ -402,4 +369,4 @@ const Subject: React.FC = () => {
   );
 };
 
-export default Subject;
+export default SubjectPage;

@@ -16,13 +16,15 @@ import {
 } from "../admin/Users/Teacher/teacherStore";
 import type { TeacherData } from "../admin/Users/Teacher/teacherStore";
 
+type TeacherProfileData = TeacherData & { name: string; avatar: string; joined: string };
+
 // ─────────────────────────────────────────────────────────────────────────────
 // TeacherProfile
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TeacherProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [teacher, setTeacher] = useState<TeacherData | null>(null);
+  const [teacher, setTeacher] = useState<TeacherProfileData | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -30,19 +32,21 @@ const TeacherProfile: React.FC = () => {
       setNotFound(true);
       return;
     }
-    const data = getTeacherById(id);
-    if (!data) {
-      setNotFound(true);
-      return;
-    }
-    setTeacher(data);
+    (async () => {
+      const data = await getTeacherById(id);
+      if (!data) {
+        setNotFound(true);
+        return;
+      }
+      setTeacher(data);
+    })();
   }, [id]);
 
   const handlePhotoSave = (dataUrl: string) => {
     if (!teacher || !id) return;
     const updated = { ...teacher, avatar: dataUrl };
-    setTeacher(updated);
-    updateTeacher(id, updated);
+    setTeacher(updated as TeacherProfileData);
+    updateTeacher(id, { ...teacher, photo: dataUrl });
   };
 
   if (notFound) return <p className="text-slate-400 p-8">Teacher not found.</p>;
@@ -51,13 +55,13 @@ const TeacherProfile: React.FC = () => {
   const stats = [
     {
       label: "Students",
-      value: String(teacher.students),
+      value: "—",
       color: "text-orange-400",
       bg: "bg-orange-500/10 border-orange-500/20",
     },
     {
       label: "Subject",
-      value: teacher.subject,
+      value: "—",
       color: "text-violet-400",
       bg: "bg-violet-500/10 border-violet-500/20",
     },
@@ -81,7 +85,7 @@ const TeacherProfile: React.FC = () => {
         id={String(teacher.id)}
         name={teacher.name}
         role="teacher"
-        subtitle={`${teacher.subject} · ${teacher.status} · Joined ${teacher.joined}`}
+        subtitle={`${teacher.status} · Joined ${teacher.joined}`}
         photo={teacher.avatar ?? null}
         onPhotoSave={handlePhotoSave}
       >
@@ -120,10 +124,8 @@ const TeacherProfile: React.FC = () => {
           title="Professional Details"
           iconColor="text-violet-400"
           fields={[
-            { label: "Subject", value: teacher.subject },
             { label: "Status", value: teacher.status },
             { label: "Joined", value: teacher.joined },
-            { label: "Students", value: String(teacher.students) },
           ]}
         />
 

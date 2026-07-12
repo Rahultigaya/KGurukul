@@ -8,6 +8,7 @@ from fastapi_mail import FastMail, MessageSchema
 from database import SessionLocal
 import models
 from email_config import conf
+from fastapi.responses import ORJSONResponse
 import random
 from datetime import datetime,timedelta
 import pytz
@@ -17,7 +18,7 @@ import os
 from dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
-from models import User, Teacher, Area, Branch, Subject, Batch
+from models import User, Teacher, Area, Branch, Subject, Batch, Student, Guardian, FullPayment, Installment
 
 # Load environment variables from .env file
 load_dotenv()
@@ -449,3 +450,31 @@ def get_teachers(db: Session = Depends(get_db)):
         })
 
     return teacher_list
+
+
+# ─── Student Registration ────────────────────────────────────────────────────────
+
+
+@app.post("/students", response_class=ORJSONResponse, status_code=201)
+def create_student(data: schemas.StudentCreate, db: Session = Depends(get_db)):
+    """
+    Register a new student.
+
+    Flow:
+    1. Creates a User record (role=2 for student) with the student's email & contact.
+    2. Creates a Student record linked to that user.
+    3. Creates Guardian records.
+    4. Creates FullPayment or Installment records based on payment_type.
+    """
+    student = crud.create_student(db, data)
+    return student
+
+
+@app.get("/students", response_class=ORJSONResponse)
+def list_students(
+    skip: int = 0,
+    limit: int = 100,
+    academic_year: str = None,
+    db: Session = Depends(get_db)
+):
+    return crud.get_students(db, skip=skip, limit=limit, academic_year=academic_year)

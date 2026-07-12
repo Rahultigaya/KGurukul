@@ -1,4 +1,148 @@
 from pydantic import BaseModel
+from datetime import date
+from typing import Optional
+
+
+# ─── Student Schemas ────────────────────────────────────────────────────────────
+
+
+class GuardianBase(BaseModel):
+    name: str
+    email: str
+    contact: str
+    relation: str
+
+
+class GuardianCreate(GuardianBase):
+    pass
+
+
+class GuardianResponse(GuardianBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class FullPaymentBase(BaseModel):
+    amount: str
+    date: Optional[date] = None
+    mode: str
+    bank_name: Optional[str] = ""
+    paid_to: Optional[str] = ""
+
+
+class FullPaymentCreate(FullPaymentBase):
+    date: date
+
+
+class FullPaymentResponse(FullPaymentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class InstallmentBase(BaseModel):
+    amount: str
+    date: Optional[date] = None
+    mode: str
+    bank_name: Optional[str] = ""
+    paid_to: Optional[str] = ""
+
+
+class InstallmentCreate(InstallmentBase):
+    date: date
+
+
+class InstallmentResponse(InstallmentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class StudentCreate(BaseModel):
+    photo: Optional[str] = None
+    academic_year: str
+    registration_date: date
+    subject_id: int
+    branch_id: int
+    standard_id: int
+    course_type: str
+    reference: Optional[str] = ""
+    # Student name
+    surname: str
+    first_name: str
+    middle_name: Optional[str] = ""
+    gender: str
+    # User fields (stored in users table)
+    email: str
+    contact_no: str
+    # Address & school
+    address: str
+    school_college_name: str
+    # Payment
+    payment_type: str  # full / installment / later
+    total_fees: str
+    discount_amount: str = "0"
+    guardians: list[GuardianCreate] = []
+    full_payment: Optional[FullPaymentCreate] = None
+    installments: list[InstallmentCreate] = []
+
+
+class SubjectResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class BranchResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class StandardResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class StudentResponse(BaseModel):
+    id: int
+    user_id: int
+    photo: Optional[str]
+    academic_year: str
+    registration_date: date
+    course_type: str
+    reference: Optional[str]
+    surname: str
+    first_name: str
+    middle_name: Optional[str]
+    gender: str
+    address: str
+    school_college_name: str
+    payment_type: str
+    total_fees: str
+    discount_amount: str
+    email: str
+    contact_no: str
+    subject: SubjectResponse
+    branch: BranchResponse
+    standard: StandardResponse
+    guardians: list[GuardianResponse]
+    full_payment: Optional[FullPaymentResponse]
+    installments: list[InstallmentResponse]
+
+    class Config:
+        from_attributes = True
 
 class UserCreate(BaseModel):
     name: str

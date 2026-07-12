@@ -17,7 +17,8 @@ import Swal from "sweetalert2";
 
 import type { GuardianDetails, Installment, StudentRegistrationData, ValidationErrors } from "./types";
 import { validateField, validateStep, applyFieldError } from "./validation";
-import { getStudentById, updateStudent } from "./studentStore";
+import { getStudentById } from "./studentStore";
+import { createStudent, updateStudent as updateStudentApi } from "../../../../api/api";
 import EnrollmentContent from "./components/EnrollmentContent";
 import StudentDetailsContent from "./components/StudentDetailsContent";
 import GuardianContent from "./components/GuardianContent";
@@ -73,20 +74,34 @@ const StudentRegistration: React.FC = () => {
   // ── Prefill on edit ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!isEditMode || !id) return;
-    const data = getStudentById(id);
-    if (data) {
-      setFormData(data);
-    } else {
-      Swal.fire({
-        title: "Student not found",
-        text: "The student you're trying to edit doesn't exist.",
-        icon: "error",
-        background: isDark ? "#1e293b" : "#ffffff",
-        color: isDark ? "#f8fafc" : "#0f172a",
-        confirmButtonColor: "#7c3aed",
-      }).then(() => navigate("/Users"));
-    }
-    setIsLoading(false);
+    (async () => {
+      try {
+        const data = await getStudentById(id);
+        if (data) {
+          setFormData(data);
+        } else {
+          Swal.fire({
+            title: "Student not found",
+            text: "The student you're trying to edit doesn't exist.",
+            icon: "error",
+            background: isDark ? "#1e293b" : "#ffffff",
+            color: isDark ? "#f8fafc" : "#0f172a",
+            confirmButtonColor: "#7c3aed",
+          }).then(() => navigate("/Users"));
+        }
+      } catch {
+        Swal.fire({
+          title: "Error",
+          text: "Failed to load student data.",
+          icon: "error",
+          background: isDark ? "#1e293b" : "#ffffff",
+          color: isDark ? "#f8fafc" : "#0f172a",
+          confirmButtonColor: "#7c3aed",
+        }).then(() => navigate("/Users"));
+      } finally {
+        setIsLoading(false);
+      }
+    })();
   }, [id, isEditMode, navigate, isDark]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -212,30 +227,104 @@ const StudentRegistration: React.FC = () => {
   }, []);
 
   // ── Submit ────────────────────────────────────────────────────────────────
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const stepErrors = validateStep(3, formData);
     if (Object.keys(stepErrors).length > 0) { setErrors(stepErrors); return; }
-    if (isEditMode && id) updateStudent(id, formData);
 
-    const title = isPaymentMode ? "Payment Updated! ✅" : isEditMode ? "Student Updated! ✅" : "Registration Successful! 🎉";
-    const html = isPaymentMode
-      ? `<span style="color:var(--text-secondary)">Payment for <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> updated.</span>`
-      : isEditMode
-        ? `<span style="color:var(--text-secondary)"><strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong>'s details updated.</span>`
-        : `<span style="color:var(--text-secondary)">Student <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> registered.</span>`;
+    // ── Transform formData → API payload ──────────────────────────────────────
+    const formatDate = (d: Date | string | null) => {
+      if (!d) return null;
+      if (typeof d === "string") return d;
+      return d.toISOString().split("T")[0];
+    };
 
-    Swal.fire({
-      title, html, icon: "success",
-      confirmButtonText: "Go to Users",
-      background: isDark ? "#1e293b" : "#ffffff",
-      color: isDark ? "#f8fafc" : "#0f172a",
-      iconColor: "#4ade80",
-      confirmButtonColor: "#7c3aed",
-      customClass: {
-        popup: "rounded-xl border border-purple-500/30",
-        confirmButton: "rounded-lg px-6 py-2 font-medium",
-      },
-    }).then(() => navigate("/Users"));
+    const payload = {
+      photo: formData.photo,
+      academic_year: formData.academicYear,
+      registration_date: formatDate(formData.registrationDate),
+      subject_id: Number(formData.subject) || 0,
+      branch_id: Number(formData.branch) || 0,
+      standard_id: Number(formData.standard) || 0,
+      course_type: formData.courseType,
+      reference: formData.reference,
+      surname: formData.surname,
+      first_name: formData.firstName,
+      middle_name: formData.middleName,
+      gender: formData.gender,
+      email: formData.email,
+      contact_no: formData.contactNo,
+      address: formData.address,
+      school_college_name: formData.schoolCollegeName,
+      payment_type: formData.paymentType,
+      total_fees: formData.totalFees,
+      discount_amount: formData.discountAmount,
+      guardians: formData.guardians.map((g) => ({
+        name: g.name,
+        email: g.email,
+        contact: g.contact,
+        relation: g.relation,
+      })),
+      full_payment: formData.paymentType === "full" && formData.fullPayment?.amount
+        ? {
+            amount: formData.fullPayment.amount,
+            date: formatDate(formData.fullPayment.date),
+            mode: formData.fullPayment.mode,
+            bank_name: formData.fullPayment.bankName,
+            paid_to: formData.fullPayment.paidTo,
+          }
+        : null,
+      installments: formData.installments
+        .filter((i) => i.amount && Number(i.amount) > 0)
+        .map((i) => ({
+          amount: i.amount,
+          date: formatDate(i.date),
+          mode: i.mode,
+          bank_name: i.bankName,
+          paid_to: i.paidTo,
+        })),
+    };
+
+    console.log("Submitting student payload:", JSON.stringify(payload, null, 2));
+
+    try {
+      if (isEditMode && id) {
+        await updateStudentApi(Number(id), payload);
+      } else {
+        await createStudent(payload);
+      }
+
+      const title = isPaymentMode ? "Payment Updated! ✅" : isEditMode ? "Student Updated! ✅" : "Registration Successful! 🎉";
+      const html = isPaymentMode
+        ? `<span style="color:var(--text-secondary)">Payment for <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> updated.</span>`
+        : isEditMode
+          ? `<span style="color:var(--text-secondary)"><strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong>'s details updated.</span>`
+          : `<span style="color:var(--text-secondary)">Student <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> registered.</span>`;
+
+      Swal.fire({
+        title, html, icon: "success",
+        confirmButtonText: "Go to Users",
+        background: isDark ? "#1e293b" : "#ffffff",
+        color: isDark ? "#f8fafc" : "#0f172a",
+        iconColor: "#4ade80",
+        confirmButtonColor: "#7c3aed",
+        customClass: {
+          popup: "rounded-xl border border-purple-500/30",
+          confirmButton: "rounded-lg px-6 py-2 font-medium",
+        },
+      }).then(() => navigate("/Users"));
+    } catch (err: any) {
+      console.error("Student registration error:", err?.response?.data || err.message || err);
+      const msg = err?.response?.data?.detail || err.message || "Something went wrong. Please try again.";
+      Swal.fire({
+        title: "Error ❌",
+        html: `<span style="color:var(--text-secondary)">${msg}</span>`,
+        icon: "error",
+        confirmButtonText: "OK",
+        background: isDark ? "#1e293b" : "#ffffff",
+        color: isDark ? "#f8fafc" : "#0f172a",
+        confirmButtonColor: "#7c3aed",
+      });
+    }
   }, [formData, navigate, isEditMode, isPaymentMode, id, isDark]);
 
   const handleNavigateBack = useCallback(() => navigate("/Users"), [navigate]);

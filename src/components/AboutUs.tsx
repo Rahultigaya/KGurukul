@@ -6,17 +6,17 @@ const About = () => {
     const teachers = [
         {
             id: 1,
-            name: "Santoush Chipdey",
+            name: "Santosh Chipdey",
             role: "Founder & Lead Educator",
-            image: "/teacher1.jpg", // Replace with actual image
+            image: "/sir.png",
             education: "M.Sc. Computer Science, B.Ed.",
-            bio: "15+ years of experience in teaching programming and computer science. Passionate about making complex concepts simple and engaging for students."
+            bio: "30+ years of experience in teaching programming and computer science. Passionate about making complex concepts simple and engaging for students."
         },
         {
             id: 2,
-            name: "Riyaa Chipdey",
+            name: "Riya Chipdey",
             role: "Co-Founder & Management",
-            image: "/teacher2.jpg", // Replace with actual image
+            image: "/maam.png",
             education: "M.Sc. Mathematics, NET Qualified",
             bio: "Expert in competitive exam preparation with a track record of 100% results. Specializes in calculus, algebra, and statistics."
         }
@@ -119,36 +119,30 @@ const About = () => {
                                         className="absolute inset-0 backface-hidden rounded-2xl overflow-hidden shadow-2xl"
                                         style={{ backfaceVisibility: "hidden" }}
                                     >
-                                        <div className="relative w-full h-full bg-gradient-to-br from-slate-700 to-slate-800">
-                                            {/* Placeholder Avatar if no image */}
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-emerald-500 to-lime-400 rounded-full flex items-center justify-center text-5xl md:text-6xl font-bold text-white shadow-2xl">
-                                                    {teacher.name.split(" ").map(n => n[0]).join("")}
-                                                </div>
-                                            </div>
+                                        {/* Teacher Image */}
+                                        <img
+                                            src={teacher.image}
+                                            alt={teacher.name}
+                                            className="w-full h-full object-cover"
+                                        />
 
-                                            {/* If you have actual images, uncomment below */}
-                                            {/* <img
-                                                src={teacher.image}
-                                                alt={teacher.name}
-                                                className="w-full h-full object-cover"
-                                            /> */}
+                                        {/* Gradient Overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-                                            {/* Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                        {/* Accent border */}
+                                        <div className="absolute inset-0 border-2 border-emerald-400/20 rounded-2xl" />
 
-                                            {/* Name & Role */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
-                                                <h4 className="text-xl md:text-2xl font-bold mb-1">{teacher.name}</h4>
-                                                <p className="text-emerald-400 text-sm md:text-base font-medium">{teacher.role}</p>
-                                            </div>
+                                        {/* Name & Role */}
+                                        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
+                                            <h4 className="text-xl md:text-2xl font-bold mb-1">{teacher.name}</h4>
+                                            <p className="text-emerald-400 text-sm md:text-base font-medium">{teacher.role}</p>
+                                        </div>
 
-                                            {/* Tap hint for mobile */}
-                                            <div className="absolute top-3 right-3 md:hidden bg-white/20 backdrop-blur-sm rounded-full p-2 animate-pulse">
-                                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                                                </svg>
-                                            </div>
+                                        {/* Tap hint for mobile */}
+                                        <div className="absolute top-3 right-3 md:hidden bg-white/20 backdrop-blur-sm rounded-full p-2 animate-pulse">
+                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                                            </svg>
                                         </div>
                                     </div>
 
@@ -162,9 +156,18 @@ const About = () => {
                                     >
                                         {/* Content */}
                                         <div className="text-center space-y-3 md:space-y-6">
-                                            {/* Small Avatar */}
-                                            <div className="w-16 h-16 md:w-20 md:h-20 mx-auto bg-gradient-to-br from-emerald-500 to-lime-400 rounded-full flex items-center justify-center text-2xl md:text-3xl font-bold mb-2 shadow-lg">
-                                                {teacher.name.split(" ").map(n => n[0]).join("")}
+                                            {/* Teacher Image - small circle */}
+                                            <div className="relative mx-auto w-20 h-20 md:w-24 md:h-24">
+                                                <img
+                                                    src={teacher.image}
+                                                    alt={teacher.name}
+                                                    className="w-full h-full object-cover rounded-full ring-2 ring-emerald-400 shadow-lg"
+                                                />
+                                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-400 rounded-full flex items-center justify-center">
+                                                    <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
                                             </div>
 
                                             <div>

@@ -1,7 +1,7 @@
 // src/pages/attendance/MarkAttendance.tsx
 // Route: { path: "attendance/mark", element: <MarkAttendance /> }
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Stack, Paper, Title, Grid, Text, Group, Badge,
@@ -14,7 +14,7 @@ import {
 } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import { getAllBatches, getBatchById } from "../batches/batchStore";
-import { studentStore } from "../admin/Users/Student/studentStore";
+import { studentCache, loadStudentCache } from "../admin/Users/Student/studentStore";
 import {
   getSession, saveSession, getBatchSessions,
   type AttendanceStatus, type StudentAttendance, type AttendanceSession,
@@ -35,14 +35,14 @@ function fmtDate(d: string) {
 }
 
 function getStudentName(id: string) {
-  const s = studentStore[id];
+  const s = studentCache[id];
   if (!s) return `Student #${id}`;
   return `${s.firstName} ${s.surname}`;
 }
-function getStudentStandard(id: string) { return studentStore[id]?.standard ?? "–"; }
-function getStudentSubject(id: string)  { return studentStore[id]?.subject  ?? "–"; }
+function getStudentStandard(id: string) { return studentCache[id]?.standard ?? "–"; }
+function getStudentSubject(id: string)  { return studentCache[id]?.subject  ?? "–"; }
 function getInitials(id: string) {
-  const s = studentStore[id];
+  const s = studentCache[id];
   if (!s) return id.slice(0, 2).toUpperCase();
   return `${s.firstName[0]}${s.surname[0]}`.toUpperCase();
 }
@@ -287,7 +287,7 @@ const AddGuestPanel: React.FC<{
   const allBatches = getAllBatches();
 
   // All students NOT already in this session
-  const allStudentIds = Object.keys(studentStore).filter(
+  const allStudentIds = studentIds.filter(
     (sid) => !existingStudentIds.includes(sid)
   );
 
@@ -548,6 +548,13 @@ const MarkAttendance: React.FC = () => {
   const [showGuest,       setShowGuest]       = useState(false);
   const [saving,          setSaving]          = useState(false);
   const [toast,           setToast]           = useState<{ msg: string; ok: boolean } | null>(null);
+  const [studentIds, setStudentIds]         = useState<string[]>([]);
+
+  useEffect(() => {
+    loadStudentCache().then(() => {
+      setStudentIds(Object.keys(studentCache));
+    });
+  }, []);
 
   const allBatches  = getAllBatches().filter((b) => b.status === "Active");
   const batch       = selectedBatchId ? getBatchById(selectedBatchId) : null;

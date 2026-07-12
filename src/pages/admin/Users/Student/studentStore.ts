@@ -1,479 +1,150 @@
 // src/pages/admin/Users/Student/studentStore.ts
 
 import type { StudentRegistrationData } from "./types";
+import { getStudents as apiGetStudents, getStudentById as apiGetStudentById, updateStudent as apiUpdateStudent } from "../../../../api/api";
 
-export const studentStore: Record<string, StudentRegistrationData> = {
-  "1": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-24",
-    subject: "Mathematics",
-    branch: "Pune Main",
-    courseType: "Crash (Backlog)",
-    reference: "",
-    surname: "Sharma",
-    firstName: "Rahul",
-    middleName: "Kumar",
-    gender: "male",
-    email: "rahul.sharma@email.com",
-    contactNo: "9876543210",
-    address: "123, MG Road, Pune",
-    schoolCollegeName: "Fergusson College",
-    standard: "12",
-    guardians: [
-      {
-        id: "1",
-        name: "Rajesh Sharma",
-        email: "rajesh@email.com",
-        contact: "9876543200",
-        relation: "Father",
-      },
-    ],
-    paymentType: "installment",
-    totalFees: "45000",
-    discountAmount: "5000",
-    fullPayment: { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    installments: [
-      {
-        amount: "20000",
-        date: new Date("2026-02-18"),
-        mode: "Online", // ✅ was "UPI"
-        bankName: "",
-        paidTo: "Sir Account", // ✅ was "Admin"
-      },
-      { amount: "15000", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
+// ── In-memory cache for synchronous access (used by MarkAttendance, BatchAssign) ──
+export const studentCache: Record<string, StudentRegistrationData & { id: string }> = {};
 
-  "2": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-20",
-    subject: "Physics",
-    branch: "Pune West",
-    courseType: "Regular",
-    reference: "Online Ad",
-    surname: "Patel",
-    firstName: "Priya",
-    middleName: "Anand",
-    gender: "female",
-    email: "priya.patel@email.com",
-    contactNo: "8765432109",
-    address: "45, Baner Road, Pune",
-    schoolCollegeName: "SP College",
-    standard: "11",
-    guardians: [
-      {
-        id: "1",
-        name: "Anand Patel",
-        email: "anand@email.com",
-        contact: "8765432100",
-        relation: "Father",
-      },
-    ],
-    paymentType: "full",
-    totalFees: "38000",
-    discountAmount: "3000",
-    fullPayment: {
-      amount: "35000",
-      date: new Date("2026-02-20"),
-      mode: "Cheque", // ✅ was "NEFT"
-      bankName: "HDFC",
-      paidTo: "Sir Account", // ✅ was "Admin"
-    },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
+let cacheLoaded = false;
 
-  "3": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-15",
-    subject: "Chemistry",
-    branch: "Pune East",
-    courseType: "Crash (Backlog)",
-    reference: "Friend",
-    surname: "Verma",
-    firstName: "Amit",
-    middleName: "Raj",
-    gender: "male",
-    email: "amit.verma@email.com",
-    contactNo: "7654321098",
-    address: "78, Kothrud, Pune",
-    schoolCollegeName: "COEP",
-    standard: "12",
-    guardians: [
-      {
-        id: "1",
-        name: "Raj Verma",
-        email: "raj@email.com",
-        contact: "7654321000",
-        relation: "Father",
-      },
-    ],
-    paymentType: "later",
-    totalFees: "50000",
-    discountAmount: "0",
-    fullPayment: { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "4": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-10",
-    subject: "Biology",
-    branch: "Pune Main",
-    courseType: "Regular",
-    reference: "Friend",
-    surname: "Deshmukh",
-    firstName: "Sneha",
-    middleName: "Vilas",
-    gender: "female",
-    email: "sneha.deshmukh@email.com",
-    contactNo: "9123456780",
-    address: "Karve Nagar, Pune",
-    schoolCollegeName: "Modern College",
-    standard: "12",
-    guardians: [
-      {
-        id: "1",
-        name: "Vilas Deshmukh",
-        email: "vilas@email.com",
-        contact: "9123456700",
-        relation: "Father",
-      },
-    ],
-    paymentType: "full",
-    totalFees: "42000",
-    discountAmount: "2000",
-    fullPayment: {
-      amount: "40000",
-      date: new Date("2026-02-10"),
-      mode: "Cash", // ✅ already correct
-      bankName: "",
-      paidTo: "Ma'am Account", // ✅ was "Admin"
-    },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "5": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-12",
-    subject: "Mathematics",
-    branch: "Pune West",
-    courseType: "Crash (Backlog)",
-    reference: "Instagram",
-    surname: "Kulkarni",
-    firstName: "Aditya",
-    middleName: "Suresh",
-    gender: "male",
-    email: "aditya.k@email.com",
-    contactNo: "9988776655",
-    address: "Aundh, Pune",
-    schoolCollegeName: "MIT College",
-    standard: "11",
-    guardians: [
-      {
-        id: "1",
-        name: "Suresh Kulkarni",
-        email: "suresh@email.com",
-        contact: "9988776600",
-        relation: "Father",
-      },
-    ],
-    paymentType: "installment",
-    totalFees: "45000",
-    discountAmount: "5000",
-    fullPayment: { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    installments: [
-      {
-        amount: "20000",
-        date: new Date("2026-02-12"),
-        mode: "Online", // ✅ was "UPI"
-        bankName: "",
-        paidTo: "Sir Account", // ✅ was "Admin"
-      },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "6": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-08",
-    subject: "Physics",
-    branch: "Pune East",
-    courseType: "Regular",
-    reference: "",
-    surname: "Yadav",
-    firstName: "Rohit",
-    middleName: "Kiran",
-    gender: "male",
-    email: "rohit.y@email.com",
-    contactNo: "9871234560",
-    address: "Hadapsar, Pune",
-    schoolCollegeName: "DY Patil College",
-    standard: "12",
-    guardians: [
-      {
-        id: "1",
-        name: "Kiran Yadav",
-        email: "kiran@email.com",
-        contact: "9871234500",
-        relation: "Father",
-      },
-    ],
-    paymentType: "later",
-    totalFees: "48000",
-    discountAmount: "3000",
-    fullPayment: { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "7": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-05",
-    subject: "Chemistry",
-    branch: "Pune Main",
-    courseType: "Regular",
-    reference: "Website",
-    surname: "Jain",
-    firstName: "Neha",
-    middleName: "Raj",
-    gender: "female",
-    email: "neha.j@email.com",
-    contactNo: "9090909090",
-    address: "Shivajinagar, Pune",
-    schoolCollegeName: "BMCC",
-    standard: "11",
-    guardians: [
-      {
-        id: "1",
-        name: "Raj Jain",
-        email: "raj@email.com",
-        contact: "9090909000",
-        relation: "Father",
-      },
-    ],
-    paymentType: "full",
-    totalFees: "39000",
-    discountAmount: "1000",
-    fullPayment: {
-      amount: "38000",
-      date: new Date("2026-02-05"),
-      mode: "Cheque", // ✅ was "NEFT"
-      bankName: "ICICI",
-      paidTo: "Ma'am Account", // ✅ was "Admin"
-    },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "8": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-14",
-    subject: "Mathematics",
-    branch: "Pune West",
-    courseType: "Crash (Backlog)",
-    reference: "Friend",
-    surname: "More",
-    firstName: "Akash",
-    middleName: "Sunil",
-    gender: "male",
-    email: "akash.more@email.com",
-    contactNo: "9345678901",
-    address: "Wakad, Pune",
-    schoolCollegeName: "Indira College",
-    standard: "12",
-    guardians: [
-      {
-        id: "1",
-        name: "Sunil More",
-        email: "sunil@email.com",
-        contact: "9345678900",
-        relation: "Father",
-      },
-    ],
-    paymentType: "installment",
-    totalFees: "47000",
-    discountAmount: "2000",
-    fullPayment: { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    installments: [
-      {
-        amount: "25000",
-        date: new Date("2026-02-14"),
-        mode: "Cash", // ✅ already correct
-        bankName: "",
-        paidTo: "Sir Account", // ✅ was "Admin"
-      },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "9": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-16",
-    subject: "Biology",
-    branch: "Pune East",
-    courseType: "Regular",
-    reference: "Online Ad",
-    surname: "Kadam",
-    firstName: "Pooja",
-    middleName: "Ramesh",
-    gender: "female",
-    email: "pooja.k@email.com",
-    contactNo: "9456781230",
-    address: "Viman Nagar, Pune",
-    schoolCollegeName: "Symbiosis College",
-    standard: "11",
-    guardians: [
-      {
-        id: "1",
-        name: "Ramesh Kadam",
-        email: "ramesh@email.com",
-        contact: "9456781200",
-        relation: "Father",
-      },
-    ],
-    paymentType: "full",
-    totalFees: "41000",
-    discountAmount: "1000",
-    fullPayment: {
-      amount: "40000",
-      date: new Date("2026-02-16"),
-      mode: "Online", // ✅ was "UPI"
-      bankName: "",
-      paidTo: "Sir Account", // ✅ was "Admin"
-    },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "10": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-16",
-    subject: "Biology",
-    branch: "Pune East",
-    courseType: "Regular",
-    reference: "Online Ad",
-    surname: "Kadam",
-    firstName: "Pooja",
-    middleName: "Ramesh",
-    gender: "female",
-    email: "pooja.k@email.com",
-    contactNo: "9456781230",
-    address: "Viman Nagar, Pune",
-    schoolCollegeName: "Symbiosis College",
-    standard: "11",
-    guardians: [
-      {
-        id: "1",
-        name: "Ramesh Kadam",
-        email: "ramesh@email.com",
-        contact: "9456781200",
-        relation: "Father",
-      },
-    ],
-    paymentType: "full",
-    totalFees: "41000",
-    discountAmount: "1000",
-    fullPayment: {
-      amount: "40000",
-      date: new Date("2026-02-16"),
-      mode: "Online", // ✅ was "UPI"
-      bankName: "",
-      paidTo: "Sir Account", // ✅ was "Admin"
-    },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-
-  "11": {
-    photo: null,
-    academicYear: "2025-26",
-    registrationDate: "2026-02-16",
-    subject: "Biology",
-    branch: "Pune East",
-    courseType: "Regular",
-    reference: "Online Ad",
-    surname: "Kadam",
-    firstName: "Pooja",
-    middleName: "Ramesh",
-    gender: "female",
-    email: "pooja.k@email.com",
-    contactNo: "9456781230",
-    address: "Viman Nagar, Pune",
-    schoolCollegeName: "Symbiosis College",
-    standard: "11",
-    guardians: [
-      {
-        id: "1",
-        name: "Ramesh Kadam",
-        email: "ramesh@email.com",
-        contact: "9456781200",
-        relation: "Father",
-      },
-    ],
-    paymentType: "full",
-    totalFees: "41000",
-    discountAmount: "1000",
-    fullPayment: {
-      amount: "40000",
-      date: new Date("2026-02-16"),
-      mode: "Online", // ✅ was "UPI"
-      bankName: "",
-      paidTo: "Sir Account", // ✅ was "Admin"
-    },
-    installments: [
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-      { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
-    ],
-  },
-};
-
-/** Read one student by id. Returns null if not found. */
-export function getStudentById(id: string): StudentRegistrationData | null {
-  return studentStore[id] ?? null;
+export async function loadStudentCache(): Promise<void> {
+  if (cacheLoaded) return;
+  try {
+    const res = await apiGetStudents();
+    res.data.forEach((s: any) => {
+      studentCache[String(s.id)] = { ...transformApiToFormData(s), id: String(s.id) };
+    });
+    cacheLoaded = true;
+  } catch (e) {
+    console.error("Failed to load student cache", e);
+  }
 }
 
-/** Save updated student back to the store (in-memory).
- *  Replace with your API call when ready:
- *  await fetch(`/api/students/${id}`, { method: "PUT", body: JSON.stringify(data) })
- */
-export function updateStudent(id: string, data: StudentRegistrationData): void {
-  studentStore[id] = { ...data };
+// ── Legacy synchronous studentStore (for backward compat with MarkAttendance, BatchAssign) ──
+// Deprecated: use loadStudentCache() + studentCache instead
+export const studentStore = studentCache as Record<string, StudentRegistrationData>;
+
+/** Fetch one student by id from the API. Returns null if not found. */
+export async function getStudentById(id: string): Promise<StudentRegistrationData | null> {
+  try {
+    const res = await apiGetStudentById(Number(id));
+    return transformApiToFormData(res.data);
+  } catch {
+    return null;
+  }
+}
+
+/** Update student via API. */
+export async function updateStudent(id: string, data: StudentRegistrationData): Promise<void> {
+  const payload = transformFormDataToPayload(data);
+  await apiUpdateStudent(Number(id), payload);
+}
+
+// ─── Transform helpers ──────────────────────────────────────────────────────────
+
+function formatDate(d: string | Date | null): string | null {
+  if (!d) return null;
+  if (typeof d === "string") return d.split("T")[0];
+  return d.toISOString().split("T")[0];
+}
+
+export function transformApiToFormData(raw: any): StudentRegistrationData {
+  return {
+    photo: raw.photo ?? null,
+    academicYear: raw.academic_year ?? "",
+    registrationDate: raw.registration_date ?? "",
+    subject: String(raw.subject_id ?? raw.subject?.id ?? ""),
+    branch: String(raw.branch_id ?? raw.branch?.id ?? ""),
+    standard: String(raw.standard_id ?? raw.standard?.id ?? ""),
+    courseType: raw.course_type ?? "",
+    reference: raw.reference ?? "",
+    surname: raw.surname ?? "",
+    firstName: raw.first_name ?? "",
+    middleName: raw.middle_name ?? "",
+    gender: raw.gender ?? "",
+    email: raw.email ?? "",
+    contactNo: raw.contact_no ?? "",
+    address: raw.address ?? "",
+    schoolCollegeName: raw.school_college_name ?? "",
+    paymentType: raw.payment_type ?? "full",
+    totalFees: raw.total_fees ?? "",
+    discountAmount: raw.discount_amount ?? "0",
+    guardians: (raw.guardians ?? []).map((g: any, i: number) => ({
+      id: String(g.id ?? i + 1),
+      name: g.name ?? "",
+      email: g.email ?? "",
+      contact: g.contact ?? "",
+      relation: g.relation ?? "",
+    })),
+    fullPayment: raw.full_payment
+      ? {
+          amount: raw.full_payment.amount ?? "",
+          date: formatDate(raw.full_payment.date),
+          mode: raw.full_payment.mode ?? "",
+          bankName: raw.full_payment.bank_name ?? "",
+          paidTo: raw.full_payment.paid_to ?? "",
+        }
+      : { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
+    installments: (raw.installments ?? []).map((inst: any) => ({
+      amount: inst.amount ?? "",
+      date: formatDate(inst.date),
+      mode: inst.mode ?? "",
+      bankName: inst.bank_name ?? "",
+      paidTo: inst.paid_to ?? "",
+    })),
+  };
+}
+
+function transformFormDataToPayload(data: StudentRegistrationData) {
+  return {
+    photo: data.photo,
+    academic_year: data.academicYear,
+    registration_date: formatDate(
+      data.registrationDate instanceof Date
+        ? data.registrationDate.toISOString().split("T")[0]
+        : data.registrationDate
+    ),
+    subject_id: Number(data.subject) || 0,
+    branch_id: Number(data.branch) || 0,
+    standard_id: Number(data.standard) || 0,
+    course_type: data.courseType,
+    reference: data.reference,
+    surname: data.surname,
+    first_name: data.firstName,
+    middle_name: data.middleName,
+    gender: data.gender,
+    email: data.email,
+    contact_no: data.contactNo,
+    address: data.address,
+    school_college_name: data.schoolCollegeName,
+    payment_type: data.paymentType,
+    total_fees: data.totalFees,
+    discount_amount: data.discountAmount,
+    guardians: data.guardians.map((g) => ({
+      name: g.name,
+      email: g.email,
+      contact: g.contact,
+      relation: g.relation,
+    })),
+    full_payment:
+      data.paymentType === "full" && data.fullPayment?.amount
+        ? {
+            amount: data.fullPayment.amount,
+            date: formatDate(data.fullPayment.date),
+            mode: data.fullPayment.mode,
+            bank_name: data.fullPayment.bankName,
+            paid_to: data.fullPayment.paidTo,
+          }
+        : null,
+    installments: data.installments
+      .filter((i) => i.amount && Number(i.amount) > 0)
+      .map((i) => ({
+        amount: i.amount,
+        date: formatDate(i.date),
+        mode: i.mode,
+        bank_name: i.bankName,
+        paid_to: i.paidTo,
+      })),
+  };
 }

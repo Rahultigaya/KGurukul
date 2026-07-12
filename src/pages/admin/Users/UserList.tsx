@@ -6,7 +6,7 @@ import DataTable from "react-data-table-component";
 import { IconPlus } from "@tabler/icons-react";
 import { Loader } from "@mantine/core";
 
-import { studentStore } from "./Student/studentStore";
+import { getStudents } from "../../../api/api";
 import { getAllTeachers } from "./Teacher/teacherStore";
 import { useStudentColumns } from "./Student/StudentColumns";
 import { useTeacherColumns } from "./Teacher/TeacherColumns";
@@ -15,14 +15,83 @@ import { Button } from "@mantine/core";
 
 type TabType = "students" | "teachers";
 
-const studentsWithId = Object.entries(studentStore).map(([key, student]) => ({
-  ...student,
-  id: key,
-}));
+// ── Transform API response → table column format ───────────────────────────────
+interface StudentRow {
+  id: number;
+  photo: string | null;
+  academicYear: string;
+  registrationDate: string;
+  subject: string;
+  branch: string;
+  standard: string;
+  courseType: string;
+  reference: string;
+  surname: string;
+  firstName: string;
+  middleName: string;
+  gender: string;
+  email: string;
+  contactNo: string;
+  address: string;
+  schoolCollegeName: string;
+  paymentType: string;
+  totalFees: string;
+  discountAmount: string;
+  guardians: { id: number; name: string; email: string; contact: string; relation: string }[];
+  fullPayment: { amount: string; date: string | null; mode: string; bankName: string; paidTo: string };
+  installments: { amount: string; date: string | null; mode: string; bankName: string; paidTo: string }[];
+}
+
+function transformStudent(raw: any): StudentRow {
+  return {
+    id: raw.id,
+    photo: raw.photo ?? null,
+    academicYear: raw.academic_year ?? "",
+    registrationDate: raw.registration_date ?? "",
+    subject: raw.subject?.name ?? raw.subject ?? "",
+    branch: raw.branch?.name ?? raw.branch ?? "",
+    standard: raw.standard?.name ?? raw.standard ?? "",
+    courseType: raw.course_type ?? "",
+    reference: raw.reference ?? "",
+    surname: raw.surname ?? "",
+    firstName: raw.first_name ?? "",
+    middleName: raw.middle_name ?? "",
+    gender: raw.gender ?? "",
+    email: raw.email ?? "",
+    contactNo: raw.contact_no ?? "",
+    address: raw.address ?? "",
+    schoolCollegeName: raw.school_college_name ?? "",
+    paymentType: raw.payment_type ?? "",
+    totalFees: raw.total_fees ?? "",
+    discountAmount: raw.discount_amount ?? "",
+    guardians: (raw.guardians ?? []).map((g: any, i: number) => ({
+      id: g.id ?? i + 1,
+      name: g.name ?? "",
+      email: g.email ?? "",
+      contact: g.contact ?? "",
+      relation: g.relation ?? "",
+    })),
+    fullPayment: {
+      amount: raw.full_payment?.amount ?? "",
+      date: raw.full_payment?.date ?? null,
+      mode: raw.full_payment?.mode ?? "",
+      bankName: raw.full_payment?.bank_name ?? "",
+      paidTo: raw.full_payment?.paid_to ?? "",
+    },
+    installments: (raw.installments ?? []).map((inst: any) => ({
+      amount: inst.amount ?? "",
+      date: inst.date ?? null,
+      mode: inst.mode ?? "",
+      bankName: inst.bank_name ?? "",
+      paidTo: inst.paid_to ?? "",
+    })),
+  };
+}
 
 const UsersList: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>("students");
+  const [students, setStudents] = useState<StudentRow[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,12 +99,31 @@ const UsersList: React.FC = () => {
   const studentColumns = useStudentColumns();
   const teacherColumns = useTeacherColumns();
 
-  // Fetch teachers on component mount and when tab changes
+  // Fetch students on mount
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  // Fetch teachers when tab changes
   useEffect(() => {
     if (activeTab === "teachers") {
       fetchTeachers();
     }
   }, [activeTab]);
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getStudents();
+      setStudents(res.data.map(transformStudent));
+    } catch (err: any) {
+      console.error("Error fetching students:", err);
+      setError(err?.response?.data?.detail || err.message || "Failed to load students");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchTeachers = async () => {
     setLoading(true);
@@ -112,17 +200,33 @@ const UsersList: React.FC = () => {
         style={{ border: "1px solid var(--border-card)" }}
       >
         {activeTab === "students" && (
-          <DataTable
-            columns={studentColumns}
-            data={studentsWithId}
-            customStyles={dtStyles}
-            sortIcon={sortIcon}
-            pagination
-            paginationPerPage={10}
-            paginationRowsPerPageOptions={[10, 25, 50]}
-            highlightOnHover
-            responsive
-          />
+          loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader color="orange" size="lg" />
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <p className="text-red-400">Error: {error}</p>
+              <button
+                onClick={fetchStudents}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <DataTable
+              columns={studentColumns}
+              data={students}
+              customStyles={dtStyles}
+              sortIcon={sortIcon}
+              pagination
+              paginationPerPage={10}
+              paginationRowsPerPageOptions={[10, 25, 50]}
+              highlightOnHover
+              responsive
+            />
+          )
         )}
         {activeTab === "teachers" && (
           <>

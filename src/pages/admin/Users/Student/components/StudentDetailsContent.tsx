@@ -1,11 +1,13 @@
 // src\pages\admin\Users\Student\components\StudentDetailsContent.tsx
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Stack, Paper, Title, Grid, Text, Group,
-  Radio, TextInput, Textarea, Avatar, ActionIcon, FileInput,
+  Radio, TextInput, Textarea, Avatar, ActionIcon, FileInput, Select,
 } from "@mantine/core";
 import { IconUpload, IconX, IconUser } from "@tabler/icons-react";
+import { getAllStandards } from "../../../Master/masterStore";
+import type { Standard } from "../../../Master/masterStore";
 import type { StudentRegistrationData, ValidationErrors } from "../types";
 
 interface StudentDetailsProps {
@@ -14,6 +16,7 @@ interface StudentDetailsProps {
   handleImageUpload: (file: File | null) => void;
   setFormData: React.Dispatch<React.SetStateAction<StudentRegistrationData>>;
   errors: ValidationErrors;
+  standards?: Standard[];
 }
 
 const inputStyles = {
@@ -28,7 +31,28 @@ const inputStyles = {
 const radioLabel = { styles: { label: { color: "var(--text-primary)" } } };
 
 const StudentDetailsContent = React.memo<StudentDetailsProps>(
-  ({ formData, handleInputChange, handleImageUpload, setFormData, errors }) => (
+  ({ formData, handleInputChange, handleImageUpload, setFormData, errors, standards: standardsProp }) => {
+    const [standards, setStandards] = useState<Standard[]>(standardsProp ?? []);
+
+    useEffect(() => {
+      if (standardsProp && standardsProp.length > 0) {
+        setStandards(standardsProp);
+        return;
+      }
+      const loadStandards = async () => {
+        try {
+          const data = await getAllStandards();
+          setStandards(data.filter((s) => s.is_active === 1));
+        } catch (error) {
+          console.error("Error loading standards:", error);
+        }
+      };
+      loadStandards();
+    }, [standardsProp]);
+
+    const standardOptions = standards.map((s) => ({ value: String(s.id), label: s.name }));
+
+    return (
     <Stack gap="md">
 
       {/* ── Personal Information ─────────────────────────────────── */}
@@ -144,9 +168,14 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
 
               <Grid.Col span={{ base: 12, md: 4 }}>
                 <TextInput
-                  label="Mobile No" type="text" placeholder="Enter mobile number"
+                  label="Mobile No" type="text" inputMode="numeric" pattern="\d*" placeholder="Enter mobile number"
                   value={formData.contactNo} maxLength={10}
                   onChange={(e) => handleInputChange("contactNo", e.target.value)}
+                  onKeyDown={(e) => {
+                    if (!/^\d$/.test(e.key) && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   required withAsterisk size="md"
                   error={errors.contactNo} styles={inputStyles}
                 />
@@ -205,19 +234,29 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <TextInput
-              label="Standard" placeholder="e.g., 10th, 12th, BCA"
-              value={formData.standard}
-              onChange={(e) => handleInputChange("standard", e.target.value)}
+            <Select
+              label="Standard"
+              placeholder="Select standard"
+              value={formData.standard ?? null}
+              onChange={(value) => handleInputChange("standard", value)}
+              data={standardOptions}
               required withAsterisk size="md"
-              error={errors.standard} styles={inputStyles}
+              error={errors.standard}
+              searchable
+              clearable
+              styles={{
+                label: { color: "var(--text-primary)", marginBottom: 6 },
+                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
+                option: { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
+                placeholder: { color: "var(--text-muted)" },
+              }}
             />
           </Grid.Col>
         </Grid>
       </Paper>
 
     </Stack>
-  ),
-);
+  );
+});
 
 export default StudentDetailsContent; 

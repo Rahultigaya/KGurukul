@@ -142,4 +142,72 @@ export const updateTeacher = (id: string, data: {
   return API.put(`/teacher/${id}`, data);
 };
 
+// ─── Student APIs ──────────────────────────────────────────────────────────────
+
+export interface GuardianPayload {
+  name: string;
+  email: string;
+  contact: string;
+  relation: string;
+}
+
+export interface FullPaymentPayload {
+  amount: string;
+  date: string | null;
+  mode: string;
+  bank_name: string;
+  paid_to: string;
+}
+
+export interface InstallmentPayload {
+  amount: string;
+  date: string | null;
+  mode: string;
+  bank_name: string;
+  paid_to: string;
+}
+
+export interface StudentCreatePayload {
+  photo: string | null;
+  academic_year: string;
+  registration_date: string;
+  subject_id: number;
+  branch_id: number;
+  standard_id: number;
+  course_type: string;
+  reference: string;
+  surname: string;
+  first_name: string;
+  middle_name: string;
+  gender: string;
+  email: string;
+  contact_no: string;
+  address: string;
+  school_college_name: string;
+  payment_type: string;
+  total_fees: string;
+  discount_amount: string;
+  guardians: GuardianPayload[];
+  full_payment: FullPaymentPayload | null;
+  installments: InstallmentPayload[];
+}
+
+export const createStudent = (data: StudentCreatePayload) =>
+  API.post("/students", data);
+
+export const getStudents = (params?: { skip?: number; limit?: number; academic_year?: string }) =>
+  API.get("/students", { params });
+
+export const getStudentById = (id: number) =>
+  API.get(`/students/${id}`);
+
+export const updateStudent = (id: number, data: Partial<StudentCreatePayload>) =>
+  API.put(`/students/${id}`, data);
+
+export const deleteStudent = (id: number) =>
+  API.delete(`/students/${id}`);
+
+export const updateStudentPayment = (id: number, data: Partial<StudentCreatePayload>) =>
+  API.patch(`/students/${id}/payment`, data);
+
 export default API;

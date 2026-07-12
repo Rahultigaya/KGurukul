@@ -1,7 +1,7 @@
 // src/pages/batches/BatchAssign.tsx
 // Route: { path: "batches/:id/assign", element: <BatchAssign /> }
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Stack, Paper, Title, Group, Text, Badge,
@@ -16,21 +16,21 @@ import {
   assignStudentToBatch, removeStudentFromBatch,
   BATCH_TYPE_META, BATCH_STATUS_META,
 } from "./batchStore";
-import { studentStore } from "../admin/Users/Student/studentStore";
+import { studentCache, loadStudentCache } from "../admin/Users/Student/studentStore";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 function getStudentName(id: string): string {
-  const s = studentStore[id];
+  const s = studentCache[id];
   if (!s) return `Student #${id}`;
   return `${s.firstName} ${s.surname}`;
 }
-function getStudentStandard(id: string): string { return studentStore[id]?.standard ?? "–"; }
-function getStudentSubject(id: string): string { return studentStore[id]?.subject ?? "–"; }
+function getStudentStandard(id: string): string { return studentCache[id]?.standard ?? "–"; }
+function getStudentSubject(id: string): string { return studentCache[id]?.subject ?? "–"; }
 function getInitials(id: string): string {
-  const s = studentStore[id];
+  const s = studentCache[id];
   if (!s) return id.slice(0, 2).toUpperCase();
   return `${s.firstName[0]}${s.surname[0]}`.toUpperCase();
 }
@@ -133,6 +133,13 @@ const BatchAssign: React.FC = () => {
 
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [studentIds, setStudentIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadStudentCache().then(() => {
+      setStudentIds(Object.keys(studentCache));
+    });
+  }, []);
 
   const batch = id ? getBatchById(id) : null;
   const allBatches = getAllBatches();
@@ -142,7 +149,7 @@ const BatchAssign: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const allStudentIds = Object.keys(studentStore);
+  const allStudentIds = studentIds;
 
   const candidates = useMemo(() => {
     const q = search.toLowerCase();

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Stepper,
@@ -46,6 +46,8 @@ import {
   isValidEmail,
   isValidNum,
 } from "../../../utils/validatorsRegex";
+import { getAllStandards } from "../Master/masterStore";
+import type { Standard } from "../Master/masterStore";
 
 // ── Interfaces ────────────────────────────────────────────────────────────────
 
@@ -458,10 +460,11 @@ interface StudentDetailsProps {
   handleImageUpload: (file: File | null) => void;
   setFormData: React.Dispatch<React.SetStateAction<StudentRegistrationData>>;
   errors: ValidationErrors;
+  standards: Standard[];
 }
 
 const StudentDetailsContent = React.memo<StudentDetailsProps>(
-  ({ formData, handleInputChange, handleImageUpload, setFormData, errors }) => (
+  ({ formData, handleInputChange, handleImageUpload, setFormData, errors, standards }) => (
     <Stack gap="md">
       <Paper className="p-4 sm:p-6 border border-purple-500/30 bg-slate-700/50">
         <Title
@@ -592,12 +595,19 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
                 <TextInput
                   label="Mobile No"
                   type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
                   placeholder="Enter mobile number"
                   value={formData.contactNo}
                   maxLength={10}
                   onChange={(e) =>
                     handleInputChange("contactNo", e.target.value)
                   }
+                  onKeyDown={(e) => {
+                    if (!/^\d$/.test(e.key) && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   required
                   withAsterisk
                   size="md"
@@ -663,15 +673,18 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <TextInput
+            <Select
               label="Standard"
-              placeholder="e.g., 10th, 12th, BCA"
-              value={formData.standard}
-              onChange={(e) => handleInputChange("standard", e.target.value)}
+              placeholder="Select standard"
+              value={formData.standard ?? null}
+              onChange={(value) => handleInputChange("standard", value)}
+              data={standards.map((s) => ({ value: String(s.id), label: s.name }))}
               required
               withAsterisk
               size="md"
               error={errors.standard}
+              searchable
+              clearable
               classNames={{ label: "text-white mb-2" }}
             />
           </Grid.Col>
@@ -790,6 +803,8 @@ const GuardianContent = React.memo<GuardianProps>(
                   <TextInput
                     label="Mobile No"
                     type="text"
+                    inputMode="numeric"
+                    pattern="\d*"
                     placeholder="Enter mobile number"
                     value={guardian.contact}
                     onChange={(e) =>
@@ -799,6 +814,11 @@ const GuardianContent = React.memo<GuardianProps>(
                         e.target.value,
                       )
                     }
+                    onKeyDown={(e) => {
+                      if (!/^\d$/.test(e.key) && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                     required={index === 0}
                     withAsterisk={index === 0}
                     size="md"
@@ -1339,6 +1359,20 @@ const StudentRegistration: React.FC = () => {
     ],
   });
 
+  const [standards, setStandards] = useState<Standard[]>([]);
+
+  useEffect(() => {
+    const loadStandards = async () => {
+      try {
+        const data = await getAllStandards();
+        setStandards(data.filter((s) => s.is_active === 1));
+      } catch (error) {
+        console.error("Error loading standards:", error);
+      }
+    };
+    loadStandards();
+  }, []);
+
   // ── onChange: update state + run validateField (single source of truth) ───
   const handleInputChange = useCallback((field: string, value: any) => {
     setFormData((prev) => {
@@ -1681,6 +1715,7 @@ const StudentRegistration: React.FC = () => {
                 handleImageUpload={handleImageUpload}
                 setFormData={setFormData}
                 errors={errors}
+                standards={standards}
               />
             </div>
           </Stepper.Step>
@@ -1759,6 +1794,7 @@ const StudentRegistration: React.FC = () => {
               handleImageUpload={handleImageUpload}
               setFormData={setFormData}
               errors={errors}
+              standards={standards}
             />
           )}
           {active === 2 && (

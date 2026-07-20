@@ -2,133 +2,135 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { STUDENTS } from "../Constant";
 
+import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
+
+const ROTATE_INTERVAL_MS = 4000;
+
+const ArrowIcon = () => (
+    <KeyboardArrowRightRoundedIcon className="text-[#1A73E8]" style={{ fontSize: 22 }} />
+);
+
+// Java/Python keep their own real-world brand colors — the language identity matters more here than the site palette
+const SKILL_BADGES = [
+    { label: "Java", gradient: "from-orange-500 to-red-600", rotate: "-rotate-3" },
+    { label: "Python", gradient: "from-blue-500 to-yellow-500", rotate: "rotate-3" },
+];
+
 const Hero: React.FC = () => {
     const navigate = useNavigate();
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    // Auto-scroll every 4 seconds
+    // Auto-rotate the student coverflow
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % STUDENTS.length);
-        }, 4000);
+        }, ROTATE_INTERVAL_MS);
         return () => clearInterval(interval);
     }, []);
 
     return (
-        <section className="relative min-h-[85vh] overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white">
-            {/* MAIN CONTAINER */}
+        <section className="relative min-h-[85vh] overflow-hidden bg-white text-[#202124]">
             <div className="mx-auto max-w-7xl px-6 pt-16 pb-28 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
 
                 {/* LEFT CONTENT */}
                 <div className="max-w-xl">
-                    <h1 className="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-tight">
-                        Learn Smarter <br />
-                        With <span className="text-purple-500">KGurukul</span><span>'s</span>
-                    </h1>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-[#1A73E8] shadow-sm border border-[#E8EAED] mb-6">
+                        <AutoAwesomeRoundedIcon style={{ fontSize: 16 }} />
+                        Trusted by 500+ Students
+                    </span>
 
-                    <p className="mt-6 text-slate-300 text-lg leading-relaxed">
+                    <h1 className="font-['Baloo_2'] text-4xl md:text-5xl xl:text-6xl font-bold leading-tight">
+                        Learn Smarter <br />
+                        With <span className="text-[#1A73E8]">KGurukul</span>'s
+                    </h1>
+                    {/* Signature squiggle — same motif used across the site */}
+                    <svg width="140" height="14" viewBox="0 0 140 14" fill="none" className="mt-2">
+                        <path d="M2 10C25 2 45 2 68 8C91 14 111 6 138 4"
+                            stroke="url(#hero-underline-grad)" strokeWidth="3" strokeLinecap="round" />
+                        <defs>
+                            <linearGradient id="hero-underline-grad" x1="0" y1="0" x2="140" y2="0">
+                                <stop offset="0%" stopColor="#1A73E8" />
+                                <stop offset="35%" stopColor="#0F9D58" />
+                                <stop offset="65%" stopColor="#EA4335" />
+                                <stop offset="100%" stopColor="#F9AB00" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+
+                    <p className="mt-6 text-[#5F6368] text-lg leading-relaxed">
                         Upgrade your skills with structured learning, top mentors,
                         and real-world preparation.
                     </p>
 
-                    <div className="mt-6 md:mt-8">
-                        {/* Programming Flow - Java -> Python -> Code -> Login */}
-                        <div className="flex items-center justify-center gap-1.5 md:gap-3 flex-wrap">
-                            {/* Java Badge */}
-                            <div className="flex items-center">
-                                <div className="px-2 py-1 md:px-4 md:py-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg shadow-lg transform -rotate-3 hover:rotate-0 transition-transform duration-300">
-                                    <span className="text-white text-[10px] md:text-sm font-bold">Java</span>
+                    {/* Programming Flow: Java -> Python -> Code -> Login */}
+                    <div className="mt-6 md:mt-8 flex items-center justify-center lg:justify-start gap-1.5 md:gap-3 flex-wrap">
+                        {SKILL_BADGES.map((badge) => (
+                            <React.Fragment key={badge.label}>
+                                <div className={`px-2 py-1 md:px-4 md:py-2 bg-gradient-to-r ${badge.gradient} rounded-lg shadow-lg transform ${badge.rotate} hover:rotate-0 transition-transform duration-300`}>
+                                    <span className="text-white text-[10px] md:text-sm font-bold">{badge.label}</span>
                                 </div>
-                            </div>
+                                <ArrowIcon />
+                            </React.Fragment>
+                        ))}
 
-                            {/* Connection Arrow 1 */}
-                            <svg className="w-4 h-4 md:w-6 md:h-6 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-
-                            {/* Python Badge */}
-                            <div className="flex items-center">
-                                <div className="px-2 py-1 md:px-4 md:py-2 bg-gradient-to-r from-blue-500 to-yellow-500 rounded-lg shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                                    <span className="text-white text-[10px] md:text-sm font-bold">Python</span>
-                                </div>
-                            </div>
-
-                            {/* Connection Arrow 2 */}
-                            <svg className="w-4 h-4 md:w-6 md:h-6 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-
-                            {/* Code Symbol */}
-                            <div className="flex items-center">
-                                <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-slate-600 to-slate-800 rounded-lg flex items-center justify-center shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-300 border border-slate-500">
-                                    <span className="text-white text-xs md:text-base font-bold">&lt;/&gt;</span>
-                                </div>
-                            </div>
-
-                            {/* Connection Arrow 3 */}
-                            <svg className="w-4 h-4 md:w-6 md:h-6 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-
-                            {/* Login Button */}
-                            <button
-                                className="relative group flex-shrink-0"
-                                onClick={() => navigate('/auth/login')}
-                            >
-                                {/* Button Glow Effect */}
-                                <div className="absolute -inset-0.5 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
-
-                                {/* Main Button */}
-                                <div className="relative flex items-center justify-center gap-1.5 md:gap-3 border rounded-lg border-2 border-400 hover:text-green-400 bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 px-3 md:px-6 py-2 md:py-3 font-semibold text-white shadow-xl hover:shadow-2xl transition-all hover:rounded-full duration-300 hover:scale-105">
-                                    {/* Button Text */}
-                                    <span className="text-xs md:text-lg">Login</span>
-                                    <i className="fa fa-long-arrow-right" />
-                                </div>
-                            </button>
+                        {/* Code Symbol */}
+                        <div className="w-8 h-8 md:w-12 md:h-12 bg-[#202124] rounded-lg flex items-center justify-center shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-300 border border-[#DADCE0]">
+                            <span className="text-white text-xs md:text-base font-bold">&lt;/&gt;</span>
                         </div>
+                        <ArrowIcon />
+
+                        {/* Login Button - same square shape as badges, stands out via color/glow/motion instead */}
+                        <button
+                            onClick={() => navigate("/auth/login")}
+                            className="rotate-3 relative flex-shrink-0 group"
+                        >
+                            {/* Quiet attention pulse — softened so it doesn't fight the badges for focus */}
+                            <span className="rotate-3 absolute inset-0 rounded-lg bg-[#1A73E8] opacity-30 animate-ping" />
+
+                            {/* Actual button */}
+                            <span className="rotate-3 relative flex items-center gap-1.5 md:gap-2 px-3 md:px-6 py-1.5 md:py-3 bg-[#1A73E8] group-hover:bg-[#1765CC] rounded-lg shadow-lg shadow-[#1A73E8]/40 group-hover:scale-105 transition-all duration-300">
+                                <span className="text-white text-xs md:text-base font-bold">Login</span>
+                                <ArrowForwardRoundedIcon style={{ fontSize: 16 }} className="text-white" />
+                            </span>
+                        </button>
                     </div>
                 </div>
 
-                {/* RIGHT SIDE - Royal Coverflow Slider */}
+                {/* RIGHT SIDE - Coverflow Slider */}
                 <div className="relative w-full max-w-2xl lg:max-w-lg">
-                    {/* Coverflow Container */}
                     <div className="relative h-[400px] md:h-[350px] flex items-center justify-center">
                         {STUDENTS.map((student, index) => {
                             const isCenter = index === currentIndex;
                             const isLeft = (currentIndex - index + STUDENTS.length) % STUDENTS.length === 1;
                             const isRight = (index - currentIndex + STUDENTS.length) % STUDENTS.length === 1;
 
-                            // Calculate positions
                             let translateX = 0;
-                            let translateZ = 0;
-                            let scale = 1;
-                            let opacity = 1;
-                            let zIndex = 10;
+                            let translateZ = -200;
+                            let scale = 0.6;
+                            let opacity = 0;
+                            let zIndex = 0;
 
                             if (isCenter) {
-                                translateX = 0;
                                 translateZ = 0;
                                 scale = 1;
                                 opacity = 1;
-                                zIndex = 20; // Highest z-index for center card
+                                zIndex = 20;
                             } else if (isLeft) {
                                 translateX = -120;
                                 translateZ = -150;
                                 scale = 0.8;
-                                opacity = 0.4; // Much lower opacity for side cards
+                                opacity = 0.4;
                                 zIndex = 5;
                             } else if (isRight) {
                                 translateX = 120;
                                 translateZ = -150;
                                 scale = 0.8;
-                                opacity = 0.4; // Much lower opacity for side cards
+                                opacity = 0.4;
                                 zIndex = 5;
-                            } else {
-                                translateX = 0;
-                                translateZ = -200;
-                                scale = 0.6;
-                                opacity = 0;
-                                zIndex = 0;
                             }
 
                             return (
@@ -139,69 +141,46 @@ const Hero: React.FC = () => {
                                         transform: `translateX(${translateX}px) translateZ(${translateZ}px) scale(${scale})`,
                                         opacity,
                                         zIndex,
-                                        willChange: 'transform, opacity'
+                                        willChange: "transform, opacity",
                                     }}
                                     onClick={() => setCurrentIndex(index)}
                                 >
-                                    {/* Royal Card Design */}
                                     <div className={`
-                                        relative rounded-3xl overflow-hidden shadow-2xl
-                                        ${isCenter ? 'border-2' : ''}
+                                        relative rounded-3xl overflow-hidden shadow-[0_1px_3px_rgba(60,64,67,0.15),0_1px_2px_rgba(60,64,67,0.1)]
+                                        ${isCenter ? "border-2 border-[#1A73E8]" : "border border-[#E8EAED]"}
                                         transition-all duration-500
-                                        ${!isCenter ? 'opacity-50' : ''}
+                                        ${!isCenter ? "opacity-50" : ""}
                                     `}>
-                                        {/* Card Background */}
-                                        <div className={`
-                                            absolute inset-0 bg-gradient-to-br
-                                            ${isCenter
-                                                ? 'from-green-900/90 via-yellow-900/90 to-pink-900/90'
-                                                : 'from-blue-400/80 via-green-900/90 to-red-400/60 border'}
-                                        `}></div>
+                                        <div className="absolute inset-0 bg-white" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                                        {/* Gradient Overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-
-                                        {/* Card Content */}
                                         <div className="relative p-6 md:p-8 h-full flex flex-col items-center">
-                                            {/* Large Avatar */}
+                                            {/* Avatar */}
                                             <div className="relative mb-6 md:mb-8 mt-4">
-                                                <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-gradient-to-br border-2 p-0.5 shadow-2xl">
+                                                <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-white border-2 border-[#1A73E8] p-0.5 shadow-xl">
                                                     <img
                                                         src={student.image}
                                                         alt={student.name}
-                                                        className="w-full h-full rounded-full object-cover border-1 border-white/80"
+                                                        className="w-full h-full rounded-full object-cover border border-white"
                                                     />
                                                 </div>
 
-                                                {/* Floating Rank Badge */}
-                                                <div className="absolute -bottom-2 -right-[0] w-14 h-14 md:w-12 md:h-12 bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 rounded-full flex items-center justify-center shadow-xl border-2 border-slate-900">
-                                                    <span className="text-black font-bold text-base md:text-lg">{student.rank}</span>
+                                                <div className="absolute -bottom-2 -right-0 w-14 h-14 md:w-12 md:h-12 bg-[#F9AB00] rounded-full flex items-center justify-center shadow-xl border-2 border-white">
+                                                    <span className="text-[#202124] font-bold text-base md:text-lg">{student.rank}</span>
                                                 </div>
                                             </div>
 
-                                            {/* Name */}
-                                            <h2 className={`
-                                                font-bold text-center mb-1 transition-all duration-300
-                                                ${isCenter ? 'text-white text-xl md:text-2xl' : 'text-gray-400 text-lg md:text-xl'}
-                                            `}>
+                                            <h2 className={`font-bold text-center mb-1 transition-all duration-300 ${isCenter ? "text-white text-xl md:text-2xl" : "text-white/70 text-lg md:text-xl"}`}>
                                                 {student.name}
                                             </h2>
 
-                                            {/* Stats Row - Only for Center Card */}
                                             {isCenter && (
-                                                <div className="w-full space-y-2">
-                                                    <div className="flex items-center justify-center gap-3 text-sm text-gray-200">
-                                                        <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full">
-                                                            <span className="text-green-400">✓</span>
-                                                            <span>Top Scorer</span>
-                                                        </div>
+                                                <div className="flex items-center justify-center gap-3 text-sm text-white">
+                                                    <div className="flex items-center gap-1.5 bg-[#0F9D58] px-3 py-1 rounded-full">
+                                                        <CheckCircleRoundedIcon style={{ fontSize: 16 }} />
+                                                        <span>Top Scorer</span>
                                                     </div>
                                                 </div>
-                                            )}
-
-                                            {/* Shine Effect for Center Card */}
-                                            {isCenter && (
-                                                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent rounded-3xl pointer-events-none"></div>
                                             )}
                                         </div>
                                     </div>
@@ -210,19 +189,13 @@ const Hero: React.FC = () => {
                         })}
                     </div>
 
-                    {/* Navigation Dots - Below Slider */}
+                    {/* Navigation Dots */}
                     <div className="flex justify-center gap-2 md:gap-3 mt-6">
                         {STUDENTS.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentIndex(index)}
-                                className={`
-                                    h-2.5 rounded-full transition-all duration-300
-                                    ${index === currentIndex
-                                        ? "bg-gradient-to-r from-purple-400 to-blue-400 w-8 md:w-10"
-                                        : "bg-white/20 hover:bg-white/40 w-2"
-                                    }
-                                `}
+                                className={`h-2.5 rounded-full transition-all duration-300 ${index === currentIndex ? "bg-[#1A73E8] w-8 md:w-10" : "bg-[#DADCE0] hover:bg-[#BDC1C6] w-2"}`}
                                 aria-label={`Go to student ${index + 1}`}
                             />
                         ))}
@@ -232,17 +205,25 @@ const Hero: React.FC = () => {
             </div>
 
             {/* Marquee Banner - Admission Alert */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r py-3 overflow-hidden mt-[200]">
-                <div className="flex animate-marquee whitespace-nowrap">
-                    {/* Repeated text for infinite scroll effect */}
-                    {[...Array(10)].map((_, i) => (
-                        <div key={i} className="flex items-center gap-4 mx-8">
-                            <span className="text-lg md:text-xl font-bold text-white drop-shadow-lg">
-                                🎉 Hurry up! Next year batches admission starting soon 🎉 !!
-                            </span>
-                            {/* <span className="text-2xl">✨</span> */}
+            <div className="absolute bottom-0 left-0 right-0 overflow-hidden">
+                 
+
+                <div className="bg-gradient-to-r from-[#1A73E8] to-[#1765CC] py-3 flex items-center gap-4 pl-6">
+                    <span className="hidden sm:inline-flex shrink-0 items-center gap-1.5 bg-white/15 text-white text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full">
+                        <CelebrationRoundedIcon style={{ fontSize: 14 }} />
+                        Admissions Open
+                    </span>
+
+                    <div className="flex-1 overflow-hidden">
+                        <div className="flex animate-marquee whitespace-nowrap">
+                            {Array.from({ length: 10 }).map((_, i) => (
+                                <span key={i} className="flex items-center gap-3 text-base md:text-lg font-semibold text-white mx-6">
+                                  🎉 Admissions Open for Next Year's Batches • Limited Seats Available • Enroll Today! 🚀💻
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#F9AB00]" />
+                                </span>
+                            ))}
                         </div>
-                    ))}
+                    </div>
                 </div>
             </div>
         </section>

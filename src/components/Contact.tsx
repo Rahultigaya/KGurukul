@@ -1,140 +1,167 @@
 import { useState } from "react";
-import emailjs from "@emailjs/browser";
-import { EMAIL, CONTACT_NUMBERS, ADDRESS, BRANCH_ADDRESS } from '../Constant';
-import BG_IMAGE from "../assets/contact-bg-img2.png";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import Button from "@mui/material/Button";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PhoneIcon from "@mui/icons-material/Phone";
+import EmailIcon from "@mui/icons-material/Email";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import SendIcon from "@mui/icons-material/Send";
 
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import MailRoundedIcon from "@mui/icons-material/MailRounded";
-import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
-import EditRoundedIcon from "@mui/icons-material/EditRounded";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
-import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
-import CallRoundedIcon from "@mui/icons-material/CallRounded";
-import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import AccountBalanceRoundedIcon from "@mui/icons-material/AccountBalanceRounded";
-import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
-
-const INFO_ROWS = [
-    { Icon: LocationOnRoundedIcon, label: "Address", value: `${ADDRESS}, Thane West - 400601`, color: "#1A73E8" },
-    { Icon: CallRoundedIcon, label: "Phone / WhatsApp", value: CONTACT_NUMBERS, color: "#0F9D58" },
-    { Icon: EmailRoundedIcon, label: "Email", value: EMAIL, color: "#EA4335" },
-     { Icon: AccountBalanceRoundedIcon, label: "Branch", value: BRANCH_ADDRESS, color: "#8E24AA" },
+const COURSE_OPTIONS = [
+  "Python Programming",
+  "Web Development",
+  "Java Programming",
+  "C / C++ Programming",
+  "Data Structures & Algorithms",
+  "Tally with GST",
 ];
 
-const inputWrapClass =
-    "flex items-center gap-3 bg-white border border-[#DADCE0] rounded-xl px-4 focus-within:border-[#1A73E8] focus-within:ring-2 focus-within:ring-[#1A73E8]/20 transition";
-const inputClass =
-    "w-full bg-transparent py-3.5 text-[#202124] placeholder:text-[#9AA0A6] outline-none";
+const CONTACT_ITEMS = [
+  {
+    icon: <LocationOnIcon fontSize="small" />,
+    text: "6, Kavita CHS, Opp. Pratap Cinema, Kolbad Road, Thane West - 400601",
+  },
+  { icon: <PhoneIcon fontSize="small" />, text: "+91 9967442515, 8879987836" },
+  { icon: <EmailIcon fontSize="small" />, text: "kgurukuls90@gmail.com" },
+  {
+    icon: <AccessTimeIcon fontSize="small" />,
+    text: "Mon - Sat: 9:00 AM - 8:00 PM (Sunday Closed)",
+  },
+];
 
-const Contact = () => {
-    const [loading, setLoading] = useState(false);
+export default function Contact() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    course: "",
+    message: "",
+  });
 
-    const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setLoading(true);
+  const handleChange = (field) => (e) =>
+    setForm((f) => ({ ...f, [field]: e.target.value }));
 
-        emailjs
-            .sendForm("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", e.currentTarget, "YOUR_PUBLIC_KEY")
-            .then(() => {
-                alert("Message sent successfully 🚀");
-                e.currentTarget.reset();
-            })
-            .catch(() => alert("Something went wrong 😢"))
-            .finally(() => setLoading(false));
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Contact form submitted:", form);
+  };
 
-    return (
-        <section className="relative overflow-hidden bg-[#F5F8FF] py-16">
-
-            {/* Background illustration */}
-            <div
-                className="absolute inset-0"
-                style={{
-                    backgroundImage: `url('${BG_IMAGE}')`,
-                    backgroundSize: "100% 100%",
-                    backgroundRepeat: "no-repeat",
-                }}
-            />
-
-            <div className="relative z-10 max-w-6xl mx-auto grid md:grid-cols-2 gap-14 items-start px-6">
-
-                {/* LEFT INFO — wrapped in a soft card so text stays legible over the detailed illustration behind it */}
-                <div className="self-start text-[#202124] bg-white/70 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-[0_4px_24px_rgba(60,64,67,0.08)]">
-                    <h2 className="text-3xl md:text-3xl font-extrabold leading-tight">
-                        Contact <span className="text-[#1A73E8]">Us</span>
-                    </h2>
-                    <div className="h-1 w-16 bg-[#1A73E8] rounded-full mt-4 mb-2" />
-
-                    <p className="text-[#5F6368] text-base leading-relaxed max-w-md mb-1">
-                        We're here to help! Reach out to us for any queries related to our courses, batches or admissions.
-                    </p>
-
-                    <div className="space-y-3">
-                        {INFO_ROWS.map(({ Icon, label, value, color }) => (
-                            <div key={label} className="flex items-start gap-4">
-                                <span
-                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-                                    style={{ backgroundColor: `${color}14`, color }}
-                                >
-                                    <Icon style={{ fontSize: 20 }} />
-                                </span>
-                                <div className="min-w-0 pt-1">
-                                    <p className="text-sm font-semibold" style={{ color }}>{label}</p>
-                                    <p className="text-[#202124]">{value}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* FORM CARD */}
-                <form
-                    onSubmit={sendEmail}
-                    className="bg-white rounded-3xl p-8 space-y-5 shadow-[0_20px_50px_rgba(60,64,67,0.15)]"
-                >
-                    <h3 className="text-2xl md:text-2xl font-extrabold text-[#202124]">
-                        Send Us a <span className="text-[#1A73E8]">Message</span>
-                    </h3>
-                    <p className="text-sm text-[#5F6368] -mt-3">Fill out the form below and we'll get back to you shortly.</p>
-
-                    <div className={inputWrapClass}>
-                        <PersonRoundedIcon style={{ fontSize: 20 }} className="text-[#9AA0A6]" />
-                        <input name="user_name" placeholder="Your Name" type="text" required className={inputClass} />
-                    </div>
-
-                    <div className={inputWrapClass}>
-                        <MailRoundedIcon style={{ fontSize: 20 }} className="text-[#9AA0A6]" />
-                        <input name="user_email" placeholder="Your Email" type="email" required className={inputClass} />
-                    </div>
-
-                    <div className={inputWrapClass}>
-                        <PhoneRoundedIcon style={{ fontSize: 20 }} className="text-[#9AA0A6]" />
-                        <input name="user_phone" placeholder="Your Phone" type="text" maxLength={10} className={inputClass} />
-                    </div>
-
-                    <div className={`${inputWrapClass} items-start py-3.5`}>
-                        <EditRoundedIcon style={{ fontSize: 20 }} className="text-[#9AA0A6] mt-1" />
-                        <textarea name="message" placeholder="Your Message" rows={3} required className={`${inputClass} py-0 resize-none`} />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-[#1A73E8] text-white font-semibold py-3.5 rounded-xl hover:bg-[#1765CC] active:scale-[0.99] transition disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        {loading ? "Sending..." : "Send Message"}
-                        <SendRoundedIcon style={{ fontSize: 18 }} />
-                    </button>
-
-                    <p className="flex items-center justify-center gap-1.5 text-xs text-[#5F6368] pt-1">
-                        <ShieldRoundedIcon style={{ fontSize: 14 }} />
-                        Your information is safe with us. We never share your details.
-                    </p>
-                </form>
+  return (
+    <section id="contact" className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-[0.85fr_1.3fr_0.85fr] gap-8">
+        {/* Contact info */}
+        <div className="space-y-5">
+          {CONTACT_ITEMS.map((item, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="text-blue-600 mt-0.5">{item.icon}</span>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {item.text}
+              </p>
             </div>
-        </section>
-    );
-};
+          ))}
+          <a
+            href="https://wa.me/919967442515"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-green-600 mt-2"
+          >
+            <WhatsAppIcon fontSize="small" /> Chat on WhatsApp
+          </a>
+        </div>
 
-export default Contact;
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4"
+        >
+          <div className="grid sm:grid-cols-2 gap-4">
+            <TextField
+              fullWidth
+              size="small"
+              label="Your Name"
+              value={form.name}
+              onChange={handleChange("name")}
+            />
+            <TextField
+              fullWidth
+              size="small"
+              label="Your Email"
+              type="email"
+              value={form.email}
+              onChange={handleChange("email")}
+            />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <TextField
+              fullWidth
+              size="small"
+              label="Your Phone"
+              value={form.phone}
+              onChange={handleChange("phone")}
+            />
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Course Interested In"
+              value={form.course}
+              onChange={handleChange("course")}
+            >
+              {COURSE_OPTIONS.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </TextField>
+          </div>
+          <TextField
+            fullWidth
+            size="small"
+            label="Your Message"
+            multiline
+            rows={4}
+            value={form.message}
+            onChange={handleChange("message")}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            endIcon={<SendIcon fontSize="small" />}
+            sx={{
+              borderRadius: 2,
+              py: 1.3,
+              bgcolor: "#16a34a",
+              "&:hover": { bgcolor: "#15803d" },
+            }}
+          >
+            Send Message
+          </Button>
+        </form>
+
+        {/* Message CTA card */}
+        <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-2xl border border-rose-100 p-7 relative overflow-hidden">
+          <p className="text-2xl mb-3">🙌</p>
+          <h3 className="text-xl font-extrabold text-slate-900 leading-snug mb-3">
+            Your message matters to us.
+          </h3>
+          <p className="text-sm text-slate-500 leading-relaxed">
+            We will get back to you within 24 hours.
+          </p>
+          <SendIcon
+            sx={{
+              position: "absolute",
+              right: 16,
+              bottom: 16,
+              fontSize: 40,
+              color: "#fb923c",
+              transform: "rotate(-20deg)",
+            }}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}

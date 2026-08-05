@@ -1,73 +1,201 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+      
 
-body {
-  height: 100vh;
-  font-family: 'outfit';
-  /* background-color:#122d7d; */
-  /* background: linear-gradient(135deg, #766ec7, #298ebd, #100d25); */
-  background: linear-gradient(135deg, #1f2937, #111827);
-  /* background-image: url('/logo.png'); */
-  /* path to your image */
-  /* opacity: 0.5; */
-  color: black;
-  transition: background 0.3s, color 0.3s;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
+
+@theme {
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-blue: #2563eb;
+  --color-brand-blue-dark: #1d4ed8;
+  --color-brand-green: #16a34a;
+  --color-brand-purple: #7c3aed;
+  --color-brand-orange: #f97316;
+  --color-brand-pink: #ec4899;
+  --color-brand-red: #ef4444;
+  --color-ink: #0f172a;
+  --color-slate: #475569;
 }
 
 html {
-  margin: 0;
-  padding: 0;
   scroll-behavior: smooth;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
 
-  to {
+/* Hero headline pill + arrow animation */
+@keyframes heroPillIn {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.75) rotate(-8deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes heroPillGlow {
+  0%,
+  100% {
+    box-shadow: 0 10px 24px -8px var(--glow-color, rgba(37, 99, 235, 0.45));
+  }
+  50% {
+    box-shadow: 0 14px 32px -6px var(--glow-color, rgba(37, 99, 235, 0.65));
+  }
+}
+
+.hero-pill {
+  opacity: 0;
+  animation: heroPillIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+    heroPillGlow 2.4s ease-in-out infinite;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: 12px;
+}
+
+.hero-pill:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Flowing energy-dot trail between pills */
+@keyframes heroDotFlow {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.hero-dot {
+  opacity: 0;
+  animation: heroPillIn 0.4s ease forwards, heroDotFlow 1.2s ease-in-out infinite;
+}
+
+/* Floating sparkle decorations */
+@keyframes heroFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(12deg);
+  }
+}
+
+.hero-sparkle {
+  animation: heroFloat 3.4s ease-in-out infinite;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Step cards (Learn / Code / Succeed) */
+@keyframes stepIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.4s ease forwards;
+.step-in {
+  opacity: 0;
+  animation: stepIn 0.55s ease forwards;
 }
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+@keyframes stepArrowPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(3px);
+  }
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
+.step-arrow {
+  opacity: 0;
+  animation: stepIn 0.7s ease forwards, stepArrowPulse 2.4s ease-in-out infinite;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Marquee Animation */
-@keyframes marquee {
+/* Banner-shaped step cards (Learn / Code / Succeed v2) */
+@keyframes stepCardIn {
   0% {
-    transform: translateX(0%);
+    opacity: 0;
+    transform: translateY(28px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
   }
   100% {
-    transform: translateX(-50%);
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-.animate-marquee {
-  animation: marquee 20s linear infinite;
+.step-card-in {
+  opacity: 0;
+  animation: stepCardIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
+.step-card-glow {
+  transition: filter 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.12));
+}
+
+.step-card-glow:hover {
+  filter: drop-shadow(0 14px 28px var(--step-glow, rgba(37, 99, 235, 0.45)));
+  transform: translateY(-4px);
+}
+
+/* Hero illustration gentle float */
+@keyframes heroImgFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.hero-illustration {
+  animation: heroImgFloat 5s ease-in-out infinite;
+}
+
+/* Typing cursor blink */
+@keyframes typingCursorBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.typing-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--color-brand-green, #16a34a);
+  animation: typingCursorBlink 0.8s step-end infinite;
 }

@@ -1,47 +1,128 @@
-import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import YouTubeIcon from "@mui/icons-material/YouTube";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PhoneIcon from "@mui/icons-material/Phone";
+import EmailIcon from "@mui/icons-material/Email";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
-const Footer = () => {
-    const year = new Date().getFullYear();
+const QUICK_LINKS = [
+  { label: "Home", href: "#home" },
+  { label: "About Us", href: "#about" },
+  { label: "Courses", href: "#courses" },
+  { label: "Our Teachers", href: "#mentors" },
+  { label: "Success Stories", href: "#toppers" },
+  { label: "Gallery", href: "#gallery" },
+  { label: "Contact Us", href: "#contact" },
+];
 
-    const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+const COURSE_LINKS = [
+  "Python Programming",
+  "Web Development",
+  "Java Programming",
+  "C / C++ Programming",
+  "Data Structures & Algorithms",
+  "Tally with GST",
+];
 
-    return (
-        <footer className="relative mt-auto bg-white">
-            {/* Four-color top edge, echoing the form card and the book stack */}
-            <div className="h-1 flex">
-                <span className="flex-1 bg-[#1A73E8]" />
-                <span className="flex-1 bg-[#0F9D58]" />
-                <span className="flex-1 bg-[#EA4335]" />
-                <span className="flex-1 bg-[#F9AB00]" />
+const SOCIALS = [
+  { icon: <FacebookIcon fontSize="small" />, href: "#" },
+  { icon: <InstagramIcon fontSize="small" />, href: "#" },
+  { icon: <YouTubeIcon fontSize="small" />, href: "#" },
+  { icon: <LinkedInIcon fontSize="small" />, href: "#" },
+];
+
+export default function Footer() {
+  return (
+    <footer className="bg-slate-950 text-slate-400 pt-14 pb-6">
+      <div className="max-w-7xl mx-auto px-5 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        {/* Brand */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 via-violet-500 to-orange-400 flex items-center justify-center text-white font-extrabold text-sm">
+              K
             </div>
-
-            <div className="max-w-6xl mx-auto  py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <span className="font-['Baloo_2'] font-bold text-lg text-[#202124]">
-                        KGurukul<span className="text-[#1A73E8]">'s</span>
-                    </span>
-                    <span className="hidden md:inline text-[#DADCE0]">|</span>
-                    <p className="text-[#5F6368] text-sm text-center">
-                        © {year} All rights reserved.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-5">
-                    <p className="text-[#5F6368] text-sm">
-                        Made with <span className="text-[#EA4335]">❤</span> in India
-                    </p>
-
-                    <button
-                        onClick={scrollToTop}
-                        aria-label="Back to top"
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1A73E8]/10 text-[#1A73E8] hover:bg-[#1A73E8] hover:text-white transition-colors"
-                    >
-                        <ArrowUpwardRoundedIcon style={{ fontSize: 18 }} />
-                    </button>
-                </div>
+            <div>
+              <p className="text-white font-bold">KGurukul</p>
+              <p className="text-[10px] text-slate-500 -mt-0.5">
+                Learn. Code. Succeed.
+              </p>
             </div>
-        </footer>
-    );
-};
+          </div>
+          <p className="text-sm leading-relaxed">
+            Empowering students with quality computer education for a
+            brighter tomorrow.
+          </p>
+        </div>
 
-export default Footer;
+        {/* Quick links */}
+        <div>
+          <p className="text-white font-semibold mb-4">Quick Links</p>
+          <ul className="space-y-2 text-sm">
+            {QUICK_LINKS.map((l) => (
+              <li key={l.label}>
+                <a href={l.href} className="hover:text-white transition-colors">
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Courses */}
+        <div>
+          <p className="text-white font-semibold mb-4">Courses</p>
+          <ul className="space-y-2 text-sm">
+            {COURSE_LINKS.map((c) => (
+              <li key={c}>
+                <a href="#courses" className="hover:text-white transition-colors">
+                  {c}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Contact + Socials */}
+        <div>
+          <p className="text-white font-semibold mb-4">Contact Info</p>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-start gap-2">
+              <LocationOnIcon sx={{ fontSize: 17 }} className="mt-0.5" />
+              6, Kavita CHS, Opp. Pratap Cinema, Kolbad Road, Thane West -
+              400601
+            </li>
+            <li className="flex items-center gap-2">
+              <PhoneIcon sx={{ fontSize: 17 }} /> +91 9967442515, 8879987836
+            </li>
+            <li className="flex items-center gap-2">
+              <EmailIcon sx={{ fontSize: 17 }} /> kgurukuls90@gmail.com
+            </li>
+            <li className="flex items-center gap-2">
+              <AccessTimeIcon sx={{ fontSize: 17 }} /> Mon - Sat: 9:00 AM -
+              8:00 PM
+            </li>
+          </ul>
+
+          <p className="text-white font-semibold mt-5 mb-3">Stay Connected</p>
+          <div className="flex gap-2">
+            {SOCIALS.map((s, i) => (
+              <a
+                key={i}
+                href={s.href}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              >
+                {s.icon}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-white/10 mt-10 pt-5 text-center text-xs text-slate-500">
+        © {new Date().getFullYear()} KGurukul. All rights reserved.
+      </div>
+    </footer>
+  );
+}

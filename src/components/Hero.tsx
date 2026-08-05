@@ -1,233 +1,356 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { STUDENTS } from "../Constant";
+import React, { useEffect, useState } from "react";
+import Button from "@mui/material/Button";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import CodeIcon from "@mui/icons-material/Code";
+import GpsFixedIcon from "@mui/icons-material/GpsFixed";
+import heroIllustration from "../assets/hero-illustration.png";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 
-import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
-import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
+interface Step {
+  title: string;
+  icon: React.ReactNode;
+  from: string;
+  to: string;
+  glow: string;
+  delay: number;
+}
 
-const ROTATE_INTERVAL_MS = 4000;
-
-const ArrowIcon = () => (
-    <KeyboardArrowRightRoundedIcon className="text-[#1A73E8]" style={{ fontSize: 22 }} />
-);
-
-// Java/Python keep their own real-world brand colors — the language identity matters more here than the site palette
-const SKILL_BADGES = [
-    { label: "Java", gradient: "from-orange-500 to-red-600", rotate: "-rotate-3" },
-    { label: "Python", gradient: "from-blue-500 to-yellow-500", rotate: "rotate-3" },
+const STEPS: Step[] = [
+  {
+    title: "LEARN",
+    icon: <MenuBookOutlinedIcon sx={{ fontSize: 22 }} />,
+    from: "#4f46e5",
+    to: "#2563eb",
+    glow: "rgba(37,99,235,0.45)",
+    delay: 0.2,
+  },
+  {
+    title: "CODE",
+    icon: <CodeIcon sx={{ fontSize: 22 }} />,
+    from: "#fb923c",
+    to: "#f97316",
+    glow: "rgba(249,115,22,0.45)",
+    delay: 0.7,
+  },
+  {
+    title: "SUCCEED",
+    icon: <GpsFixedIcon sx={{ fontSize: 22 }} />,
+    from: "#22c55e",
+    to: "#10b981",
+    glow: "rgba(16,185,129,0.45)",
+    delay: 1.3,
+  },
 ];
 
-const Hero: React.FC = () => {
-    const navigate = useNavigate();
-    const [currentIndex, setCurrentIndex] = useState(0);
+const BANNER_CLIP = "polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%, 15% 50%)";
 
-    // Auto-rotate the student coverflow
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % STUDENTS.length);
-        }, ROTATE_INTERVAL_MS);
-        return () => clearInterval(interval);
-    }, []);
+/* Rotating headline phrases — word1 stays blue, word2 stays green, always */
+interface HeadlinePhrase {
+  word1: string;
+  word2: string;
+}
 
-    return (
-        <section className="relative min-h-[85vh] overflow-hidden bg-white text-[#202124]">
-            <div className="mx-auto max-w-7xl px-6 pt-16 pb-28 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
+const HEADLINE_PHRASES: HeadlinePhrase[] = [
+  { word1: "bright", word2: "future" },
+  { word1: "tech", word2: "career" },
+  { word1: "coding", word2: "skills" },
+];
 
-                {/* LEFT CONTENT */}
-                <div className="max-w-xl">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-[#1A73E8] shadow-sm border border-[#E8EAED] mb-6">
-                        <AutoAwesomeRoundedIcon style={{ fontSize: 16 }} />
-                        Trusted by 500+ Students
-                    </span>
+const TYPING_SPEED_MS = 80; // ms per character while typing
+const DELETING_SPEED_MS = 45; // ms per character while deleting
+const HOLD_MS = 1400; // pause once fully typed before deleting
 
-                    <h1 className="font-['Baloo_2'] text-4xl md:text-5xl xl:text-6xl font-bold leading-tight">
-                        Learn Smarter <br />
-                        With <span className="text-[#1A73E8]">KGurukul</span>'s
-                    </h1>
-                    {/* Signature squiggle — same motif used across the site */}
-                    <svg width="140" height="14" viewBox="0 0 140 14" fill="none" className="mt-2">
-                        <path d="M2 10C25 2 45 2 68 8C91 14 111 6 138 4"
-                            stroke="url(#hero-underline-grad)" strokeWidth="3" strokeLinecap="round" />
-                        <defs>
-                            <linearGradient id="hero-underline-grad" x1="0" y1="0" x2="140" y2="0">
-                                <stop offset="0%" stopColor="#1A73E8" />
-                                <stop offset="35%" stopColor="#0F9D58" />
-                                <stop offset="65%" stopColor="#EA4335" />
-                                <stop offset="100%" stopColor="#F9AB00" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
+function StepCard({ step, delay }: { step: Step; delay: number }) {
+  return (
+    <div
+      className="step-card-in relative w-[220px] sm:w-[225px] lg:w-[210px] h-[70px] sm:h-[65px] lg:h-[60px] shrink-0"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      {/* soft ambient glow — tight, localized per card */}
+      <div
+        className="absolute -inset-2 rounded-full opacity-30 blur-xl -z-10"
+        style={{
+          background: `radial-gradient(circle, ${step.to}, transparent 70%)`,
+        }}
+      />
 
-                    <p className="mt-6 text-[#5F6368] text-lg leading-relaxed">
-                        Upgrade your skills with structured learning, top mentors,
-                        and real-world preparation.
-                    </p>
+      {/* layered backing card for depth (slightly offset, rounded, softly blurred edge) */}
+      <div
+        className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-l-2xl opacity-70 blur-[1px]"
+        style={{
+          clipPath: BANNER_CLIP,
+          background: `linear-gradient(135deg, ${step.from}, ${step.to})`,
+        }}
+      />
 
-                    {/* Programming Flow: Java -> Python -> Code -> Login */}
-                    <div className="mt-6 md:mt-8 flex items-center justify-center lg:justify-start gap-1.5 md:gap-3 flex-wrap">
-                        {SKILL_BADGES.map((badge) => (
-                            <React.Fragment key={badge.label}>
-                                <div className={`px-2 py-1 md:px-4 md:py-2 bg-gradient-to-r ${badge.gradient} rounded-lg shadow-lg transform ${badge.rotate} hover:rotate-0 transition-transform duration-300`}>
-                                    <span className="text-white text-[10px] md:text-sm font-bold">{badge.label}</span>
-                                </div>
-                                <ArrowIcon />
-                            </React.Fragment>
-                        ))}
+      {/* main white banner: real rounded left corners + sharp point, glows + lifts + tilts on hover */}
+      <div
+        className="step-card-glow group relative h-full bg-white rounded-l-2xl border border-slate-200"
+        style={
+          {
+            clipPath: BANNER_CLIP,
+            "--step-glow": step.glow,
+          } as React.CSSProperties
+        }
+      >
+        {/* glossy top highlight */}
+        <div
+          className="absolute inset-0 opacity-70 pointer-events-none rounded-l-2xl"
+          style={{
+            clipPath: BANNER_CLIP,
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0) 45%)",
+          }}
+        />
 
-                        {/* Code Symbol */}
-                        <div className="w-8 h-8 md:w-12 md:h-12 bg-[#202124] rounded-lg flex items-center justify-center shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-300 border border-[#DADCE0]">
-                            <span className="text-white text-xs md:text-base font-bold">&lt;/&gt;</span>
-                        </div>
-                        <ArrowIcon />
+        {/* colored accent stripe just before the point */}
+        <div
+          className="absolute top-2 bottom-2 right-6 w-1 rounded-full opacity-80"
+          style={{ background: `linear-gradient(${step.from}, ${step.to})` }}
+        />
 
-                        {/* Login Button - same square shape as badges, stands out via color/glow/motion instead */}
-                        <button
-                            onClick={() => navigate("/auth/login")}
-                            className="rotate-3 relative flex-shrink-0 group"
-                        >
-                            {/* Quiet attention pulse — softened so it doesn't fight the badges for focus */}
-                            <span className="rotate-3 absolute inset-0 rounded-lg bg-[#1A73E8] opacity-30 animate-ping" />
+        <div className="relative flex items-center gap-3 h-full pl-4 pr-9">
+          <div
+            className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl text-white flex items-center justify-center shrink-0 shadow-md ring-2 ring-white transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105"
+            style={{
+              background: `linear-gradient(135deg, ${step.from}, ${step.to})`,
+            }}
+          >
+            {step.icon}
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-black text-sm sm:text-base text-slate-900 tracking-wide leading-tight whitespace-nowrap uppercase">
+              {step.title}
+            </h3>
+            <div
+              className="h-1 rounded-full mt-1.5 w-8 sm:w-9 transition-all duration-300 group-hover:w-11"
+              style={{
+                background: `linear-gradient(90deg, ${step.from}, ${step.to})`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-                            {/* Actual button */}
-                            <span className="rotate-3 relative flex items-center gap-1.5 md:gap-2 px-3 md:px-6 py-1.5 md:py-3 bg-[#1A73E8] group-hover:bg-[#1765CC] rounded-lg shadow-lg shadow-[#1A73E8]/40 group-hover:scale-105 transition-all duration-300">
-                                <span className="text-white text-xs md:text-base font-bold">Login</span>
-                                <ArrowForwardRoundedIcon style={{ fontSize: 16 }} className="text-white" />
-                            </span>
-                        </button>
-                    </div>
-                </div>
+function Connector({
+  from,
+  to,
+  delay,
+}: {
+  from: string;
+  to: string;
+  delay: number;
+}) {
+  const gradId = `arrowGrad-${from.replace("#", "")}-${to.replace("#", "")}`;
+  return (
+    <svg
+      width="30"
+      height="16"
+      viewBox="0 0 52 18"
+      className="step-arrow shrink-0"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={from} stopOpacity="0.7" />
+          <stop offset="100%" stopColor={to} stopOpacity="0.9" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M2 9H45"
+        stroke={`url(#${gradId})`}
+        strokeWidth="2.5"
+        strokeDasharray="5 5"
+      />
+      <path
+        d="M39 2L48 9L39 16"
+        stroke={to}
+        strokeWidth="2.5"
+        fill="none"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
-                {/* RIGHT SIDE - Coverflow Slider */}
-                <div className="relative w-full max-w-2xl lg:max-w-lg">
-                    <div className="relative h-[400px] md:h-[350px] flex items-center justify-center">
-                        {STUDENTS.map((student, index) => {
-                            const isCenter = index === currentIndex;
-                            const isLeft = (currentIndex - index + STUDENTS.length) % STUDENTS.length === 1;
-                            const isRight = (index - currentIndex + STUDENTS.length) % STUDENTS.length === 1;
+/**
+ * Typewriter for a two-word phrase, word1 in blue then word2 in green,
+ * typed out character by character, held, then deleted, then moves to next phrase.
+ */
+function TypingHeadline({ phrases }: { phrases: HeadlinePhrase[] }) {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [charCount, setCharCount] = useState(0);
+  const [mode, setMode] = useState<"typing" | "holding" | "deleting">("typing");
 
-                            let translateX = 0;
-                            let translateZ = -200;
-                            let scale = 0.6;
-                            let opacity = 0;
-                            let zIndex = 0;
+  const current = phrases[phraseIndex];
+  const fullText = `${current.word1} ${current.word2}`;
 
-                            if (isCenter) {
-                                translateZ = 0;
-                                scale = 1;
-                                opacity = 1;
-                                zIndex = 20;
-                            } else if (isLeft) {
-                                translateX = -120;
-                                translateZ = -150;
-                                scale = 0.8;
-                                opacity = 0.4;
-                                zIndex = 5;
-                            } else if (isRight) {
-                                translateX = 120;
-                                translateZ = -150;
-                                scale = 0.8;
-                                opacity = 0.4;
-                                zIndex = 5;
-                            }
+  useEffect(() => {
+    if (mode === "typing") {
+      if (charCount < fullText.length) {
+        const t = setTimeout(() => setCharCount((c) => c + 1), TYPING_SPEED_MS);
+        return () => clearTimeout(t);
+      }
+      const t = setTimeout(() => setMode("holding"), HOLD_MS);
+      return () => clearTimeout(t);
+    }
 
-                            return (
-                                <div
-                                    key={index}
-                                    className="absolute w-72 md:w-80 transition-all duration-700 ease-in-out cursor-pointer"
-                                    style={{
-                                        transform: `translateX(${translateX}px) translateZ(${translateZ}px) scale(${scale})`,
-                                        opacity,
-                                        zIndex,
-                                        willChange: "transform, opacity",
-                                    }}
-                                    onClick={() => setCurrentIndex(index)}
-                                >
-                                    <div className={`
-                                        relative rounded-3xl overflow-hidden shadow-[0_1px_3px_rgba(60,64,67,0.15),0_1px_2px_rgba(60,64,67,0.1)]
-                                        ${isCenter ? "border-2 border-[#1A73E8]" : "border border-[#E8EAED]"}
-                                        transition-all duration-500
-                                        ${!isCenter ? "opacity-50" : ""}
-                                    `}>
-                                        <div className="absolute inset-0 bg-white" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+    if (mode === "holding") {
+      const t = setTimeout(() => setMode("deleting"), HOLD_MS / 2);
+      return () => clearTimeout(t);
+    }
 
-                                        <div className="relative p-6 md:p-8 h-full flex flex-col items-center">
-                                            {/* Avatar */}
-                                            <div className="relative mb-6 md:mb-8 mt-4">
-                                                <div className="w-36 h-36 md:w-44 md:h-44 rounded-full bg-white border-2 border-[#1A73E8] p-0.5 shadow-xl">
-                                                    <img
-                                                        src={student.image}
-                                                        alt={student.name}
-                                                        className="w-full h-full rounded-full object-cover border border-white"
-                                                    />
-                                                </div>
+    if (mode === "deleting") {
+      if (charCount > 0) {
+        const t = setTimeout(
+          () => setCharCount((c) => c - 1),
+          DELETING_SPEED_MS,
+        );
+        return () => clearTimeout(t);
+      }
+      setPhraseIndex((i) => (i + 1) % phrases.length);
+      setMode("typing");
+    }
+  }, [mode, charCount, fullText, phrases.length]);
 
-                                                <div className="absolute -bottom-2 -right-0 w-14 h-14 md:w-12 md:h-12 bg-[#F9AB00] rounded-full flex items-center justify-center shadow-xl border-2 border-white">
-                                                    <span className="text-[#202124] font-bold text-base md:text-lg">{student.rank}</span>
-                                                </div>
-                                            </div>
+  const shown = fullText.slice(0, charCount);
+  const spaceIndex = current.word1.length;
+  const word1Shown = shown.slice(0, spaceIndex);
+  const word2Shown = shown.slice(spaceIndex + 1); // +1 skips the space char
 
-                                            <h2 className={`font-bold text-center mb-1 transition-all duration-300 ${isCenter ? "text-white text-xl md:text-2xl" : "text-white/70 text-lg md:text-xl"}`}>
-                                                {student.name}
-                                            </h2>
+  return (
+    <span className="inline-block whitespace-nowrap">
+      <span className="text-blue-600">{word1Shown}</span>
+      {word2Shown.length > 0 && " "}
+      <span className="text-green-600">{word2Shown}</span>
+      <span className="typing-cursor" aria-hidden="true">
+        |
+      </span>
+    </span>
+  );
+}
 
-                                            {isCenter && (
-                                                <div className="flex items-center justify-center gap-3 text-sm text-white">
-                                                    <div className="flex items-center gap-1.5 bg-[#0F9D58] px-3 py-1 rounded-full">
-                                                        <CheckCircleRoundedIcon style={{ fontSize: 16 }} />
-                                                        <span>Top Scorer</span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+export default function Hero() {
+  return (
+    <section className="relative bg-[#fdfdfc] py-16 ml-[4%] mr-[1%] overflow-hidden">
+      {/* faint decorative wash behind the whole hero */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-10 right-1/4 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl -z-10" />
+ 
+<div className="max-w-7xl">
+          <div className="max-w-2xl lg:max-w-3xl">
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-nowrap overflow-x-auto no-scrollbar py-4 -my-2 ">
+            {STEPS.map((s, i) => (
+              <React.Fragment key={s.title}>
+                <StepCard step={s} delay={s.delay} />
+                {i < STEPS.length - 1 && (
+                  <Connector
+                    from={s.to}
+                    to={STEPS[i + 1].from}
+                    delay={s.delay + 0.2}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
 
-                    {/* Navigation Dots */}
-                    <div className="flex justify-center gap-2 md:gap-3 mt-6">
-                        {STUDENTS.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setCurrentIndex(index)}
-                                className={`h-2.5 rounded-full transition-all duration-300 ${index === currentIndex ? "bg-[#1A73E8] w-8 md:w-10" : "bg-[#DADCE0] hover:bg-[#BDC1C6] w-2"}`}
-                                aria-label={`Go to student ${index + 1}`}
-                            />
-                        ))}
-                    </div>
-                </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mt-10 text-slate-900 leading-tight whitespace-nowrap">
+            Build your <TypingHeadline phrases={HEADLINE_PHRASES} />
+          </h1>
 
-            </div>
+          <p className="text-slate-500 mt-5 max-w-xl sm:text-base leading-relaxed">
+            Learn computer fundamentals, programming, and software through
+            practical sessions, experienced faculty, and structured learning
+            programs.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<RocketLaunchIcon fontSize="small" />}
+              endIcon={
+                <ArrowForwardIcon fontSize="small" className="btn-arrow" />
+              }
+              sx={{
+                borderRadius: 2.5,
+                px: 3.6,
+                py: 1.5,
+                fontSize: 15,
+                fontWeight: 700,
+                textTransform: "none",
+                color: "#fff",
+                background:
+                  "linear-gradient(135deg, #2563eb 55%, #16a34a 115%)",
+                boxShadow: "0 8px 20px -6px rgba(37,99,235,0.45)",
+                transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                "& .btn-arrow": {
+                  transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                },
+                "&:hover": {
+                  background:
+                    "linear-gradient(135deg, #1d4ed8 55%, #15803d 115%)",
+                  boxShadow: "0 12px 28px -6px rgba(37,99,235,0.55)",
+                  transform: "translateY(-2px)",
+                  "& .btn-arrow": {
+                    transform: "translateX(3px)",
+                  },
+                },
+                "&:active": {
+                  transform: "translateY(0)",
+                },
+              }}
+            >
+              Explore Courses
+            </Button>
+            <Button
+              variant="outlined"
+              size="large"
+              startIcon={
+                <WhatsAppIcon fontSize="small" sx={{ color: "#16a34a" }} />
+              }
+              sx={{
+                borderRadius: 2.5,
+                px: 3.6,
+                py: 1.5,
+                fontSize: 15,
+                fontWeight: 700,
+                textTransform: "none",
+                borderWidth: 1.5,
+                borderColor: "#e2e8f0",
+                color: "#334155",
+                backgroundColor: "#fff",
+                transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                "&:hover": {
+                  borderWidth: 1.5,
+                  borderColor: "#cbd5e1",
+                  backgroundColor: "#f8fafc",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 20px -8px rgba(15,23,42,0.12)",
+                },
+                "&:active": {
+                  transform: "translateY(0)",
+                },
+              }}
+            >
+              Contact Us
+            </Button>
+          </div>
+        </div>
 
-            {/* Marquee Banner - Admission Alert */}
-            <div className="absolute bottom-0 left-0 right-0 overflow-hidden">
-                 
-
-                <div className="bg-gradient-to-r from-[#1A73E8] to-[#1765CC] py-3 flex items-center gap-4 pl-6">
-                    <span className="hidden sm:inline-flex shrink-0 items-center gap-1.5 bg-white/15 text-white text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full">
-                        <CelebrationRoundedIcon style={{ fontSize: 14 }} />
-                        Admissions Open
-                    </span>
-
-                    <div className="flex-1 overflow-hidden">
-                        <div className="flex animate-marquee whitespace-nowrap">
-                            {Array.from({ length: 10 }).map((_, i) => (
-                                <span key={i} className="flex items-center gap-3 text-base md:text-lg font-semibold text-white mx-6">
-                                  🎉 Admissions Open for Next Year's Batches • Limited Seats Available • Enroll Today! 🚀💻
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#F9AB00]" />
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-};
-
-export default Hero;
+        {/* Right column: illustration — unchanged sizing/positioning */}
+        <div className="relative lg:absolute lg:right-0 lg:top-1/2 lg:-translate-y-1/2 flex justify-center mt-12 lg:mt-0">
+          <img
+            src={heroIllustration}
+            alt="Student learning to code"
+            className="hero-illustration w-full max-w-xl lg:w-[42vw] lg:max-w-none object-contain"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -1,36 +1,31 @@
-// src/App.tsx
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 import Hero from "./components/Hero";
-import FloatingActions from "./components/FloatingActions";
+import About from "./components/About";
+ import TopPerformersDark from "./components/TopPerformersDark";
+import WhyChoose from "./components/WhyChoose";
+import Courses from "./components/Courses";
+import Mentors from "./components/Mentors";
+import LearningJourney from "./components/LearningJourney";
+import TestimonialsGallery from "./components/TestimonialsGallery";
 import Contact from "./components/Contact";
-import Services from "./components/Cources";
-import About from "./components/AboutUs";
+import Footer from "./components/Footer";
+import FoundersDesk from "./components/Founderdesk";
 
-function App() {
+export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-slate-50/60 text-slate-900">
       <Navbar />
-      <section id="Home">
-        <Hero />
-      </section>
-      <main className="flex-grow">
-        {/* pages / sections go here */}
-      </main>
-      <section id="About">
-        <About />
-      </section>
-      <section id="Courses">
-        <Services />
-      </section>
-      <section id="Contact">
-        <Contact />
-      </section>
-
+      <Hero />
+       <TopPerformersDark />
+      <About />
+      <WhyChoose />
+      <Courses />
+      <Mentors />
+      <FoundersDesk />
+      <LearningJourney />
+      <TestimonialsGallery />
+      <Contact />
       <Footer />
-      <FloatingActions />
     </div>
   );
 }
-
-export default App;

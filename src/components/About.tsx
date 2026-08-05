@@ -33,7 +33,7 @@ const STATS = [
 
 // Fires once when the wrapped element scrolls into view
 function useInView(threshold = 0.25) {
-  const ref = useRef(null);
+  const ref = useRef<any>(null);
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
@@ -52,19 +52,19 @@ function useInView(threshold = 0.25) {
     return () => observer.disconnect();
   }, [threshold]);
 
-  return [ref, inView];
+  return [ref, inView] as const;
 }
 
 // Counts a number up from 0 once `start` becomes true
-function useCountUp(target, start, duration = 1200) {
+function useCountUp(target: number, start: boolean, duration: number = 1200) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {
     if (!start || target == null) return;
-    let frame;
+    let frame: number;
     const startTime = performance.now();
 
-    const tick = (now) => {
+    const tick = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setValue(Math.round(eased * target));
@@ -78,7 +78,7 @@ function useCountUp(target, start, duration = 1200) {
   return value;
 }
 
-function AnimatedStat({ stat, inView, delay }) {
+function AnimatedStat({ stat, inView, delay }: { stat: any; inView: boolean; delay: number }) {
   const count = useCountUp(stat.value, inView);
   const displayValue = stat.value == null ? stat.text : `${count}${stat.suffix}`;
 

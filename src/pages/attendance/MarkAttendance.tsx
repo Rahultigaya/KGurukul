@@ -275,9 +275,10 @@ const GuestRow: React.FC<{
 const AddGuestPanel: React.FC<{
   currentBatchId: string;
   existingStudentIds: string[];
+  studentIds: string[];
   onAdd: (record: StudentAttendance) => void;
   onClose: () => void;
-}> = ({ currentBatchId, existingStudentIds, onAdd, onClose }) => {
+}> = ({ currentBatchId, existingStudentIds, studentIds, onAdd, onClose }) => {
   const [search,          setSearch]          = useState("");
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
@@ -288,13 +289,13 @@ const AddGuestPanel: React.FC<{
 
   // All students NOT already in this session
   const allStudentIds = studentIds.filter(
-    (sid) => !existingStudentIds.includes(sid)
+    (sid: string) => !existingStudentIds.includes(sid)
   );
 
   const filteredStudents = useMemo(() => {
     const q = search.toLowerCase();
     if (!q) return [];
-    return allStudentIds.filter((sid) =>
+    return allStudentIds.filter((sid: string) =>
       getStudentName(sid).toLowerCase().includes(q) ||
       getStudentStandard(sid).toLowerCase().includes(q) ||
       getStudentSubject(sid).toLowerCase().includes(q)
@@ -390,7 +391,7 @@ const AddGuestPanel: React.FC<{
               <div className="px-4 py-3 text-center">
                 <Text size="xs" style={{ color: "var(--text-muted)" }}>No students found</Text>
               </div>
-            ) : filteredStudents.map((sid) => (
+            ) : filteredStudents.map((sid: string) => (
               <button key={sid}
                 onClick={() => {
                   setSelectedStudent(sid);
@@ -927,6 +928,7 @@ const MarkAttendance: React.FC = () => {
                 <AddGuestPanel
                   currentBatchId={selectedBatchId!}
                   existingStudentIds={records.map((r) => r.studentId)}
+                  studentIds={studentIds}
                   onAdd={handleAddGuest}
                   onClose={() => setShowGuest(false)}
                 />

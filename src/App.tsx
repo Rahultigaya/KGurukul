@@ -1,7 +1,7 @@
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import About from "./components/About";
- import TopPerformersDark from "./components/TopPerformersDark";
+ import TopPerformersDark from "./components/Topperformersdark";
 import WhyChoose from "./components/WhyChoose";
 import Courses from "./components/Courses";
 import Mentors from "./components/Mentors";

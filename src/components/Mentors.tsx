@@ -67,7 +67,7 @@ const MENTORS = [
   },
 ];
 
-function MentorCard({ mentor }) {
+function MentorCard({ mentor }: { mentor: any }) {
   const StatIcon = mentor.stat.Icon;
   return (
     <div className="relative bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
@@ -129,7 +129,7 @@ function MentorCard({ mentor }) {
                 </span>
               </div>
               <ul className="space-y-1 pl-0.5">
-                {mentor.education.map((item) => (
+                {mentor.education.map((item: string) => (
                   <li
                     key={item}
                     className="text-sm text-slate-600 flex items-center gap-2"
@@ -150,7 +150,7 @@ function MentorCard({ mentor }) {
 
         {/* Tag pills */}
         <div className="grid grid-cols-3 gap-2">
-          {mentor.tags.map((t) => {
+          {mentor.tags.map((t: any) => {
             const TagIcon = t.Icon;
             return (
               <div

@@ -83,16 +83,17 @@ const statusConfig: Record<
 // Build LinkedStudent list from parentStore.childrenIds + studentStore
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildLinkedStudents(childrenIds: string[]): LinkedStudent[] {
-  return childrenIds.reduce<LinkedStudent[]>((acc, studentId) => {
-    const student = getStudentById(studentId);
-    if (!student) return acc; // skip if id not found in studentStore
+async function buildLinkedStudents(childrenIds: string[]): Promise<LinkedStudent[]> {
+  const students = await Promise.all(childrenIds.map((cid) => getStudentById(cid)));
+  return students.reduce<LinkedStudent[]>((acc, student, idx) => {
+    if (!student) return acc; // skip if not found
+    const studentId = childrenIds[idx];
 
     const net =
       (parseFloat(student.totalFees) || 0) -
       (parseFloat(student.discountAmount) || 0);
     const paid = student.installments.reduce(
-      (a, i) => a + (parseFloat(i.amount) || 0),
+      (a: number, i) => a + (parseFloat(i.amount) || 0),
       parseFloat(student.fullPayment.amount) || 0,
     );
     const due = Math.max(net - paid, 0);
@@ -246,7 +247,9 @@ const ParentProfile: React.FC = () => {
     }
 
     setParent(data);
-    setChildren(buildLinkedStudents(data.childrenIds));
+    buildLinkedStudents(data.childrenIds).then((linked) => {
+      setChildren(linked);
+    });
   }, [id]);
 
   const handlePhotoSave = (dataUrl: string) => {

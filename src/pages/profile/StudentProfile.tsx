@@ -83,12 +83,13 @@ const StudentProfile: React.FC = () => {
       setNotFound(true);
       return;
     }
-    const data = getStudentById(id);
-    if (!data) {
-      setNotFound(true);
-      return;
-    }
-    setStudent(data);
+    getStudentById(id).then((data) => {
+      if (!data) {
+        setNotFound(true);
+        return;
+      }
+      setStudent(data);
+    });
   }, [id]);
 
   const handlePhotoSave = (dataUrl: string) => {

@@ -8,43 +8,16 @@ import { Loader } from "@mantine/core";
 
 import { getStudents } from "../../../api/api";
 import { getAllTeachers } from "./Teacher/teacherStore";
-import { useStudentColumns } from "./Student/StudentColumns";
+import { useStudentColumns, type Student } from "./Student/StudentColumns";
 import { useTeacherColumns } from "./Teacher/TeacherColumns";
 import { dtStyles, sortIcon } from "../../../utils/dtStyles";
 import { Button } from "@mantine/core";
 
 type TabType = "students" | "teachers";
 
-// ── Transform API response → table column format ───────────────────────────────
-interface StudentRow {
-  id: number;
-  photo: string | null;
-  academicYear: string;
-  registrationDate: string;
-  subject: string;
-  branch: string;
-  standard: string;
-  courseType: string;
-  reference: string;
-  surname: string;
-  firstName: string;
-  middleName: string;
-  gender: string;
-  email: string;
-  contactNo: string;
-  address: string;
-  schoolCollegeName: string;
-  paymentType: string;
-  totalFees: string;
-  discountAmount: string;
-  guardians: { id: number; name: string; email: string; contact: string; relation: string }[];
-  fullPayment: { amount: string; date: string | null; mode: string; bankName: string; paidTo: string };
-  installments: { amount: string; date: string | null; mode: string; bankName: string; paidTo: string }[];
-}
-
-function transformStudent(raw: any): StudentRow {
+function transformStudent(raw: any): Student {
   return {
-    id: raw.id,
+    id: String(raw.id),
     photo: raw.photo ?? null,
     academicYear: raw.academic_year ?? "",
     registrationDate: raw.registration_date ?? "",
@@ -61,11 +34,11 @@ function transformStudent(raw: any): StudentRow {
     contactNo: raw.contact_no ?? "",
     address: raw.address ?? "",
     schoolCollegeName: raw.school_college_name ?? "",
-    paymentType: raw.payment_type ?? "",
+    paymentType: raw.payment_type ?? "full",
     totalFees: raw.total_fees ?? "",
     discountAmount: raw.discount_amount ?? "",
     guardians: (raw.guardians ?? []).map((g: any, i: number) => ({
-      id: g.id ?? i + 1,
+      id: String(g.id ?? (i + 1)),
       name: g.name ?? "",
       email: g.email ?? "",
       contact: g.contact ?? "",
@@ -73,14 +46,14 @@ function transformStudent(raw: any): StudentRow {
     })),
     fullPayment: {
       amount: raw.full_payment?.amount ?? "",
-      date: raw.full_payment?.date ?? null,
+      date: raw.full_payment?.date ? new Date(raw.full_payment.date) : null,
       mode: raw.full_payment?.mode ?? "",
       bankName: raw.full_payment?.bank_name ?? "",
       paidTo: raw.full_payment?.paid_to ?? "",
     },
     installments: (raw.installments ?? []).map((inst: any) => ({
       amount: inst.amount ?? "",
-      date: inst.date ?? null,
+      date: inst.date ? new Date(inst.date) : null,
       mode: inst.mode ?? "",
       bankName: inst.bank_name ?? "",
       paidTo: inst.paid_to ?? "",
@@ -91,7 +64,7 @@ function transformStudent(raw: any): StudentRow {
 const UsersList: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>("students");
-  const [students, setStudents] = useState<StudentRow[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

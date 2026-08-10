@@ -42,10 +42,7 @@ const Product = [
   },
 ];
 
-const BADGE_STYLES = {
-  ICSE: { bg: "#dbeafe", color: "#1d4ed8" },
-  HSC: { bg: "#dcfce7", color: "#15803d" },
-};
+
 
 export default function Courses() {
   return (
@@ -64,7 +61,6 @@ export default function Courses() {
             whatever's below (like the button) down with them. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
           {Product.map((course) => {
-            const badge = BADGE_STYLES[course.class] || BADGE_STYLES.ICSE;
             const points = course.details
               .split("|")
               .map((p) => p.trim())

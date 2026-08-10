@@ -1,4 +1,13 @@
-export default function StatItem({ icon, iconBg, iconColor, value, label, variant = "row" }) {
+interface StatItemProps {
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  value: React.ReactNode;
+  label: string;
+  variant?: "row" | "card";
+}
+
+export default function StatItem({ icon, iconBg, iconColor, value, label, variant = "row" }: StatItemProps) {
   if (variant === "card") {
     return (
       <div className="flex items-center gap-4 bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4">

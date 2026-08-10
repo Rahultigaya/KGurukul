@@ -80,7 +80,7 @@ export function transformApiToFormData(raw: any): StudentRegistrationData {
     fullPayment: raw.full_payment
       ? {
           amount: raw.full_payment.amount ?? "",
-          date: formatDate(raw.full_payment.date),
+          date: raw.full_payment.date ? new Date(raw.full_payment.date) : null,
           mode: raw.full_payment.mode ?? "",
           bankName: raw.full_payment.bank_name ?? "",
           paidTo: raw.full_payment.paid_to ?? "",
@@ -88,7 +88,7 @@ export function transformApiToFormData(raw: any): StudentRegistrationData {
       : { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
     installments: (raw.installments ?? []).map((inst: any) => ({
       amount: inst.amount ?? "",
-      date: formatDate(inst.date),
+      date: inst.date ? new Date(inst.date) : null,
       mode: inst.mode ?? "",
       bankName: inst.bank_name ?? "",
       paidTo: inst.paid_to ?? "",
@@ -100,11 +100,7 @@ function transformFormDataToPayload(data: StudentRegistrationData) {
   return {
     photo: data.photo,
     academic_year: data.academicYear,
-    registration_date: formatDate(
-      data.registrationDate instanceof Date
-        ? data.registrationDate.toISOString().split("T")[0]
-        : data.registrationDate
-    ),
+    registration_date: formatDate(data.registrationDate),
     subject_id: Number(data.subject) || 0,
     branch_id: Number(data.branch) || 0,
     standard_id: Number(data.standard) || 0,

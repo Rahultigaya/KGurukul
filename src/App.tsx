@@ -1,7 +1,7 @@
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import About from "./components/About";
- import TopPerformersDark from "./components/TopPerformersDark";
+ import TopPerformersDark from "./components/Topperformersdark";
 import WhyChoose from "./components/WhyChoose";
 import Courses from "./components/Courses";
 import Mentors from "./components/Mentors";
@@ -18,7 +18,7 @@ import "@fontsource/fraunces/700.css";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-50/60 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
       <Hero />
        <TopPerformersDark />

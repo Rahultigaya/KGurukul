@@ -4,7 +4,7 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-
+import logo from "../assets/logo-gurukul-new.png";
 const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "Success Stories", href: "#toppers" },
@@ -24,7 +24,7 @@ export default function Navbar() {
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3 shrink-0">
           <img
-            src="/logo-gurukul-new.png"
+            src={logo}
             alt="KGurukul logo"
             className="h-10 lg:h-11 w-auto object-contain"
           />

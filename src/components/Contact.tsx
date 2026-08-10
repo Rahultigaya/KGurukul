@@ -58,10 +58,10 @@ export default function Contact() {
     message: "",
   });
 
-  const handleChange = (field) => (e) =>
+  const handleChange = (field: string) => (e: React.ChangeEvent<any>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Contact form submitted:", form);
   };

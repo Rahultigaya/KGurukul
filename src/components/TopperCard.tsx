@@ -17,7 +17,7 @@ interface TopperCardProps {
   school: string;
   score: string;
   photo: string;
-  batch: string;
+  batch?: string;
 }
 
 // Map rank -> medal image path. Update these paths to match wherever
@@ -102,9 +102,11 @@ export default function TopperCard({ rank, name, course, school, score, photo, b
         <p className="mt-1 font-extrabold text-blue-600 text-xl leading-none">{score}</p>
         <p className="mt-2 w-full text-center text-slate-500 text-sm truncate">{course}</p>
         <p className="mt-0.5 w-full text-center text-slate-400 text-xs truncate">{school}</p>
-        <span className="mt-2 inline-block max-w-full truncate rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-600">
-          {batch}
-        </span>
+        {batch && (
+          <span className="mt-2 inline-block max-w-full truncate rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-600">
+            {batch}
+          </span>
+        )}
       </div>
     </div>
   );

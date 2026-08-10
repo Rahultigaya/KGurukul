@@ -143,85 +143,84 @@ export default function About() {
   const [sectionRef, sectionInView] = useInView(0.15);
 
   return (
-    <section id="about" ref={sectionRef} className="relative overflow-hidden py-14">
-      <div className="relative max-w-8xl mx-auto px-5 lg:px-8 grid lg:grid-cols-[1.1fr_1fr_0.28fr] gap-10 items-stretch">
-        {/* Illustration */}
-        <div
-          className="relative flex flex-col transition-all duration-700 ease-out"
-          style={{
-            opacity: sectionInView ? 1 : 0,
-            transform: sectionInView ? "translateX(0)" : "translateX(-24px)",
-          }}
-        >
-          <div className="relative rounded-2xl shadow-xl overflow-hidden flex-1">
-            <img
-              src={aboutUsImage}
-              alt="About KGurukul"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-[1.02]"
-            />
-          </div>
-
-          {/* Badge strip under the image */}
-          <div
-            className="mx-auto -mt-5 flex w-fit items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-xs font-medium text-white shadow-lg transition-all duration-700 relative"
-            style={{
-              transitionDelay: "500ms",
-              opacity: sectionInView ? 1 : 0,
-              transform: sectionInView ? "translateY(0)" : "translateY(10px)",
-            }}
-          >
-            <SchoolIcon fontSize="small" />
-            <span>Practical Learning&nbsp;|&nbsp;Expert Guidance&nbsp;|&nbsp;Real Results</span>
-          </div>
+    <section id="about" ref={sectionRef} className="relative overflow-hidden py-12 sm:py-16 lg:py-20">     
+<div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 grid lg:grid-cols-[1.1fr_1fr_0.28fr] gap-10 items-stretch">      {/* Illustration */}
+      <div
+        className="relative flex flex-col transition-all duration-700 ease-out"
+        style={{
+          opacity: sectionInView ? 1 : 0,
+          transform: sectionInView ? "translateX(0)" : "translateX(-24px)",
+        }}
+      >
+        <div className="relative rounded-2xl shadow-xl overflow-hidden flex-1">
+          <img
+            src={aboutUsImage}
+            alt="About KGurukul"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+          />
         </div>
 
-        {/* Copy */}
+        {/* Badge strip under the image */}
         <div
-          className="transition-all duration-700 ease-out"
+          className="mx-auto -mt-5 flex w-fit items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-xs font-medium text-white shadow-lg transition-all duration-700 relative"
           style={{
-            transitionDelay: "150ms",
+            transitionDelay: "500ms",
             opacity: sectionInView ? 1 : 0,
-            transform: sectionInView ? "translateY(0)" : "translateY(16px)",
+            transform: sectionInView ? "translateY(0)" : "translateY(10px)",
           }}
         >
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
-            About KGurukul's
-          </h2>
-          <p className="mt-5 text-slate-500 leading-relaxed">
-            KGurukul is a trusted computer education institute committed to shaping future-ready professionals through quality, practical, and industry-focused learning.
-            With years of experience in computer education, we provide a supportive environment where students build strong technical foundations, develop problem-solving skills,
-            and gain the confidence to succeed in today's rapidly evolving digital world.
-          </p>
-          <p className="mt-5 text-slate-500 leading-relaxed">
-            Our programs are designed to bridge the gap between academic knowledge and real-world applications by combining structured learning with hands-on practice.
-            At KGurukul, we believe that every student has the potential to achieve more with the right guidance, dedication, and opportunities.
-            Our mission is to inspire lifelong learning, nurture talent, and empower individuals to build successful careers in technology.
-          </p>
-
-          {/* Pull quote */}
-          <div
-            className="mt-6 flex gap-3 rounded-lg border-l-4 border-blue-600 bg-blue-50/60 px-4 py-3.5 transition-all duration-700"
-            style={{
-              transitionDelay: "650ms",
-              opacity: sectionInView ? 1 : 0,
-              transform: sectionInView ? "translateY(0)" : "translateY(12px)",
-            }}
-          >
-            <FormatQuoteIcon className="shrink-0 text-blue-600" fontSize="small" />
-            <p className="text-sm font-bold text-slate-700 leading-relaxed">
-              Our mission is to empower students with the skills, confidence
-              and mindset to excel in the digital world.
-            </p>
-          </div>
-
-        </div>
-
-        <div className="flex h-full flex-col justify-center gap-4">
-          {STATS.map((s, i) => (
-            <AnimatedStat key={s.label} stat={s} inView={sectionInView} delay={i * 120} />
-          ))}
+          <SchoolIcon fontSize="small" />
+          <span>Practical Learning&nbsp;|&nbsp;Expert Guidance&nbsp;|&nbsp;Real Results</span>
         </div>
       </div>
+
+      {/* Copy */}
+      <div
+        className="transition-all duration-700 ease-out"
+        style={{
+          transitionDelay: "150ms",
+          opacity: sectionInView ? 1 : 0,
+          transform: sectionInView ? "translateY(0)" : "translateY(16px)",
+        }}
+      >
+        <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+          About <span className="text-blue-600">KGurukul's</span>
+        </h2>
+        <p className="mt-5 text-slate-500 leading-relaxed">
+          KGurukul is a trusted computer education institute committed to shaping future-ready professionals through quality, practical, and industry-focused learning.
+          With years of experience in computer education, we provide a supportive environment where students build strong technical foundations, develop problem-solving skills,
+          and gain the confidence to succeed in today's rapidly evolving digital world.
+        </p>
+        <p className="mt-5 text-slate-500 leading-relaxed">
+          Our programs are designed to bridge the gap between academic knowledge and real-world applications by combining structured learning with hands-on practice.
+          At KGurukul, we believe that every student has the potential to achieve more with the right guidance, dedication, and opportunities.
+          Our mission is to inspire lifelong learning, nurture talent, and empower individuals to build successful careers in technology.
+        </p>
+
+        {/* Pull quote */}
+        <div
+          className="mt-6 flex gap-3 rounded-lg border-l-4 border-blue-600 bg-blue-50/60 px-4 py-3.5 transition-all duration-700"
+          style={{
+            transitionDelay: "650ms",
+            opacity: sectionInView ? 1 : 0,
+            transform: sectionInView ? "translateY(0)" : "translateY(12px)",
+          }}
+        >
+          <FormatQuoteIcon className="shrink-0 text-blue-600" fontSize="small" />
+          <p className="text-sm font-bold text-slate-700 leading-relaxed">
+            Our mission is to empower students with the skills, confidence
+            and mindset to excel in the digital world.
+          </p>
+        </div>
+
+      </div>
+
+      <div className="flex h-full flex-col justify-center gap-4">
+        {STATS.map((s, i) => (
+          <AnimatedStat key={s.label} stat={s} inView={sectionInView} delay={i * 120} />
+        ))}
+      </div>
+    </div>
     </section>
   );
 }

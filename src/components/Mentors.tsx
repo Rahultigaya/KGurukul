@@ -170,17 +170,16 @@ function MentorCard({ mentor }) {
 
 export default function Mentors() {
   return (
-    <section id="mentors" className="">
-      <div className="max-w-5xl mx-auto px-5 lg:px-8">
-        <div className="text-center mb-5">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3">
-            Meet Our <span className="text-blue-600">Expert Teachers</span>
-          </h2>
-          <p className="text-slate-500 text-sm">
-            Experienced educators. Proven results. Your success is our mission.
-          </p>
-          <div className="w-14 h-1 bg-blue-600 rounded-full mx-auto mt-4" />
-        </div>
+<section id="mentors" className="py-12 sm:py-16 lg:py-20">      
+  <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+  <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+  Meet Our <span className="text-blue-600">Expert Teachers</span>
+</h2>
+  <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+    Experienced educators. Proven results. Your success is our mission.
+  </p>
+</div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {MENTORS.map((mentor) => (

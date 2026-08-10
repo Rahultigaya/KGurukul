@@ -160,6 +160,7 @@ export default function TopPerformersDark() {
 
   return (
     <section
+    id="toppers"
       className="px-4 sm:px-8 lg:px-12 py-10 sm:py-14 min-h-screen flex items-center box-border"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -202,9 +203,9 @@ export default function TopPerformersDark() {
                   sx={{ color: "#fbbf24", fontSize: 20 }}
                   className="drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] shrink-0"
                 />
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight whitespace-nowrap">
-                  Our <span className="text-amber-400">Top</span> Performers
-                </h2>
+                <h2 className="font-serif-display text-2xl sm:text-3xl font-semibold text-white tracking-tight whitespace-nowrap">
+  Our <span className="text-amber-400">Top</span> Performers
+</h2>
               </div>
               <p className="text-slate-300 text-xs sm:text-sm mt-2">
                 Celebrating the success of our brilliant students.

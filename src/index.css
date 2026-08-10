@@ -199,3 +199,5 @@ body {
   color: var(--color-brand-green, #16a34a);
   animation: typingCursorBlink 0.8s step-end infinite;
 }
+
+.font-serif-display { font-family: 'Fraunces', serif; }

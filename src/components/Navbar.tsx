@@ -7,10 +7,10 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const NAV_LINKS = [
   { label: "Home", href: "#home" },
+  { label: "Success Stories", href: "#toppers" },
   { label: "About Us", href: "#about" },
   { label: "Courses", href: "#courses" },
   { label: "Our Teachers", href: "#mentors" },
-  { label: "Success Stories", href: "#toppers" },
   { label: "Gallery", href: "#gallery" },
   { label: "Contact Us", href: "#contact" },
 ];

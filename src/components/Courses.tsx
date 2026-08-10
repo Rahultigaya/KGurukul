@@ -49,15 +49,16 @@ const BADGE_STYLES = {
 
 export default function Courses() {
   return (
-    <section id="courses" className="py-10 ">
-      <div className="max-w-7xl mx-auto px-5 lg:px-8">
-        <h2 className="text-center text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2">
-          Our <span className="text-blue-600">Courses</span>
-        </h2>
-        <p className="text-center text-slate-500 max-w-2xl mx-auto mb-8 text-sm">
-          Board-aligned computer science programs for ICSE and HSC students.
-        </p>
-
+<section id="courses" className="py-12 sm:py-16 lg:py-20">
+<div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+ <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+  Our <span className="text-blue-600">Courses</span>
+</h2>
+  <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+    Board-aligned computer science programs for ICSE and HSC students.
+  </p>
+</div>
         {/* Normal grid flow — no absolute positioning, no fixed heights,
             no has() hacks. Rows just grow naturally on hover, pushing
             whatever's below (like the button) down with them. */}

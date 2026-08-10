@@ -46,41 +46,46 @@ const FEATURES = [
 
 export default function WhyChoose() {
   return (
-    <section className="py-5">
-      <div className="max-w-8xl mx-auto px-5 lg:px-8">
-        <h2 className="text-center text-3xl sm:text-4xl font-extrabold text-slate-900 mb-12">
-          Why Choose <span className="text-blue-600">KGurukul's </span>?
+    <section className="py-12 sm:py-16 lg:py-20">      
+<div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+        <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+          Why Choose <span className="text-blue-600">KGurukul's</span>?
         </h2>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="group relative rounded-2xl border border-slate-100 bg-white hover:border-transparent hover:shadow-xl transition-all duration-300 hover:-translate-y-1 px-5 py-7 text-center overflow-hidden"
-            >
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{
-                  background: `linear-gradient(160deg, ${f.color}22 0%, transparent 60%)`,
-                }}
-              />
-
-              <div
-                className="relative mb-4 flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
-                style={{ color: f.color }}
-              >
-                {f.icon}
-              </div>
-              <p className="relative font-semibold text-slate-900 mb-1.5">
-                {f.title}
-              </p>
-              <p className="relative  text-slate-500 leading-snug">
-                {f.desc}
-              </p>
-            </div>
-          ))}
-        </div>
+        <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+          What makes our teaching different.
+        </p>
       </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {FEATURES.map((f) => (
+          <div
+            key={f.title}
+            className="group relative rounded-2xl border border-slate-100 bg-white hover:border-transparent hover:shadow-xl transition-all duration-300 hover:-translate-y-1 px-5 py-7 text-center overflow-hidden"
+          >
+            <div
+              className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: `linear-gradient(160deg, ${f.color}22 0%, transparent 60%)`,
+              }}
+            />
+
+            <div
+              className="relative mb-4 flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+              style={{ color: f.color }}
+            >
+              {f.icon}
+            </div>
+            <p className="relative font-semibold text-slate-900 mb-1.5">
+              {f.title}
+            </p>
+            <p className="relative  text-slate-500 leading-snug">
+              {f.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
     </section>
   );
 }

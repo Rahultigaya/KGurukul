@@ -1,5 +1,5 @@
 import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
-import founder_desk from "../assets/founder_desk.png";
+import founder_desk from "../assets/founder_desk_sir.png";
 
 function FounderDeskImg() {
     return (
@@ -14,8 +14,8 @@ function FounderDeskImg() {
 
 export default function FoundersDesk() {
     return (
-        <section id="founders-desk" className="py-10" >
-            <div className="max-w-8xl mx-auto px-5 lg:px-8">
+        <section id="founders-desk" className="py-12 sm:py-16 lg:py-20">
+            <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
                 <div className="bg-orange-50/60 rounded-3xl border border-orange-100 shadow-sm p-6 lg:p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
@@ -23,11 +23,11 @@ export default function FoundersDesk() {
 
                         {/* left Content */}
                         <div className="lg:col-span-9">
-                            <h2 className="text-3xl sm:text-4xl font-extrabold text-orange-600">
-                                Founder's Desk
+                            <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+                                Founder's <span className="text-orange-600">Desk</span>
                             </h2>
 
-                            <p className="text-sm font-semibold text-slate-700 mt-2 mb-5">
+                            <p className="text-sm font-semibold text-slate-500 mt-2 mb-5">
                                 A Message from the Founder
                             </p>
 

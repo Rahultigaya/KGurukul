@@ -6,10 +6,15 @@ import WhyChoose from "./components/WhyChoose";
 import Courses from "./components/Courses";
 import Mentors from "./components/Mentors";
 import LearningJourney from "./components/LearningJourney";
-import TestimonialsGallery from "./components/TestimonialsGallery";
+import TestimonialsGallery from "./components/Gallery";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import FoundersDesk from "./components/Founderdesk";
+import Gallery from "./components/Gallery";
+import Testimonials from "./components/Testimonials";
+import "@fontsource/fraunces/500.css";
+import "@fontsource/fraunces/600.css";
+import "@fontsource/fraunces/700.css";
 
 export default function App() {
   return (
@@ -23,7 +28,8 @@ export default function App() {
       <Mentors />
       <FoundersDesk />
       <LearningJourney />
-      <TestimonialsGallery />
+      <Testimonials />
+      <Gallery />
       <Contact />
       <Footer />
     </div>

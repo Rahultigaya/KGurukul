@@ -237,8 +237,7 @@ function TypingHeadline({ phrases }: { phrases: HeadlinePhrase[] }) {
 
 export default function Hero() {
   return (
-    <section className="relative bg-[#fdfdfc] py-16 ml-[4%] mr-[1%] overflow-hidden">
-      {/* faint decorative wash behind the whole hero */}
+<section id="home" className="relative bg-[#fdfdfc] py-12 sm:py-16 lg:py-20 ml-[4%] mr-[1%] overflow-hidden">      {/* faint decorative wash behind the whole hero */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl -z-10" />
       <div className="absolute top-10 right-1/4 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl -z-10" />
  

@@ -1,12 +1,11 @@
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import About from "./components/About";
- import TopPerformersDark from "./components/Topperformersdark";
+import TopPerformersDark from "./components/Topperformersdark";
 import WhyChoose from "./components/WhyChoose";
 import Courses from "./components/Courses";
 import Mentors from "./components/Mentors";
 import LearningJourney from "./components/LearningJourney";
-import TestimonialsGallery from "./components/Gallery";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import FoundersDesk from "./components/Founderdesk";
@@ -21,7 +20,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
       <Hero />
-       <TopPerformersDark />
+      <TopPerformersDark />
       <About />
       <WhyChoose />
       <Courses />

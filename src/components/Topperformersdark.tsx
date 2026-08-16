@@ -102,21 +102,36 @@ const PERFORMERS_BY_YEAR: Record<AcademicYear, Performer[]> = YEARS.reduce(
   {} as Record<AcademicYear, Performer[]>
 );
 
-const VISIBLE = 3; // cards shown at once, matching the reference layout
+const VISIBLE_DESKTOP = 3; // cards shown at once on sm+ screens
+const VISIBLE_MOBILE = 1; // cards shown at once on mobile, matching the reference layout
 
 export default function TopPerformersDark() {
   const [year, setYear] = useState<AcademicYear>(YEARS[0]);
   const [index, setIndex] = useState(0);
   const [withTransition, setWithTransition] = useState(true);
   const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(VISIBLE_DESKTOP);
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+
+  // Track viewport width so the carousel shows 1 card on mobile, 3 from sm up.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    const update = () => {
+      setVisible(mq.matches ? VISIBLE_DESKTOP : VISIBLE_MOBILE);
+      setWithTransition(false);
+      setIndex(0);
+    };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   // The active year's student list — swapping years swaps this whole array.
   const performers = PERFORMERS_BY_YEAR[year];
   const total = performers.length;
-  // Duplicate the first VISIBLE cards onto the end so the track can advance
+  // Duplicate the first `visible` cards onto the end so the track can advance
   // past the last real card and snap back to 0 invisibly (classic infinite-carousel trick).
-  const track = [...performers, ...performers.slice(0, VISIBLE)];
+  const track = [...performers, ...performers.slice(0, visible)];
 
   // Changing year: snap straight back to the first card, no leftover slide.
   const selectYear = (y: AcademicYear) => {
@@ -159,12 +174,12 @@ export default function TopPerformersDark() {
   const activeDot = index % total;
 
   return (
-    <section
-    id="toppers"
-      className="px-4 sm:px-8 lg:px-12 py-10 sm:py-14 min-h-screen flex items-center box-border"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
+   <section
+  id="toppers"
+  className="px-4 sm:px-8 lg:px-12 py-10 sm:py-14 min-h-screen flex items-center box-border"
+  onMouseEnter={() => setPaused(true)}
+  onMouseLeave={() => setPaused(false)}
+>
       <style>{`
         @keyframes floatCrown {
           0%, 100% { transform: translateY(0) rotate(-4deg); }
@@ -181,15 +196,16 @@ export default function TopPerformersDark() {
         }
        `}</style>
 
-      <div className="max-w-7xl mx-auto w-full relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b1739] via-[#101d4a] to-[#132257] px-6 sm:px-10 pt-4 pb-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
+      <div className="max-w-7xl mx-auto w-full relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b1739] via-[#101d4a] to-[#132257] px-4 sm:px-10 pt-4 pb-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
 
         <div className="relative z-10">
           {/* heading grid: left leaf | title + subtitle | right leaf.
               The leaves live in their own grid columns so they sit out near
               the edges (like the reference), instead of being squeezed
-              right up against the text. */}
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
-            <div className="flex justify-center">
+              right up against the text. On mobile the leaf ornaments are
+              hidden and the heading collapses to a single centered column. */}
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
+            <div className="hidden sm:flex justify-center">
               <img
                 src={leftLeaves}
                 alt=""
@@ -203,7 +219,7 @@ export default function TopPerformersDark() {
                   sx={{ color: "#fbbf24", fontSize: 20 }}
                   className="drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] shrink-0"
                 />
-                <h2 className="font-serif-display text-2xl sm:text-3xl font-semibold text-white tracking-tight whitespace-nowrap">
+                <h2 className="font-serif-display text-xl sm:text-3xl font-semibold text-white tracking-tight whitespace-nowrap">
   Our <span className="text-amber-400">Top</span> Performers
 </h2>
               </div>
@@ -223,13 +239,13 @@ export default function TopPerformersDark() {
                         : "bg-white/10 text-slate-200 hover:bg-white/20 ring-1 ring-white/15"
                     }`}
                   >
-                    Academic Year {y}
+                    {y === year ? `Academic Year ${y}` : y}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="flex justify-center">
+            <div className="hidden sm:flex justify-center">
               <img
                 src={rightLeaves}
                 alt=""
@@ -239,43 +255,43 @@ export default function TopPerformersDark() {
           </div>
         </div>
 
-      {/* carousel: exactly 3 cards visible, auto-advances one at a time */}
-        <div className="relative z-10 mx-[8%] mt-6 sm:mt-2 flow-root">
+      {/* carousel: 1 card visible on mobile, 3 on sm+, auto-advances one at a time */}
+        <div className="relative z-10 mx-[6%] sm:mx-[8%] mt-6 sm:mt-2 flow-root">
           <div className="overflow-hidden" style={{ paddingTop: 50, marginTop: -50, pointerEvents: "none" }}>
             <div
               className="flex"
               style={{
-                transform: `translateX(-${index * (100 / VISIBLE)}%)`,
+                transform: `translateX(-${index * (100 / visible)}%)`,
                 transition: withTransition ? "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
                 pointerEvents: "auto",
               }}
             >
               {track.map((p, i) => (
-                <div key={`${p.rank}-${i}`} className="shrink-0 px-1.5 sm:px-2" style={{ width: `${100 / VISIBLE}%` }}>
+                <div key={`${p.rank}-${i}`} className="shrink-0 px-1.5 sm:px-2" style={{ width: `${100 / visible}%` }}>
                   <TopperCard {...p} />
                 </div>
               ))}
             </div>
           </div>
-          {/* prev / next arrows */}
+          {/* prev / next arrows — visible on mobile too, sitting just inside the card edges */}
           <button
             aria-label="Previous"
             onClick={prev}
-            className="hidden sm:flex items-center justify-center absolute -left-12 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors"
+            className="flex items-center justify-center absolute -left-3 sm:-left-12 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors z-20"
           >
             <ChevronLeftIcon fontSize="small" />
           </button>
           <button
             aria-label="Next"
             onClick={next}
-            className="hidden sm:flex items-center justify-center absolute -right-12 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors"
+            className="flex items-center justify-center absolute -right-3 sm:-right-12 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm ring-1 ring-white/20 transition-colors z-20"
           >
             <ChevronRightIcon fontSize="small" />
           </button>
         </div>
 
         {/* dot indicators, one per real student */}
-        <div className="relative z-10 mt-6 flex justify-center gap-1.5">
+        <div className="relative z-10 mt-6 flex flex-wrap justify-center gap-1.5 px-6">
           {performers.map((_, i) => (
             <button
               key={i}
@@ -288,12 +304,17 @@ export default function TopPerformersDark() {
           ))}
         </div>
 
-        {/* bottom banner */}
-        <div className="relative z-10 mt-8 flex justify-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-white/5 backdrop-blur-sm px-5 py-2 text-slate-200 text-xs sm:text-sm">
-            <EmojiEventsIcon sx={{ color: "#fbbf24", fontSize: 18 }} />
-            <span>Proud of our students. Inspired by their success. Committed to their future.</span>
-            <span className="text-amber-300/60">🌿</span>
+        {/* bottom banner — wraps to two centered lines on mobile, single line from sm up */}
+        <div className="relative z-10 mt-8 flex justify-center px-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-white/5 backdrop-blur-sm px-4 sm:px-5 py-2.5 sm:py-2 text-slate-200 text-xs sm:text-sm max-w-full">
+            <EmojiEventsIcon sx={{ color: "#fbbf24", fontSize: 18 }} className="shrink-0" />
+            <span className="text-center sm:text-left leading-snug">
+              Proud of our students. Inspired by their success.{" "}
+              <span className="text-amber-300 sm:text-slate-200 block sm:inline">
+                Committed to their future.
+              </span>
+            </span>
+            <span className="text-amber-300/60 shrink-0">🌿</span>
           </div>
         </div>
       </div>

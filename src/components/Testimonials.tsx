@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CallIcon from "@mui/icons-material/Call";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+
 import whatsappBg from "../assets/whatsapp-bg-img.jpg";
- 
+
 const TESTIMONIALS = [
   {
     messages: [
@@ -18,7 +20,9 @@ const TESTIMONIALS = [
     time: "10:24 AM",
   },
   {
-    messages: ["Good afternoon Ma'am I got 98 in computer science and 94.7%!☺️"],
+    messages: [
+      "Good afternoon Ma'am I got 98 in computer science and 94.7%!☺️",
+    ],
     name: "Aarav Shah",
     role: "Student",
     time: "9:12 AM",
@@ -101,6 +105,10 @@ const TESTIMONIALS = [
   },
 ];
 
+/* =========================================================
+   INITIALS
+========================================================= */
+
 function initials(name: string) {
   return name
     .split(" ")
@@ -109,10 +117,14 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+/* =========================================================
+   MESSAGE BUBBLE TAIL
+========================================================= */
+
 function BubbleTail() {
   return (
     <div
-      className="absolute -left-[6px] top-0 w-0 h-0"
+      className="absolute -left-[6px] top-0 h-0 w-0"
       style={{
         borderTop: "8px solid #ffffff",
         borderLeft: "8px solid transparent",
@@ -120,32 +132,140 @@ function BubbleTail() {
     />
   );
 }
-function ChatCard({ t }: { t: (typeof TESTIMONIALS)[number] }) {
-  return (
-    <div className="w-[210px] sm:w-[250px] shrink-0 h-[300px] sm:h-[350px] flex flex-col rounded-[18px] overflow-hidden shadow-lg border border-slate-200 bg-black snap-center">
-        {/* WhatsApp Header */}
-      <div className="bg-[#075E54] px-2.5 py-2 flex items-center gap-2 shrink-0">
-        <ArrowBackIcon sx={{ color: "#fff", fontSize: 16 }} />
 
-        <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-[10px] font-semibold shrink-0 ring-2 ring-white/20">
+/* =========================================================
+   CHAT CARD
+========================================================= */
+
+function ChatCard({
+  t,
+}: {
+  t: (typeof TESTIMONIALS)[number];
+}) {
+  return (
+    <div
+      className="
+        w-[calc(100vw-64px)]
+        max-w-[300px]
+        sm:w-[280px]
+        lg:w-[250px]
+        xl:w-[260px]
+
+        h-[330px]
+        sm:h-[340px]
+
+        shrink-0
+
+        flex
+        flex-col
+
+        overflow-hidden
+        rounded-[18px]
+
+        border
+        border-slate-200
+
+        bg-black
+
+        shadow-md
+        sm:shadow-lg
+      "
+    >
+      {/* =====================================================
+          WHATSAPP HEADER
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          shrink-0
+          items-center
+          gap-2
+          bg-[#075E54]
+          px-3
+          py-2.5
+        "
+      >
+        {/* Back */}
+        <ArrowBackIcon
+          sx={{
+            color: "#fff",
+            fontSize: 18,
+          }}
+        />
+
+        {/* Avatar */}
+        <div
+          className="
+            relative
+            flex
+            h-8
+            w-8
+            shrink-0
+            items-center
+            justify-center
+            rounded-full
+            bg-gradient-to-br
+            from-violet-400
+            to-violet-600
+            text-[10px]
+            font-semibold
+            text-white
+            ring-2
+            ring-white/20
+          "
+        >
           {initials(t.name)}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <p className="text-white text-[14px] font-semibold truncate">{t.name}</p>
-          <p className="text-emerald-100/90 text-[12px] truncate">online</p>
+        {/* Name */}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold text-white">
+            {t.name}
+          </p>
+
+          <p className="truncate text-[11px] text-emerald-100/90">
+            online
+          </p>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <VideocamIcon sx={{ color: "#fff", fontSize: 16 }} />
-          <CallIcon sx={{ color: "#fff", fontSize: 14 }} />
-          <MoreVertIcon sx={{ color: "#fff", fontSize: 16 }} />
+        {/* Actions */}
+        <div className="flex shrink-0 items-center gap-1">
+          <VideocamIcon
+            sx={{
+              color: "#fff",
+              fontSize: 17,
+            }}
+          />
+
+          <CallIcon
+            sx={{
+              color: "#fff",
+              fontSize: 15,
+            }}
+          />
+
+          <MoreVertIcon
+            sx={{
+              color: "#fff",
+              fontSize: 17,
+            }}
+          />
         </div>
       </div>
 
-      {/* Chat Area */}
+      {/* =====================================================
+          CHAT AREA
+      ===================================================== */}
+
       <div
-        className="flex-1 min-h-0 px-2 py-2.5 relative"
+        className="
+          relative
+          min-h-0
+          flex-1
+          px-2
+          py-2.5
+        "
         style={{
           backgroundImage: `url(${whatsappBg})`,
           backgroundSize: "cover",
@@ -153,18 +273,60 @@ function ChatCard({ t }: { t: (typeof TESTIMONIALS)[number] }) {
           backgroundColor: "#e5ddd5",
         }}
       >
-        <div className="h-full overflow-y-auto pr-1 flex flex-col items-start gap-1.5 scrollbar-thin scrollbar-thumb-slate-300/70">
+        <div
+          className="
+            flex
+            h-full
+            flex-col
+            items-start
+            gap-1.5
+
+            overflow-y-auto
+
+            pr-1
+
+            scrollbar-thin
+            scrollbar-thumb-slate-300/70
+          "
+        >
           {t.messages.map((message, messageIndex) => (
             <div
               key={messageIndex}
-              className="relative max-w-[90%] bg-white rounded-lg rounded-tl-none px-2 py-1.5 shadow-md shrink-0"
+              className="
+                relative
+                max-w-[92%]
+                shrink-0
+
+                rounded-lg
+                rounded-tl-none
+
+                bg-white
+
+                px-2.5
+                py-2
+
+                shadow-sm
+              "
             >
               <BubbleTail />
-              <p className="text-[13px] text-slate-800 leading-snug whitespace-pre-wrap break-words">
+
+              <p
+                className="
+                  break-words
+                  whitespace-pre-wrap
+
+                  text-[13px]
+                  leading-[1.35]
+                  text-slate-800
+                "
+              >
                 {message}
               </p>
-              <div className="flex items-center justify-end mt-0.5">
-                <span className="text-[11px] text-slate-400">{t.time}</span>
+
+              <div className="mt-1 flex items-center justify-end">
+                <span className="text-[10px] text-slate-400">
+                  {t.time}
+                </span>
               </div>
             </div>
           ))}
@@ -173,137 +335,392 @@ function ChatCard({ t }: { t: (typeof TESTIMONIALS)[number] }) {
     </div>
   );
 }
-const CARD_WIDTH_MOBILE = 210;
-const CARD_WIDTH_DESKTOP = 250;
-const GAP = 16; // matches gap-4
+
+/* =========================================================
+   TESTIMONIAL SECTION
+========================================================= */
 
 export default function Testimonials() {
-  const outerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
   const [isPaused, setIsPaused] = useState(false);
-  const [shouldLoop, setShouldLoop] = useState(false);
-  const resumeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-const getCardWidth = () =>
-    typeof window !== "undefined" && window.innerWidth < 640
-      ? CARD_WIDTH_MOBILE
-      : CARD_WIDTH_DESKTOP;
+  const resumeTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
-  const singleSetWidth = TESTIMONIALS.length * (getCardWidth() + GAP) - GAP;
+  /*
+    We always render 3 copies of the list so we get a seamless
+    infinite loop, on every screen size, in a single row.
+  */
+  const loopedTestimonials = [
+    ...TESTIMONIALS,
+    ...TESTIMONIALS,
+    ...TESTIMONIALS,
+  ];
 
-  const measure = useCallback(() => {
-    const visibleWidth = outerRef.current?.offsetWidth ?? 0;
-    setShouldLoop(singleSetWidth > visibleWidth + 40);
-  }, [singleSetWidth]);
-
-  useEffect(() => {
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [measure]);
-
-  const loopedTestimonials = shouldLoop
-    ? [...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS]
-    : TESTIMONIALS;
+  /* =======================================================
+     START IN THE MIDDLE COPY
+     (gives room to scroll both directions before we
+     silently jump back a set)
+  ======================================================= */
 
   useEffect(() => {
-    if (!shouldLoop) return;
     const el = scrollRef.current;
-    if (el) el.scrollLeft = singleSetWidth + GAP;
-  }, [shouldLoop, singleSetWidth]);
+
+    if (!el) return;
+
+    const oneSetWidth = el.scrollWidth / 3;
+
+    el.scrollLeft = oneSetWidth;
+  }, []);
+
+  /* =======================================================
+     AUTO SCROLL (runs on all screen sizes)
+  ======================================================= */
 
   useEffect(() => {
-    if (!shouldLoop) return;
     const el = scrollRef.current;
+
     if (!el) return;
 
     let frameId: number;
+
     const step = () => {
       if (!isPaused && el) {
-        el.scrollLeft += 0.5;
-        if (el.scrollLeft >= singleSetWidth * 2) {
-          el.scrollLeft -= singleSetWidth;
-        } else if (el.scrollLeft <= 0) {
-          el.scrollLeft += singleSetWidth;
+        el.scrollLeft += 0.45;
+
+        const oneSetWidth = el.scrollWidth / 3;
+
+        /*
+          When we reach the third section,
+          jump back by one complete set.
+        */
+
+        if (el.scrollLeft >= oneSetWidth * 2) {
+          el.scrollLeft -= oneSetWidth;
+        }
+
+        /*
+          Safety for reverse movement (manual drag past the start).
+        */
+
+        if (el.scrollLeft <= 0) {
+          el.scrollLeft += oneSetWidth;
         }
       }
+
       frameId = requestAnimationFrame(step);
     };
+
     frameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frameId);
-  }, [isPaused, singleSetWidth, shouldLoop]);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [isPaused]);
+
+  /* =======================================================
+     PAUSE + RESUME
+     Manual interaction (drag, wheel, arrow click) pauses
+     auto-scroll briefly, then it resumes on its own.
+  ======================================================= */
 
   const pauseThenResume = () => {
-    if (!shouldLoop) return;
     setIsPaused(true);
-    if (resumeTimeout.current) clearTimeout(resumeTimeout.current);
-    resumeTimeout.current = setTimeout(() => setIsPaused(false), 2500);
+
+    if (resumeTimeout.current) {
+      clearTimeout(resumeTimeout.current);
+    }
+
+    resumeTimeout.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 2500);
   };
-const scrollByCard = (direction: 1 | -1) => {
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimeout.current) {
+        clearTimeout(resumeTimeout.current);
+      }
+    };
+  }, []);
+
+  /* =======================================================
+     ARROW SCROLL
+  ======================================================= */
+
+  const scrollByCard = (direction: 1 | -1) => {
     const el = scrollRef.current;
+
     if (!el) return;
+
     pauseThenResume();
-    el.scrollBy({ left: direction * (getCardWidth() + GAP), behavior: "smooth" });
+
+    const firstCard = el.querySelector<HTMLElement>(
+      "[data-testimonial-card]"
+    );
+
+    if (!firstCard) return;
+
+    const cardWidth = firstCard.offsetWidth;
+
+    el.scrollBy({
+      left: direction * (cardWidth + 16),
+      behavior: "smooth",
+    });
   };
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
-<section id="testimonials" className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-10">      <style>{`
-        .chat-scroll-row::-webkit-scrollbar { display: none; }
-        .chat-scroll-row { scrollbar-width: none; -ms-overflow-style: none; }
-       `}</style>
+    <section
+      id="testimonials"
+      className="
+        bg-slate-50
 
-      {/* Heading — matches the Learning Journey section's eyebrow + gradient-display style */}
-      <div className="text-center mb-2">
-       <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
-What <span className="text-blue-600">Parents & Students</span> Say</h2> <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
-          Real messages from real families — hear how our students grew in
-          confidence and results at KGurukuls.
+        px-4
+        py-12
+
+        sm:px-6
+        sm:py-16
+
+        lg:px-10
+        lg:py-20
+      "
+    >
+      {/* =====================================================
+          HIDE SCROLLBAR
+      ===================================================== */}
+
+      <style>{`
+        .chat-scroll-row::-webkit-scrollbar {
+          display: none;
+        }
+
+        .chat-scroll-row {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+      `}</style>
+
+      {/* =====================================================
+          HEADING
+      ===================================================== */}
+
+      <div className="mb-6 text-center sm:mb-8">
+        <h2
+          className="
+            font-serif-display
+            text-3xl
+            font-semibold
+            leading-tight
+            text-slate-900
+
+            sm:text-4xl
+
+            lg:text-[2.75rem]
+          "
+        >
+          What{" "}
+          <span className="text-blue-600">
+            Parents & Students
+          </span>{" "}
+          Say
+        </h2>
+
+        <p
+          className="
+            mx-auto
+            mt-3
+            max-w-xl
+
+            text-sm
+            leading-relaxed
+            text-slate-500
+
+            sm:text-base
+          "
+        >
+          Real messages from real families — hear how our
+          students grew in confidence and results at KGurukuls.
         </p>
       </div>
 
+      {/* =====================================================
+          TESTIMONIAL CONTAINER
+      ===================================================== */}
+
       <div
-        ref={outerRef}
         className="relative"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {shouldLoop && (
-          <>
-            <button
-              type="button"
-              onClick={() => scrollByCard(-1)}
-              aria-label="Scroll testimonials left"
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:scale-105 transition"
-            >
-              <ChevronLeftIcon sx={{ color: "#075E54", fontSize: 18 }} />
-            </button>
+        {/* ===================================================
+            LEFT ARROW (all screen sizes)
+        =================================================== */}
 
-            <button
-              type="button"
-              onClick={() => scrollByCard(1)}
-              aria-label="Scroll testimonials right"
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:scale-105 transition"
-            >
-              <ChevronRightIcon sx={{ color: "#075E54", fontSize: 18 }} />
-            </button>
+        <button
+          type="button"
+          onClick={() => scrollByCard(-1)}
+          aria-label="Scroll testimonials left"
+          className="
+            absolute
+            left-1
+            top-1/2
+            z-20
 
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-white to-transparent z-[5]" />
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white to-transparent z-[5]" />
-          </>
-        )}
+            flex
+            h-8
+            w-8
+            -translate-y-1/2
+
+            items-center
+            justify-center
+
+            rounded-full
+            border
+            border-slate-200
+
+            bg-white
+
+            shadow-md
+
+            transition
+
+            hover:scale-105
+            hover:bg-slate-50
+
+            sm:h-9
+            sm:w-9
+          "
+        >
+          <ChevronLeftIcon
+            sx={{
+              color: "#075E54",
+              fontSize: 20,
+            }}
+          />
+        </button>
+
+        {/* ===================================================
+            RIGHT ARROW (all screen sizes)
+        =================================================== */}
+
+        <button
+          type="button"
+          onClick={() => scrollByCard(1)}
+          aria-label="Scroll testimonials right"
+          className="
+            absolute
+            right-1
+            top-1/2
+            z-20
+
+            flex
+            h-8
+            w-8
+            -translate-y-1/2
+
+            items-center
+            justify-center
+
+            rounded-full
+            border
+            border-slate-200
+
+            bg-white
+
+            shadow-md
+
+            transition
+
+            hover:scale-105
+            hover:bg-slate-50
+
+            sm:h-9
+            sm:w-9
+          "
+        >
+          <ChevronRightIcon
+            sx={{
+              color: "#075E54",
+              fontSize: 20,
+            }}
+          />
+        </button>
+
+        {/* LEFT FADE */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            bottom-0
+            left-0
+            top-0
+            z-10
+            w-10
+            bg-gradient-to-r
+            from-slate-50
+            to-transparent
+            sm:w-12
+          "
+        />
+
+        {/* RIGHT FADE */}
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            bottom-0
+            right-0
+            top-0
+            z-10
+            w-10
+            bg-gradient-to-l
+            from-slate-50
+            to-transparent
+            sm:w-12
+          "
+        />
+
+        {/* ===================================================
+            SCROLL ROW (single row, always, all breakpoints)
+        =================================================== */}
 
         <div
           ref={scrollRef}
-        className={`chat-scroll-row flex gap-4 py-2 ${
-            shouldLoop
-              ? "overflow-x-auto scroll-smooth px-6 sm:px-10"
-              : "overflow-visible justify-center flex-wrap"
-          }`}
+          className="
+            chat-scroll-row
+
+            flex
+            flex-nowrap
+            gap-4
+
+            overflow-x-auto
+
+            scroll-smooth
+
+            py-3
+
+            px-10
+            sm:px-12
+          "
           onWheel={pauseThenResume}
           onTouchStart={pauseThenResume}
+          onPointerDown={pauseThenResume}
         >
           {loopedTestimonials.map((t, index) => (
-            <ChatCard key={`${t.name}-${index}`} t={t} />
+            <div
+              key={`${t.name}-${index}`}
+              data-testimonial-card
+            >
+              <ChatCard t={t} />
+            </div>
           ))}
         </div>
       </div>

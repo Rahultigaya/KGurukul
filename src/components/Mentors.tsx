@@ -42,11 +42,11 @@ const MENTORS = [
     tagColorClasses: "bg-blue-50 text-blue-700",
   },
   {
-    tag: "CO-FOUNDER",
+    tag: "DIRECTOR",
     tagColor: "bg-emerald-600",
     photo: co_founder_img,
     name: "Riya Chipdey",
-    role: "Co-Founder & Management",
+    role: "Director & Management",
     roleColor: "text-emerald-600",
     accentColor: "bg-emerald-600",
     stat: { Icon: EmojiEventsIcon, value: "100%", label: "Results Track Record" },
@@ -74,7 +74,7 @@ function MentorCard({ mentor }: { mentor: any }) {
       <div className="px-4 py-2">
         {/* Header: photo on the left, name/role/stat/education stacked on the right */}
         <div className="flex items-start gap-5 mb-5">
-          <div className="relative w-44 h-52 shrink-0">
+          <div className="relative w-52 h-64 shrink-0">
             <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md">
               <img
                 src={mentor.photo}
@@ -170,18 +170,18 @@ function MentorCard({ mentor }: { mentor: any }) {
 
 export default function Mentors() {
   return (
-<section id="mentors" className="py-12 sm:py-16 lg:py-20">      
-  <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8">
+    <section id="mentors" className="py-12 sm:py-16 lg:py-20">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-  <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
-  Meet Our <span className="text-blue-600">Expert Teachers</span>
-</h2>
-  <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
-    Experienced educators. Proven results. Your success is our mission.
-  </p>
-</div>
+          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+            Meet Our <span className="text-blue-600">Expert Teachers</span>
+          </h2>
+          <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+            Experienced educators. Proven results. Your success is our mission.
+          </p>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-8">
           {MENTORS.map((mentor) => (
             <MentorCard key={mentor.name} mentor={mentor} />
           ))}

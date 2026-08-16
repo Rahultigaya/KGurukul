@@ -8,7 +8,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import SendIcon from "@mui/icons-material/Send";
- 
+
 const COURSE_OPTIONS = [
   "Python Programming",
   "Web Development",
@@ -67,7 +67,8 @@ export default function Contact() {
   };
 
   return (
-<section id="contact" className="py-12 sm:py-16 lg:py-20">      <style>{`
+    <section id="contact" className="py-12 sm:py-16 lg:py-20">
+      <style>{`
          .ct-field .MuiOutlinedInput-root { border-radius: 10px; }
         .ct-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
           border-color: #16a34a;
@@ -75,11 +76,11 @@ export default function Contact() {
         .ct-field .MuiInputLabel-root.Mui-focused { color: #16a34a; }
       `}</style>
 
-      <div className="max-w-7xl mx-auto px-5 lg:px-8">
+      <div className="max-w-8xl mx-auto px-5 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="text-center mb-4">
-           <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
-Let's <span className="text-blue-600">Get in Touch</span></h2><p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+            Let's <span className="text-blue-600">Get in Touch</span></h2><p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
             Questions about a course, a demo class, or enrollment? Reach out —
             we usually reply the same day.
           </p>

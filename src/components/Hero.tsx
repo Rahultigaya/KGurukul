@@ -65,7 +65,7 @@ const HOLD_MS = 1400; // pause once fully typed before deleting
 function StepCard({ step, delay }: { step: Step; delay: number }) {
   return (
     <div
-      className="step-card-in relative w-[220px] sm:w-[225px] lg:w-[210px] h-[70px] sm:h-[65px] lg:h-[60px] shrink-0"
+      className="step-card-in relative flex-1 min-w-0 sm:flex-none sm:w-[225px] lg:w-[210px] h-[52px] xs:h-[58px] sm:h-[65px] lg:h-[60px]"
       style={{ animationDelay: `${delay}s` }}
     >
       {/* soft ambient glow — tight, localized per card */}
@@ -78,7 +78,7 @@ function StepCard({ step, delay }: { step: Step; delay: number }) {
 
       {/* layered backing card for depth (slightly offset, rounded, softly blurred edge) */}
       <div
-        className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-l-2xl opacity-70 blur-[1px]"
+        className="absolute inset-0 translate-x-1 translate-y-1 sm:translate-x-1.5 sm:translate-y-1.5 rounded-l-xl sm:rounded-l-2xl opacity-70 blur-[1px]"
         style={{
           clipPath: BANNER_CLIP,
           background: `linear-gradient(135deg, ${step.from}, ${step.to})`,
@@ -87,7 +87,7 @@ function StepCard({ step, delay }: { step: Step; delay: number }) {
 
       {/* main white banner: real rounded left corners + sharp point, glows + lifts + tilts on hover */}
       <div
-        className="step-card-glow group relative h-full bg-white rounded-l-2xl border border-slate-200"
+        className="step-card-glow group relative h-full bg-white rounded-l-xl sm:rounded-l-2xl border border-slate-200"
         style={
           {
             clipPath: BANNER_CLIP,
@@ -97,7 +97,7 @@ function StepCard({ step, delay }: { step: Step; delay: number }) {
       >
         {/* glossy top highlight */}
         <div
-          className="absolute inset-0 opacity-70 pointer-events-none rounded-l-2xl"
+          className="absolute inset-0 opacity-70 pointer-events-none rounded-l-xl sm:rounded-l-2xl"
           style={{
             clipPath: BANNER_CLIP,
             background:
@@ -107,25 +107,28 @@ function StepCard({ step, delay }: { step: Step; delay: number }) {
 
         {/* colored accent stripe just before the point */}
         <div
-          className="absolute top-2 bottom-2 right-6 w-1 rounded-full opacity-80"
+          className="absolute top-1.5 bottom-1.5 sm:top-2 sm:bottom-2 right-4 sm:right-6 w-[3px] sm:w-1 rounded-full opacity-80"
           style={{ background: `linear-gradient(${step.from}, ${step.to})` }}
         />
 
-        <div className="relative flex items-center gap-3 h-full pl-4 pr-9">
+        <div className="relative flex items-center gap-1.5 sm:gap-3 h-full pl-2 sm:pl-4 pr-6 sm:pr-9">
           <div
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl text-white flex items-center justify-center shrink-0 shadow-md ring-2 ring-white transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105"
+            className="w-6 h-6 xs:w-7 xs:h-7 sm:w-12 sm:h-12 rounded-md sm:rounded-xl text-white flex items-center justify-center shrink-0 shadow-md ring-1 sm:ring-2 ring-white transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105"
             style={{
               background: `linear-gradient(135deg, ${step.from}, ${step.to})`,
             }}
           >
-            {step.icon}
+            {React.cloneElement(step.icon as React.ReactElement, {
+              sx: { fontSize: 14 },
+              className: "sm:!text-[22px]",
+            })}
           </div>
           <div className="min-w-0">
-            <h3 className="font-black text-sm sm:text-base text-slate-900 tracking-wide leading-tight whitespace-nowrap uppercase">
+            <h3 className="font-black text-[10px] xs:text-[11px] sm:text-base text-slate-900 tracking-wide leading-tight truncate uppercase">
               {step.title}
             </h3>
             <div
-              className="h-1 rounded-full mt-1.5 w-8 sm:w-9 transition-all duration-300 group-hover:w-11"
+              className="hidden xs:block h-0.5 sm:h-1 rounded-full mt-1 sm:mt-1.5 w-5 sm:w-9 transition-all duration-300 group-hover:w-11"
               style={{
                 background: `linear-gradient(90deg, ${step.from}, ${step.to})`,
               }}
@@ -136,7 +139,6 @@ function StepCard({ step, delay }: { step: Step; delay: number }) {
     </div>
   );
 }
-
 function Connector({
   from,
   to,
@@ -149,10 +151,10 @@ function Connector({
   const gradId = `arrowGrad-${from.replace("#", "")}-${to.replace("#", "")}`;
   return (
     <svg
-      width="30"
-      height="16"
+      width="18"
+      height="12"
       viewBox="0 0 52 18"
-      className="step-arrow shrink-0"
+      className="step-arrow shrink-0 sm:w-[30px] sm:h-[16px]"
       style={{ animationDelay: `${delay}s` }}
     >
       <defs>
@@ -237,13 +239,12 @@ function TypingHeadline({ phrases }: { phrases: HeadlinePhrase[] }) {
 
 export default function Hero() {
   return (
-<section id="home" className="relative bg-[#fdfdfc] py-12 sm:py-16 lg:py-20 ml-[4%] mr-[1%] overflow-hidden">      {/* faint decorative wash behind the whole hero */}
+    <section className="relative  py-12 sm:py-16 lg:py-20 px-5 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl -z-10" />
       <div className="absolute top-10 right-1/4 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl -z-10" />
- 
-<div className="max-w-7xl">
-          <div className="max-w-2xl lg:max-w-3xl">
-          <div className="flex items-center gap-2 sm:gap-2.5 flex-nowrap overflow-x-auto no-scrollbar py-4 -my-2 ">
+      <div className="max-w-7xl mx-auto">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto lg:mx-0">
+          <div className="flex items-center gap-1 sm:gap-2.5 py-3 sm:py-4 -my-1 sm:-my-2">
             {STEPS.map((s, i) => (
               <React.Fragment key={s.title}>
                 <StepCard step={s} delay={s.delay} />
@@ -257,9 +258,12 @@ export default function Hero() {
               </React.Fragment>
             ))}
           </div>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mt-10 text-slate-900 leading-tight whitespace-nowrap">
-            Build your <TypingHeadline phrases={HEADLINE_PHRASES} />
+          {/* "Build your" on its own line on mobile, headline wraps below it */}
+          <h1 className="text-5xl sm:text-5xl lg:text-6xl font-black mt-10 text-slate-900 leading-tight">
+            Build your
+            <br className="sm:hidden" />
+            <span className="hidden sm:inline"> </span>
+            <TypingHeadline phrases={HEADLINE_PHRASES} />
           </h1>
 
           <p className="text-slate-500 mt-5 max-w-xl sm:text-base leading-relaxed">
@@ -267,7 +271,8 @@ export default function Hero() {
             practical sessions, experienced faculty, and structured learning
             programs.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          {/* Buttons: stacked & full-width on mobile, inline & auto-width from sm breakpoint up */}
+          <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-4">
             <Button
               variant="contained"
               size="large"
@@ -275,6 +280,7 @@ export default function Hero() {
               endIcon={
                 <ArrowForwardIcon fontSize="small" className="btn-arrow" />
               }
+              className="w-full sm:w-auto"
               sx={{
                 borderRadius: 2.5,
                 px: 3.6,
@@ -312,6 +318,7 @@ export default function Hero() {
               startIcon={
                 <WhatsAppIcon fontSize="small" sx={{ color: "#16a34a" }} />
               }
+              className="w-full sm:w-auto"
               sx={{
                 borderRadius: 2.5,
                 px: 3.6,
@@ -350,6 +357,6 @@ export default function Hero() {
           />
         </div>
       </div>
-    </section>
+    </section >
   );
 }

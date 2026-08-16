@@ -3,7 +3,6 @@
 @tailwind utilities;
       
 
-
 @theme {
   --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 
@@ -16,6 +15,8 @@
   --color-brand-red: #ef4444;
   --color-ink: #0f172a;
   --color-slate: #475569;
+
+  --container-8xl: 90rem;
 }
 
 html {

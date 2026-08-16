@@ -4,7 +4,7 @@ import CodeIcon from "@mui/icons-material/Code";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
- 
+
 const STEPS = [
   {
     n: 1,
@@ -60,7 +60,7 @@ const STEPS = [
 export default function LearningJourney() {
   return (
     <section className="py-12 sm:py-16 lg:py-20 relative">
-     <style>{`
+      <style>{`
    .lj-body { font-family: 'Inter', sans-serif; }
   @keyframes lj-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(202,138,4,0.35); }
@@ -71,12 +71,12 @@ export default function LearningJourney() {
   .lj-card:hover .lj-icon-wrap { transform: scale(1.4); }
   .lj-card:hover .lj-title { color: #4f46e5; }
 `}</style>
-<div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 lj-body relative z-10">
-          {/* Eyebrow + heading */}
+      <div className="max-w-8xl mx-auto px-5 sm:px-6 lg:px-8 lj-body relative z-10">
+        {/* Eyebrow + heading */}
         <div className="text-center mb-16">
 
-        <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
-Your <span className="text-blue-600">Learning Journey</span> With Us</h2>
+          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+            Your <span className="text-blue-600">Learning Journey</span> With Us</h2>
           <p className="text-slate-500 mt-3 text-sm sm:text-base">
             A guided trail from your first login to a future you're proud of.
           </p>

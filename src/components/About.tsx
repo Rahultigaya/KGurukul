@@ -17,7 +17,7 @@ const STATS = [
     icon: <GroupsIcon fontSize="small" />,
     iconBg: "#ffedd5",
     iconColor: "#ea580c", // orange
-    value: 1000,
+    value: 6000,
     suffix: "+",
     label: "Students Trained",
   },
@@ -77,22 +77,21 @@ function useCountUp(target: number, start: boolean, duration: number = 1200) {
 
   return value;
 }
-
 function AnimatedStat({ stat, inView, delay }: { stat: any; inView: boolean; delay: number }) {
   const count = useCountUp(stat.value, inView);
   const displayValue = stat.value == null ? stat.text : `${count}${stat.suffix}`;
 
   return (
     <div
-      className="flex-1 max-h-[170px] transition-all duration-700 ease-out"
+      className="flex-1 lg:max-h-[170px] transition-all duration-700 ease-out"
       style={{
         transitionDelay: `${delay}ms`,
         opacity: inView ? 1 : 0,
-        transform: inView ? "translateX(0)" : "translateX(16px)",
+        transform: inView ? "translateY(0)" : "translateY(16px)",
       }}
     >
       <div
-        className="group relative flex h-full flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl px-4 py-6 text-center shadow-md ring-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+        className="group relative flex h-full flex-col items-center justify-center gap-1.5 sm:gap-2 overflow-hidden rounded-xl sm:rounded-2xl px-2.5 py-4 sm:px-4 sm:py-6 text-center shadow-md ring-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         style={{
           background: `linear-gradient(135deg, ${stat.iconBg} 0%, #ffffff 65%)`,
           borderColor: `${stat.iconColor}33`,
@@ -106,7 +105,7 @@ function AnimatedStat({ stat, inView, delay }: { stat: any; inView: boolean; del
 
         {/* Icon with strong ring */}
         <span
-          className="relative flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+          className="relative flex h-9 w-9 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
           style={{
             backgroundColor: stat.iconColor,
             color: "#ffffff",
@@ -118,19 +117,19 @@ function AnimatedStat({ stat, inView, delay }: { stat: any; inView: boolean; del
 
         <div className="relative">
           <p
-            className="text-4xl sm:text-5xl font-black leading-none tracking-tight"
+            className="text-2xl sm:text-4xl lg:text-5xl font-black leading-none tracking-tight"
             style={{ color: stat.iconColor }}
           >
             {displayValue}
           </p>
-          <p className="mt-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+          <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-sm font-bold uppercase tracking-wide text-slate-700 leading-tight">
             {stat.label}
           </p>
         </div>
 
         {/* Bold accent underline */}
         <span
-          className="h-1 w-8 rounded-full transition-all duration-300 group-hover:w-14"
+          className="h-1 w-6 sm:w-8 rounded-full transition-all duration-300 group-hover:w-14"
           style={{ backgroundColor: stat.iconColor }}
         />
       </div>
@@ -138,89 +137,88 @@ function AnimatedStat({ stat, inView, delay }: { stat: any; inView: boolean; del
   );
 }
 
-
 export default function About() {
   const [sectionRef, sectionInView] = useInView(0.15);
 
   return (
-    <section id="about" ref={sectionRef} className="relative overflow-hidden py-12 sm:py-16 lg:py-20">     
-<div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 grid lg:grid-cols-[1.1fr_1fr_0.28fr] gap-10 items-stretch">      {/* Illustration */}
-      <div
-        className="relative flex flex-col transition-all duration-700 ease-out"
-        style={{
-          opacity: sectionInView ? 1 : 0,
-          transform: sectionInView ? "translateX(0)" : "translateX(-24px)",
-        }}
-      >
-        <div className="relative rounded-2xl shadow-xl overflow-hidden flex-1">
-          <img
-            src={aboutUsImage}
-            alt="About KGurukul"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-[1.02]"
-          />
-        </div>
-
-        {/* Badge strip under the image */}
+    <section id="about" ref={sectionRef} className="relative overflow-hidden py-12 sm:py-16 lg:py-20">
+      <div className="relative max-w-8xl mx-auto px-5 sm:px-6 lg:px-8 grid lg:grid-cols-[1.1fr_1fr_0.28fr] gap-6 lg:gap-10 items-stretch">
         <div
-          className="mx-auto -mt-5 flex w-fit items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-xs font-medium text-white shadow-lg transition-all duration-700 relative"
+          className="relative flex flex-col transition-all duration-700 ease-out"
           style={{
-            transitionDelay: "500ms",
             opacity: sectionInView ? 1 : 0,
-            transform: sectionInView ? "translateY(0)" : "translateY(10px)",
+            transform: sectionInView ? "translateX(0)" : "translateX(-24px)",
           }}
         >
-          <SchoolIcon fontSize="small" />
-          <span>Practical Learning&nbsp;|&nbsp;Expert Guidance&nbsp;|&nbsp;Real Results</span>
+          <div className="relative rounded-2xl shadow-xl overflow-hidden flex-1 min-h-[260px] sm:min-h-[320px]">
+            <img
+              src={aboutUsImage}
+              alt="About KGurukul"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+            />
+          </div>
+
+          {/* Badge strip under the image */}
+          <div
+            className="mx-auto -mt-5 flex w-fit items-center gap-2 rounded-full bg-slate-900 px-4 sm:px-5 py-2 sm:py-2.5 text-[11px] sm:text-xs font-medium text-white shadow-lg transition-all duration-700 relative text-center"
+            style={{
+              transitionDelay: "500ms",
+              opacity: sectionInView ? 1 : 0,
+              transform: sectionInView ? "translateY(0)" : "translateY(10px)",
+            }}
+          >
+            <SchoolIcon fontSize="small" />
+            <span>Practical Learning&nbsp;|&nbsp;Expert Guidance&nbsp;|&nbsp;Real Results</span>
+          </div>
         </div>
-      </div>
 
-      {/* Copy */}
-      <div
-        className="transition-all duration-700 ease-out"
-        style={{
-          transitionDelay: "150ms",
-          opacity: sectionInView ? 1 : 0,
-          transform: sectionInView ? "translateY(0)" : "translateY(16px)",
-        }}
-      >
-        <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
-          About <span className="text-blue-600">KGurukul's</span>
-        </h2>
-        <p className="mt-5 text-slate-500 leading-relaxed">
-          KGurukul is a trusted computer education institute committed to shaping future-ready professionals through quality, practical, and industry-focused learning.
-          With years of experience in computer education, we provide a supportive environment where students build strong technical foundations, develop problem-solving skills,
-          and gain the confidence to succeed in today's rapidly evolving digital world.
-        </p>
-        <p className="mt-5 text-slate-500 leading-relaxed">
-          Our programs are designed to bridge the gap between academic knowledge and real-world applications by combining structured learning with hands-on practice.
-          At KGurukul, we believe that every student has the potential to achieve more with the right guidance, dedication, and opportunities.
-          Our mission is to inspire lifelong learning, nurture talent, and empower individuals to build successful careers in technology.
-        </p>
-
-        {/* Pull quote */}
+        {/* Copy */}
         <div
-          className="mt-6 flex gap-3 rounded-lg border-l-4 border-blue-600 bg-blue-50/60 px-4 py-3.5 transition-all duration-700"
+          className="transition-all duration-700 ease-out"
           style={{
-            transitionDelay: "650ms",
+            transitionDelay: "150ms",
             opacity: sectionInView ? 1 : 0,
-            transform: sectionInView ? "translateY(0)" : "translateY(12px)",
+            transform: sectionInView ? "translateY(0)" : "translateY(16px)",
           }}
         >
-          <FormatQuoteIcon className="shrink-0 text-blue-600" fontSize="small" />
-          <p className="text-sm font-bold text-slate-700 leading-relaxed">
-            Our mission is to empower students with the skills, confidence
-            and mindset to excel in the digital world.
+          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+            About <span className="text-blue-600">KGurukul's</span>
+          </h2>
+          <p className="mt-5 text-slate-500 leading-relaxed">
+            KGurukul is a trusted computer education institute committed to shaping future-ready professionals through quality, practical, and industry-focused learning.
+            With years of experience in computer education, we provide a supportive environment where students build strong technical foundations, develop problem-solving skills,
+            and gain the confidence to succeed in today's rapidly evolving digital world.
           </p>
+          <p className="mt-5 text-slate-500 leading-relaxed">
+            Our programs are designed to bridge the gap between academic knowledge and real-world applications by combining structured learning with hands-on practice.
+            At KGurukul, we believe that every student has the potential to achieve more with the right guidance, dedication, and opportunities.
+            Our mission is to inspire lifelong learning, nurture talent, and empower individuals to build successful careers in technology.
+          </p>
+
+          {/* Pull quote */}
+          <div
+            className="mt-6 flex gap-3 rounded-lg border-l-4 border-blue-600 bg-blue-50/60 px-4 py-3.5 transition-all duration-700"
+            style={{
+              transitionDelay: "650ms",
+              opacity: sectionInView ? 1 : 0,
+              transform: sectionInView ? "translateY(0)" : "translateY(12px)",
+            }}
+          >
+            <FormatQuoteIcon className="shrink-0 text-blue-600" fontSize="small" />
+            <p className="text-sm font-bold text-slate-700 leading-relaxed">
+              Our mission is to empower students with the skills, confidence
+              and mindset to excel in the digital world.
+            </p>
+          </div>
         </div>
 
+        {/* Stats: row of 3 on mobile, stacked column on desktop */}
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-4 lg:flex lg:h-full lg:flex-col lg:justify-center">
+          {STATS.map((s, i) => (
+            <AnimatedStat key={s.label} stat={s} inView={sectionInView} delay={i * 120} />
+          ))}
+        </div>
       </div>
-
-      <div className="flex h-full flex-col justify-center gap-4">
-        {STATS.map((s, i) => (
-          <AnimatedStat key={s.label} stat={s} inView={sectionInView} delay={i * 120} />
-        ))}
-      </div>
-    </div>
     </section>
   );
 }

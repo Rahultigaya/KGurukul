@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
+import type { SvgIconProps } from "@mui/material/SvgIcon";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
@@ -10,7 +11,7 @@ import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 
 interface Step {
   title: string;
-  icon: React.ReactNode;
+  icon: React.ReactElement<SvgIconProps>;
   from: string;
   to: string;
   glow: string;
@@ -118,7 +119,7 @@ function StepCard({ step, delay }: { step: Step; delay: number }) {
               background: `linear-gradient(135deg, ${step.from}, ${step.to})`,
             }}
           >
-            {React.cloneElement(step.icon as React.ReactElement, {
+            {React.cloneElement(step.icon, {
               sx: { fontSize: 14 },
               className: "sm:!text-[22px]",
             })}

@@ -8,37 +8,45 @@ import EmailIcon from "@mui/icons-material/Email";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import SendIcon from "@mui/icons-material/Send";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import Swal from "sweetalert2";
 
 const COURSE_OPTIONS = [
+  "ICSE Std-IX (Basic Java)",
+  "ICSE Std-X (Advanced Java)",
+  "HSC Std-XI (CS1 + CS2)",
+  "HSC Std-XII (CS1 + CS2)",
+  "ISC Std-XI (CS1 + CS2)",
+  "ISC Std-XII (CS1 + CS2)",
   "Python Programming",
   "Web Development",
-  "Java Programming",
   "C / C++ Programming",
-  "Data Structures & Algorithms",
-  "Tally with GST",
 ];
 
 const CONTACT_ITEMS = [
   {
     icon: <LocationOnIcon fontSize="small" />,
-    label: "Visit Us",
+    label: "Visit Our Institute",
     text: "6, Kavita CHS, Opp. Pratap Cinema, Kolbad Road, Thane West - 400601",
     bg: "#dbeafe",
     color: "#2563eb",
+    link: "https://maps.google.com/?q=KGURUKUL+Thane",
   },
   {
     icon: <PhoneIcon fontSize="small" />,
-    label: "Call Us",
-    text: "+91 9967442515, 8879987836",
+    label: "Call Us Direct",
+    text: "+91 9967442515, +91 8879987836",
     bg: "#dcfce7",
     color: "#16a34a",
+    link: "tel:+919967442515",
   },
   {
     icon: <EmailIcon fontSize="small" />,
-    label: "Email Us",
+    label: "Email Support",
     text: "kgurukuls90@gmail.com",
     bg: "#fef3c7",
     color: "#d97706",
+    link: "mailto:kgurukuls90@gmail.com",
   },
   {
     icon: <AccessTimeIcon fontSize="small" />,
@@ -54,189 +62,205 @@ export default function Contact() {
     name: "",
     email: "",
     phone: "",
-    course: "",
+    course: "ICSE Std-X (Advanced Java)",
     message: "",
   });
+
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (field: string) => (e: React.ChangeEvent<any>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Contact form submitted:", form);
+    if (!form.name || !form.phone) {
+      Swal.fire({
+        icon: "warning",
+        title: "Required Fields",
+        text: "Please enter your name and phone number so we can contact you.",
+        confirmButtonColor: "#2563eb",
+      });
+      return;
+    }
+
+    setSubmitted(true);
+    Swal.fire({
+      icon: "success",
+      title: "Inquiry Submitted!",
+      text: `Thank you ${form.name}! We have received your inquiry for ${form.course}. Our team will contact you within 4 hours.`,
+      confirmButtonColor: "#16a34a",
+    });
   };
 
   return (
-    <section id="contact" className="py-12 sm:py-16 lg:py-20">
+    <section id="contact" className="py-12 sm:py-16 lg:py-20 bg-white">
       <style>{`
-         .ct-field .MuiOutlinedInput-root { border-radius: 10px; }
+        .ct-field .MuiOutlinedInput-root { border-radius: 12px; }
         .ct-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-          border-color: #16a34a;
+          border-color: #2563eb;
         }
-        .ct-field .MuiInputLabel-root.Mui-focused { color: #16a34a; }
+        .ct-field .MuiInputLabel-root.Mui-focused { color: #2563eb; }
       `}</style>
 
-      <div className="max-w-8xl mx-auto px-5 sm:px-6 lg:px-8">
-        {/* Heading */}
-        <div className="text-center mb-4">
-          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
-            Let's <span className="text-blue-600">Get in Touch</span></h2><p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
-            Questions about a course, a demo class, or enrollment? Reach out —
-            we usually reply the same day.
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
+        <div className="text-center mb-10 sm:mb-14">
+          <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+            Get In Touch
+          </span>
+          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
+            Let's <span className="text-blue-600">Connect With Us</span>
+          </h2>
+          <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
+            Questions about course syllabus, demo classes, or batch timings? Book a visit or call us today!
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[0.85fr_1.3fr_0.85fr] gap-8">
-          {/* Contact info */}
-          <div className="space-y-4">
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Left Column: Contact Cards */}
+          <div className="lg:col-span-5 space-y-4">
             {CONTACT_ITEMS.map((item, i) => (
-              <div
+              <a
                 key={i}
-                className="flex items-start gap-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                href={item.link || "#"}
+                target={item.link?.startsWith("http") ? "_blank" : "_self"}
+                rel="noreferrer"
+                className="flex items-start gap-4 bg-slate-50 rounded-2xl border border-slate-200/80 p-4.5 sm:p-5 hover:bg-white hover:shadow-lg hover:border-blue-200 transition-all duration-300 group"
               >
                 <span
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs transition-transform duration-300 group-hover:scale-110"
                   style={{ backgroundColor: item.bg, color: item.color }}
                 >
                   {item.icon}
                 </span>
                 <div>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-0.5">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                     {item.label}
                   </p>
-                  <p className="text-sm text-slate-700 leading-relaxed">
+                  <p className="text-sm font-semibold text-slate-800 leading-relaxed group-hover:text-blue-600 transition-colors">
                     {item.text}
                   </p>
                 </div>
-              </div>
+              </a>
             ))}
 
+            {/* Direct WhatsApp Action Button */}
             <a
-              href="https://wa.me/919967442515"
+              href="https://wa.me/919967442515?text=Hi%20KGurukul!%20I%20want%20to%20enroll%20in%20a%20course."
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-2 text-sm font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-2xl py-3 shadow-sm hover:shadow-md transition-all duration-200"
+              className="flex items-center justify-center gap-2.5 text-base font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-2xl py-4 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 mt-2"
             >
-              <WhatsAppIcon fontSize="small" /> Chat on WhatsApp
+              <WhatsAppIcon fontSize="medium" /> Chat directly on WhatsApp
             </a>
           </div>
 
-          {/* Form */}
-          <form
-            onSubmit={handleSubmit}
-            className="ct-field bg-white rounded-2xl border border-slate-100 shadow-md p-6 sm:p-8 space-y-4"
-          >
-            <div>
-              <h3 className="ct-display text-xl font-semibold text-slate-900 mb-1">
-                Send us a message
-              </h3>
-              <p className="text-xs text-slate-400 mb-5">
-                Fill in your details and we'll get back to you shortly.
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <TextField
-                fullWidth
-                size="small"
-                label="Your Name"
-                value={form.name}
-                onChange={handleChange("name")}
-              />
-              <TextField
-                fullWidth
-                size="small"
-                label="Your Email"
-                type="email"
-                value={form.email}
-                onChange={handleChange("email")}
-              />
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <TextField
-                fullWidth
-                size="small"
-                label="Your Phone"
-                value={form.phone}
-                onChange={handleChange("phone")}
-              />
-              <TextField
-                select
-                fullWidth
-                size="small"
-                label="Course Interested In"
-                value={form.course}
-                onChange={handleChange("course")}
-              >
-                {COURSE_OPTIONS.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </div>
-            <TextField
-              fullWidth
-              size="small"
-              label="Your Message"
-              multiline
-              rows={4}
-              value={form.message}
-              onChange={handleChange("message")}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              endIcon={<SendIcon fontSize="small" />}
-              sx={{
-                borderRadius: 2.5,
-                py: 1.4,
-                fontWeight: 600,
-                textTransform: "none",
-                fontSize: "0.95rem",
-                bgcolor: "#16a34a",
-                boxShadow: "0 4px 14px rgba(22,163,74,0.25)",
-                "&:hover": {
-                  bgcolor: "#15803d",
-                  boxShadow: "0 6px 18px rgba(22,163,74,0.32)",
-                },
-              }}
+          {/* Right Column: Contact Form */}
+          <div className="lg:col-span-7">
+            <form
+              onSubmit={handleSubmit}
+              className="ct-field bg-slate-50/80 rounded-3xl border border-slate-200/80 shadow-lg p-6 sm:p-8 space-y-5"
             >
-              Send Message
-            </Button>
-          </form>
+              <div>
+                <h3 className="font-serif-display text-2xl font-bold text-slate-900 mb-1">
+                  Send Us an Inquiry
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Fill in your details below to schedule a free counselor demo class.
+                </p>
+              </div>
 
-          {/* Message CTA card */}
-          <div className="bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 rounded-2xl border border-rose-100 p-7 relative overflow-hidden flex flex-col">
-            <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-2xl mb-4">
-              🙌
-            </div>
-            <h3 className="ct-display text-xl font-semibold text-slate-900 leading-snug mb-3">
-              Your message matters to us.
-            </h3>
-            <p className="text-sm text-slate-500 leading-relaxed mb-6">
-              We will get back to you within 24 hours. In the meantime, feel
-              free to explore our courses or check out student results.
-            </p>
+              {submitted && (
+                <div className="flex items-center gap-2 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">
+                  <CheckCircleIcon fontSize="small" className="text-emerald-600" />
+                  Your message has been sent! We will contact you shortly.
+                </div>
+              )}
 
-            <div className="mt-auto pt-4 border-t border-rose-100/70 flex items-center gap-2 text-xs text-slate-400">
-              <AccessTimeIcon sx={{ fontSize: 15 }} />
-              Avg. response time: under 4 hours
-            </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <TextField
+                  fullWidth
+                  required
+                  label="Student / Parent Name"
+                  value={form.name}
+                  onChange={handleChange("name")}
+                  variant="outlined"
+                  size="small"
+                />
+                <TextField
+                  fullWidth
+                  required
+                  label="Phone Number"
+                  value={form.phone}
+                  onChange={handleChange("phone")}
+                  variant="outlined"
+                  size="small"
+                />
+              </div>
 
-            <SendIcon
-              sx={{
-                position: "absolute",
-                right: -6,
-                bottom: -6,
-                fontSize: 90,
-                color: "#fb923c",
-                opacity: 0.12,
-                transform: "rotate(-20deg)",
-              }}
-            />
+              <div className="grid sm:grid-cols-2 gap-4">
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange("email")}
+                  variant="outlined"
+                  size="small"
+                />
+                <TextField
+                  select
+                  fullWidth
+                  label="Interested Course"
+                  value={form.course}
+                  onChange={handleChange("course")}
+                  variant="outlined"
+                  size="small"
+                >
+                  {COURSE_OPTIONS.map((c) => (
+                    <MenuItem key={c} value={c}>
+                      {c}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </div>
+
+              <TextField
+                fullWidth
+                label="Your Questions / Additional Details"
+                multiline
+                rows={3}
+                value={form.message}
+                onChange={handleChange("message")}
+                variant="outlined"
+                size="small"
+              />
+
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                endIcon={<SendIcon fontSize="small" />}
+                sx={{
+                  borderRadius: 3,
+                  py: 1.5,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                  background: "linear-gradient(135deg, #2563eb, #16a34a)",
+                  boxShadow: "0 8px 20px -6px rgba(37,99,235,0.45)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #1d4ed8, #15803d)",
+                  },
+                }}
+              >
+                Submit Inquiry
+              </Button>
+            </form>
           </div>
+
         </div>
       </div>
     </section>

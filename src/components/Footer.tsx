@@ -7,97 +7,74 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
-import Product from "../Cources";
-
-// 👇 USE THE SAME LOGO IMPORT/PATH THAT YOU USE IN NAVBAR
-import logo from "../../logo-gurukul-new.png";
+import logo from "../assets/logo-gurukul-new.png";
 
 const QUICK_LINKS = [
   { label: "Home", href: "#home" },
+  { label: "Success Stories", href: "#toppers" },
   { label: "About Us", href: "#about" },
   { label: "Courses", href: "#courses" },
   { label: "Our Teachers", href: "#mentors" },
-  { label: "Success Stories", href: "#toppers" },
   { label: "Gallery", href: "#gallery" },
   { label: "Contact Us", href: "#contact" },
 ];
 
+const COURSES = [
+  { class: "ICSE", name: "Std-IX (Basic Java)" },
+  { class: "ICSE", name: "Std-X (Advanced Java)" },
+  { class: "HSC", name: "Std-XI (CS1 + CS2)" },
+  { class: "HSC", name: "Std-XII (CS1 + CS2)" },
+  { class: "ISC", name: "Std-XI (CS1 + CS2)" },
+  { class: "ISC", name: "Std-XII (CS1 + CS2)" },
+];
+
 const SOCIALS = [
-  {
-    icon: <FacebookIcon sx={{ fontSize: 15 }} />,
-    href: "#",
-    label: "Facebook",
-  },
-  {
-    icon: <InstagramIcon sx={{ fontSize: 15 }} />,
-    href: "#",
-    label: "Instagram",
-  },
-  {
-    icon: <YouTubeIcon sx={{ fontSize: 15 }} />,
-    href: "#",
-    label: "YouTube",
-  },
-  {
-    icon: <LinkedInIcon sx={{ fontSize: 15 }} />,
-    href: "#",
-    label: "LinkedIn",
-  },
+  { icon: <FacebookIcon sx={{ fontSize: 16 }} />, href: "#", label: "Facebook" },
+  { icon: <InstagramIcon sx={{ fontSize: 16 }} />, href: "#", label: "Instagram" },
+  { icon: <YouTubeIcon sx={{ fontSize: 16 }} />, href: "#", label: "YouTube" },
+  { icon: <LinkedInIcon sx={{ fontSize: 16 }} />, href: "#", label: "LinkedIn" },
 ];
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-950 text-slate-400">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 py-7">
-
-        {/* Main Footer */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-
-          {/* ================= BRAND ================= */}
-          <div>
-            {/* Logo */}
-            <div className="flex items-center gap-2 mb-2">
-              <img
-                src={logo}
-                alt="KGurukul"
-                className="h-9 w-auto object-contain"
-              />
-
+    <footer className="bg-slate-950 text-slate-400 pt-12 pb-8 border-t border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 pb-10 border-b border-slate-800">
+          
+          {/* Brand Column */}
+          <div className="lg:col-span-4 space-y-4">
+            <a href="#home" className="flex items-center gap-3">
+              <div className="p-1 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
+                <img
+                  src={logo}
+                  alt="KGurukul Logo"
+                  className="h-10 w-auto object-contain"
+                />
+              </div>
               <div>
-                <h3 className="text-white font-bold text-base leading-none">
-                  KGurukul
+                <h3 className="text-white font-bold text-xl leading-none">
+                  KGurukul<span className="text-blue-500">'s</span>
                 </h3>
-
-                <p className="text-[12px] text-slate-500 mt-1 tracking-wide">
+                <p className="text-xs text-slate-400 font-medium mt-1">
                   Learn. Code. Succeed.
                 </p>
               </div>
-            </div>
+            </a>
 
-            <p className="text-[12px] leading-relaxed max-w-xs">
-              Empowering students with quality computer education for a
-              brighter tomorrow.
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+              KGurukul is Thane's leading computer education institute specializing in ICSE, HSC, and ISC board computer science, Java, C++, and practical lab training.
             </p>
 
-            {/* Social Icons */}
-            <div className="flex gap-1.5 mt-3">
+            {/* Social Links */}
+            <div className="flex items-center gap-2 pt-1">
               {SOCIALS.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
                   aria-label={social.label}
-                  className="
-                    w-6 h-6
-                    rounded-full
-                    bg-white/5
-                    hover:bg-white/15
-                    text-slate-400
-                    hover:text-white
-                    flex
-                    items-center
-                    justify-center
-                    transition-colors
-                  "
+                  className="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 hover:border-blue-500 text-slate-400 hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110"
                 >
                   {social.icon}
                 </a>
@@ -105,18 +82,17 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* ================= QUICK LINKS ================= */}
-          <div>
-            <p className="text-white font-semibold text-[12px] tracking-wide uppercase mb-2.5">
+          {/* Quick Links */}
+          <div className="lg:col-span-2 space-y-3">
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider">
               Quick Links
-            </p>
-
-            <ul className="space-y-1.5 text-[12px]">
+            </h4>
+            <ul className="space-y-2 text-xs">
               {QUICK_LINKS.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="hover:text-white transition-colors"
+                    className="hover:text-blue-400 transition-colors inline-block py-0.5"
                   >
                     {link.label}
                   </a>
@@ -125,117 +101,69 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* ================= COURSES ================= */}
-          <div>
-            <p className="text-white font-semibold text-[12px] tracking-wide uppercase mb-2.5">
-              Courses
-            </p>
-
-            <ul className="space-y-1.5 text-[12px]">
-              {Product.map((p, i) => (
+          {/* Course Menu */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider">
+              Our Board Programs
+            </h4>
+            <ul className="space-y-2 text-xs">
+              {COURSES.map((c, i) => (
                 <li key={i}>
                   <a
                     href="#courses"
-                    className="flex items-center gap-1.5 hover:text-white transition-colors"
+                    className="flex items-center gap-2 hover:text-blue-400 transition-colors py-0.5"
                   >
-                    <span className="text-[8px] font-semibold text-slate-500 bg-white/5 px-1 py-0.5 rounded">
-                      {p.class}
+                    <span className="text-[10px] font-bold text-blue-400 bg-blue-950/80 px-1.5 py-0.5 rounded border border-blue-800/60">
+                      {c.class}
                     </span>
-
-                    <span>{p.name}</span>
+                    <span>{c.name}</span>
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* ================= CONTACT ================= */}
-          <div>
-            <p className="text-white font-semibold text-[12px] tracking-wide uppercase mb-2.5">
-              Contact Info
-            </p>
-
-            <ul className="space-y-2 text-[12px]">
-
-              {/* Address */}
-              <li className="flex items-start gap-1.5">
-                <LocationOnIcon
-                  sx={{ fontSize: 13 }}
-                  className="mt-0.5 shrink-0"
-                />
-
+          {/* Contact Details */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider">
+              Institute Address
+            </h4>
+            <ul className="space-y-2.5 text-xs">
+              <li className="flex items-start gap-2">
+                <LocationOnIcon sx={{ fontSize: 16 }} className="text-blue-500 mt-0.5 shrink-0" />
                 <span className="leading-relaxed">
-                  6, Kavita CHS, Opp. Pratap Cinema,
-                  Kolbad Road, Thane West - 400601
+                  6, Kavita CHS, Opp. Pratap Cinema, Kolbad Road, Thane West - 400601
                 </span>
               </li>
-
-              {/* Phone */}
-              <li className="flex items-start gap-1.5">
-                <PhoneIcon
-                  sx={{ fontSize: 13 }}
-                  className="mt-0.5 shrink-0"
-                />
-
-                <div className="flex flex-col">
-                  <a
-                    href="tel:+919967442515"
-                    className="hover:text-white transition-colors"
-                  >
-                    +91 9967442515
-                  </a>
-
-                  <a
-                    href="tel:+918879987836"
-                    className="hover:text-white transition-colors"
-                  >
-                    +91 8879987836
-                  </a>
-                </div>
+              <li className="flex items-center gap-2">
+                <PhoneIcon sx={{ fontSize: 16 }} className="text-emerald-500 shrink-0" />
+                <a href="tel:+919967442515" className="hover:text-white transition-colors">
+                  +91 9967442515 / 8879987836
+                </a>
               </li>
-
-              {/* Email */}
-              <li className="flex items-start gap-1.5">
-                <EmailIcon
-                  sx={{ fontSize: 13 }}
-                  className="mt-0.5 shrink-0"
-                />
-
-                <a
-                  href="mailto:kgurukuls90@gmail.com"
-                  className="hover:text-white transition-colors break-all"
-                >
+              <li className="flex items-center gap-2">
+                <EmailIcon sx={{ fontSize: 16 }} className="text-amber-500 shrink-0" />
+                <a href="mailto:kgurukuls90@gmail.com" className="hover:text-white transition-colors">
                   kgurukuls90@gmail.com
                 </a>
               </li>
-
-              {/* Timing */}
-              <li className="flex items-start gap-1.5">
-                <AccessTimeIcon
-                  sx={{ fontSize: 13 }}
-                  className="mt-0.5 shrink-0"
-                />
-
-                <span>
-                  Mon - Sat: 9:00 AM - 8:00 PM
-                </span>
+              <li className="flex items-center gap-2">
+                <AccessTimeIcon sx={{ fontSize: 16 }} className="text-purple-500 shrink-0" />
+                <span>Mon - Sat: 9:00 AM - 8:00 PM</span>
               </li>
             </ul>
           </div>
+
         </div>
 
-        {/* Bottom */}
-        <div className="border-t border-white/10 mt-6 pt-3 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[12px] text-slate-500">
-          <p>
-            © {new Date().getFullYear()} KGurukul. All rights reserved.
-          </p>
-
+        {/* Copyright */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <p>© {new Date().getFullYear()} KGurukul. All rights reserved.</p>
           <p className="flex items-center gap-1">
-            Made with
-            <span className="text-rose-400">♥</span>
-            for future coders
+            Empowering Thane's future programmers <span className="text-rose-500">♥</span>
           </p>
         </div>
+
       </div>
     </footer>
   );

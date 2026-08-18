@@ -1,4 +1,6 @@
 import Dialog from "@mui/material/Dialog";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -114,6 +116,9 @@ export default function CourseModal({
   onClose,
   onEnroll,
 }: CourseModalProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   if (!course) return null;
 
   const points = course.details
@@ -134,13 +139,14 @@ export default function CourseModal({
       onClose={onClose}
       maxWidth="md"
       fullWidth
+      fullScreen={isMobile}
       slotProps={{
         paper: {
           sx: {
-            borderRadius: 6,
+            borderRadius: isMobile ? 0 : 6,
             overflow: "hidden",
             boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)",
-            maxHeight: "92vh",
+            maxHeight: isMobile ? "100vh" : "92vh",
             display: "flex",
             flexDirection: "column",
           },
@@ -168,7 +174,7 @@ export default function CourseModal({
         </IconButton>
 
         {/* Scrollable content area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pb-4 space-y-6 min-h-0">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-5 sm:p-8 pb-4 space-y-6 min-h-0">
           {/* Top Header Row */}
           <div className="grid md:grid-cols-12 gap-6 items-center pt-2">
             {/* Left information */}
@@ -278,19 +284,19 @@ export default function CourseModal({
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-between gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs hover:shadow-sm transition-all duration-200"
+                        className="flex items-start justify-between gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs hover:shadow-sm transition-all duration-200"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 text-xs font-black flex items-center justify-center shrink-0">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
                             {idx + 1}
                           </span>
-                          <div className="min-w-0">
-                            <p className="text-xs font-black text-slate-800 truncate leading-snug">{t}</p>
-                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 truncate leading-snug">{topicInfo.sub}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-black text-slate-800 leading-snug break-words">{t}</p>
+                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug break-words">{topicInfo.sub}</p>
                           </div>
                         </div>
                         
-                        <div className="shrink-0 w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center">
+                        <div className="shrink-0 w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center mt-0.5">
                           {topicInfo.icon}
                         </div>
                       </div>
@@ -320,7 +326,7 @@ export default function CourseModal({
         </div>
 
         {/* Sticky footer buttons area */}
-        <div className="border-t border-slate-100 p-4 sm:p-6 bg-slate-50/60 grid grid-cols-2 gap-4 sticky bottom-0 z-20">
+        <div className="border-t border-slate-100 p-4 sm:p-6 bg-slate-50/60 grid grid-cols-1 sm:grid-cols-2 gap-3 sticky bottom-0 z-20">
           <Button
             variant="outlined"
             href={`https://wa.me/919967442515?text=Hi%20KGurukul,%20I%20want%20to%20download%20the%20syllabus%20for%20${encodeURIComponent(course.class + ' ' + course.name)}`}
@@ -329,7 +335,7 @@ export default function CourseModal({
             startIcon={<DownloadIcon />}
             sx={{
               borderRadius: 3,
-              py: 1.5,
+              py: isMobile ? 1 : 1.5,
               fontWeight: 700,
               textTransform: "none",
               fontSize: 13,
@@ -354,7 +360,7 @@ export default function CourseModal({
             }}
             sx={{
               borderRadius: 3,
-              py: 1.5,
+              py: isMobile ? 1 : 1.5,
               fontWeight: 700,
               textTransform: "none",
               fontSize: 13,

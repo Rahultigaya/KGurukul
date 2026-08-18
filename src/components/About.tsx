@@ -131,7 +131,7 @@ export default function About() {
 
   return (
     <section id="about" ref={sectionRef} className="relative overflow-hidden py-10 lg:py-0 lg:h-screen lg:min-h-[640px] xl:min-h-[760px] lg:flex lg:items-center bg-slate-50/60">
-      <div className="max-w-7xl mx-auto   w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-10 items-center">
           
           {/* Left Column: Image showcase */}

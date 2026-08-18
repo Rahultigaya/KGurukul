@@ -208,7 +208,7 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
 
   return (
     <section id="courses" className="py-12 sm:py-16 lg:py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto ">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="text-center mb-5 sm:mb-5">

@@ -168,7 +168,7 @@ function MentorCard({ mentor }: { mentor: any }) {
 export default function Mentors() {
   return (
     <section id="mentors" className="py-12 sm:py-16 lg:py-20 bg-white">
-      <div className="max-w-7xl mx-auto  ">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-5">
           <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
             Leadership & Faculty

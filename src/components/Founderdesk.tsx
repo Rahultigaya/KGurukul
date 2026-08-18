@@ -20,7 +20,7 @@ export default function FoundersDesk() {
       id="founders-desk"
       className="relative overflow-hidden py-10 lg:py-0 lg:h-screen lg:min-h-[600px] xl:min-h-[720px] lg:flex lg:items-center bg-slate-50"
     >
-      <div className="max-w-7xl mx-auto  w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="bg-gradient-to-br from-amber-500/10 via-orange-50/80 to-amber-50/50 rounded-3xl border border-amber-200/60 shadow-xl p-5 sm:p-6 lg:p-8 relative overflow-hidden">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">

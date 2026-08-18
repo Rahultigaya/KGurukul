@@ -13,12 +13,12 @@ import ExposureIcon from "@mui/icons-material/Exposure";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import founder_img from "../assets/Santosh Chipdey.jpeg";
-import co_founder_img from "../assets/Riya Chipdey.jpeg";
+import founder_img from "../assets/Santoush_Chipdey.jpeg";
+import co_founder_img from "../assets/Riya_Chipdey.jpeg";
 
 const MENTORS = [
   {
-    tag: "FOUNDER",
+    tag: "FOUNDER & LEAD EDUCATOR",
     tagColor: "bg-blue-600",
     photo: founder_img,
     name: "Santosh Chipdey",
@@ -26,9 +26,9 @@ const MENTORS = [
     roleColor: "text-blue-600",
     accentColor: "bg-blue-600",
     stat: { Icon: StarIcon, value: "30+ Years", label: "of Experience" },
-    statBg: "bg-blue-50",
+    statBg: "bg-blue-50/50 border-blue-100/50",
     statValueColor: "text-blue-900",
-    statIconColor: "#3b82f6",
+    statIconColor: "#2563eb",
     education: ["M.Sc. Computer Science", "B.Ed."],
     bio: "Experienced in teaching programming and computer science. Passionate about making complex concepts simple and engaging.",
     tags: [
@@ -39,10 +39,10 @@ const MENTORS = [
       { Icon: LightbulbIcon, label: "Problem Solving" },
       { Icon: GroupsIcon, label: "Mentorship" },
     ],
-    tagColorClasses: "bg-blue-50 text-blue-700",
+    tagColorClasses: "bg-blue-50/60 text-blue-700 border border-blue-100/50",
   },
   {
-    tag: "DIRECTOR",
+    tag: "DIRECTOR & MANAGEMENT",
     tagColor: "bg-emerald-600",
     photo: co_founder_img,
     name: "Riya Chipdey",
@@ -50,9 +50,9 @@ const MENTORS = [
     roleColor: "text-emerald-600",
     accentColor: "bg-emerald-600",
     stat: { Icon: EmojiEventsIcon, value: "100%", label: "Results Track Record" },
-    statBg: "bg-emerald-50",
+    statBg: "bg-emerald-50/50 border-emerald-100/50",
     statValueColor: "text-emerald-900",
-    statIconColor: "#f59e0b",
+    statIconColor: "#16a34a",
     education: ["M.Sc. Mathematics", "NET Qualified"],
     bio: "Expert in competitive exam preparation with a track record of 100% results. Specializes in calculus, algebra, and statistics.",
     tags: [
@@ -63,99 +63,96 @@ const MENTORS = [
       { Icon: GpsFixedIcon, label: "Exam Strategy" },
       { Icon: AutoAwesomeIcon, label: "Concept Clarity" },
     ],
-    tagColorClasses: "bg-emerald-50 text-emerald-700",
+    tagColorClasses: "bg-emerald-50/60 text-emerald-700 border border-emerald-100/50",
   },
 ];
 
 function MentorCard({ mentor }: { mentor: any }) {
   const StatIcon = mentor.stat.Icon;
+  const ribbonText = mentor.tag.split(" ")[0]; // "FOUNDER" or "DIRECTOR"
+  
   return (
-    <div className="relative bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className="px-4 py-2">
-        {/* Header: photo on the left, name/role/stat/education stacked on the right */}
-        <div className="flex items-start gap-5 mb-5">
-          <div className="relative w-52 h-64 shrink-0">
-            <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md">
+    <div className="relative bg-white rounded-3xl border border-slate-150 shadow-xs overflow-hidden flex flex-col justify-between p-6 sm:p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      {/* Corner Ribbon */}
+      <div className="absolute top-0 left-0 overflow-hidden w-28 h-28 pointer-events-none z-20">
+        <div className={`absolute top-0 left-0 transform -rotate-45 -translate-x-[32px] translate-y-[18px] w-[140px] text-center text-[9px] font-black uppercase tracking-widest text-white py-1 shadow-md ${mentor.tagColor}`}>
+          {ribbonText}
+        </div>
+      </div>
+
+      <div>
+        {/* Header: Photo + Info */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-5">
+          {/* Oval Profile Photo with Shadow & Ring */}
+          <div className="relative w-32 h-44 sm:w-36 sm:h-48 shrink-0">
+            <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md ring-1 ring-slate-100">
               <img
                 src={mentor.photo}
                 alt={mentor.name}
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Diagonal corner-ribbon banner, sits above the photo mask so it isn't clipped */}
-            <div
-              className={`absolute z-10 ${mentor.tagColor} text-white text-[11px] font-bold tracking-wider text-center py-1.5 shadow-lg`}
-              style={{
-                width: "170px",
-                top: "16px",
-                left: "-48px",
-                transform: "rotate(-45deg)",
-                clipPath:
-                  "polygon(0 50%, 10% 0, 100% 0, 100% 100%, 10% 100%)",
-              }}
-            >
-              {mentor.tag}
-            </div>
           </div>
 
-          <div className="flex flex-col justify-center flex-1 pt-2">
-            <h3 className="text-xl font-bold text-slate-900 leading-tight">
+          {/* Details Column */}
+          <div className="flex flex-col text-center sm:text-left flex-1 min-w-0">
+            <h3 className="text-3xl font-black font-serif-display text-slate-900 leading-none">
               {mentor.name}
             </h3>
-            <p className={`text-sm font-semibold mt-1 ${mentor.roleColor}`}>
+            
+            <p className={`text-sm font-bold mt-1.5 leading-none ${mentor.roleColor}`}>
               {mentor.role}
             </p>
-            <div className={`w-9 h-1 rounded-full mt-3 mb-4 ${mentor.accentColor}`} />
+            
+            <div className={`w-8 h-[3px] rounded-full mt-2.5 mb-4 mx-auto sm:mx-0 ${mentor.accentColor}`} />
 
-            {/* Stat box */}
+            {/* Stat Box */}
             <div
-              className={`flex items-center gap-3 ${mentor.statBg} rounded-xl px-4 py-1 mb-2`}
+              className={`flex items-center gap-3 ${mentor.statBg} border rounded-2xl px-4 py-2.5 mb-4`}
             >
-              <StatIcon sx={{ fontSize: 28, color: mentor.statIconColor }} />
+              <StatIcon sx={{ fontSize: 22, color: mentor.statIconColor }} className="shrink-0" />
               <div>
-                <p className={`text-base font-extrabold leading-none ${mentor.statValueColor}`}>
+                <p className={`text-base font-black leading-none ${mentor.statValueColor}`}>
                   {mentor.stat.value}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">{mentor.stat.label}</p>
+                <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-none">{mentor.stat.label}</p>
               </div>
             </div>
 
-            {/* Education */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <SchoolIcon sx={{ fontSize: 17 }} className={mentor.roleColor} />
-                <span className={`text-sm font-semibold ${mentor.roleColor}`}>
+            {/* Qualifications / Education */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-center sm:justify-start gap-1.5 mb-1.5">
+                <SchoolIcon sx={{ fontSize: 16 }} className={mentor.roleColor} />
+                <span className={`text-xs font-bold uppercase tracking-wider ${mentor.roleColor}`}>
                   Education
                 </span>
               </div>
-              <ul className="space-y-1 pl-0.5">
+              
+              <div className="space-y-1 pl-1">
                 {mentor.education.map((item: string) => (
-                  <li
-                    key={item}
-                    className="text-sm text-slate-600 flex items-center gap-2"
-                  >
-                    <span className="w-1 h-1 rounded-full bg-slate-400 shrink-0" />
+                  <p key={item} className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 justify-center sm:justify-start">
+                    <span className="h-1 w-1 rounded-full bg-slate-400" />
                     {item}
-                  </li>
+                  </p>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Bio */}
-        <p className="text-sm text-slate-500 leading-relaxed mb-5">
+        {/* Bio paragraph description */}
+        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6 text-center sm:text-left">
           {mentor.bio}
         </p>
 
-        {/* Tag pills */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Skill Tags */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {mentor.tags.map((t: any) => {
             const TagIcon = t.Icon;
             return (
               <div
                 key={t.label}
-                className={`flex items-center justify-center gap-1.5 ${mentor.tagColorClasses} text-xs font-medium rounded-lg px-2 py-2`}
+                className={`flex items-center justify-center gap-1.5 ${mentor.tagColorClasses} text-xs font-bold rounded-xl px-2 py-2`}
               >
                 <TagIcon sx={{ fontSize: 14 }} className="shrink-0" />
                 <span className="truncate">{t.label}</span>
@@ -170,18 +167,21 @@ function MentorCard({ mentor }: { mentor: any }) {
 
 export default function Mentors() {
   return (
-    <section id="mentors" className="py-12 sm:py-16 lg:py-20">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold text-slate-900 leading-tight">
+    <section id="mentors" className="py-12 sm:py-16 lg:py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10 sm:mb-14">
+          <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+            Leadership & Faculty
+          </span>
+          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
             Meet Our <span className="text-blue-600">Expert Teachers</span>
           </h2>
           <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
-            Experienced educators. Proven results. Your success is our mission.
+            Decades of experience. Passion for teaching. Dedicated to your board success.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8">
           {MENTORS.map((mentor) => (
             <MentorCard key={mentor.name} mentor={mentor} />
           ))}

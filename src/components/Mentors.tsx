@@ -14,14 +14,14 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import founder_img from "../assets/Santoush_Chipdey.jpeg";
-import co_founder_img from "../assets/Riya_Chipdey.jpeg";
+import co_founder_img from "../assets/Riyaa_Chipdey.jpeg";
 
 const MENTORS = [
   {
     tag: "FOUNDER & LEAD EDUCATOR",
     tagColor: "bg-blue-600",
     photo: founder_img,
-    name: "Santosh Chipdey",
+    name: "Santoush Chipdey",
     role: "Founder & Lead Educator",
     roleColor: "text-blue-600",
     accentColor: "bg-blue-600",
@@ -45,7 +45,7 @@ const MENTORS = [
     tag: "DIRECTOR & MANAGEMENT",
     tagColor: "bg-emerald-600",
     photo: co_founder_img,
-    name: "Riya Chipdey",
+    name: "Riyaa Chipdey",
     role: "Director & Management",
     roleColor: "text-emerald-600",
     accentColor: "bg-emerald-600",
@@ -73,9 +73,9 @@ function MentorCard({ mentor }: { mentor: any }) {
   
   return (
     <div className="relative bg-white rounded-3xl border border-slate-150 shadow-xs overflow-hidden flex flex-col justify-between p-6 sm:p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      {/* Corner Ribbon */}
-      <div className="absolute top-0 left-0 overflow-hidden w-28 h-28 pointer-events-none z-20">
-        <div className={`absolute top-0 left-0 transform -rotate-45 -translate-x-[32px] translate-y-[18px] w-[140px] text-center text-[9px] font-black uppercase tracking-widest text-white py-1 shadow-md ${mentor.tagColor}`}>
+      {/* Corner Ribbon on Card (Overlaying photo and card) */}
+      <div className="absolute top-0 left-0 overflow-hidden w-36 h-36 pointer-events-none z-20">
+        <div className={`absolute top-0 left-0 transform -rotate-45 -translate-x-[40px] translate-y-[26px] w-[160px] text-center text-[14px] font-black uppercase tracking-widest text-white py-1.5 shadow-md ${mentor.tagColor}`}>
           {ribbonText}
         </div>
       </div>
@@ -83,8 +83,8 @@ function MentorCard({ mentor }: { mentor: any }) {
       <div>
         {/* Header: Photo + Info */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-5">
-          {/* Oval Profile Photo with Shadow & Ring */}
-          <div className="relative w-32 h-44 sm:w-36 sm:h-48 shrink-0">
+          {/* Oval Profile Photo with Shadow & Ring (pulled up-left for ribbon overlay) */}
+          <div className="relative w-40 h-52 sm:w-44 sm:h-56 shrink-0 -mt-2 -ml-2 sm:-mt-4 sm:-ml-4 z-10">
             <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md ring-1 ring-slate-100">
               <img
                 src={mentor.photo}
@@ -168,8 +168,8 @@ function MentorCard({ mentor }: { mentor: any }) {
 export default function Mentors() {
   return (
     <section id="mentors" className="py-12 sm:py-16 lg:py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 sm:mb-14">
+      <div className="max-w-7xl mx-auto  ">
+        <div className="text-center mb-5">
           <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
             Leadership & Faculty
           </span>

@@ -492,17 +492,31 @@ export default function Testimonials() {
       "
     >
       {/* =====================================================
-          HIDE SCROLLBAR
+          CUSTOM BEAUTIFUL SCROLLBAR
       ===================================================== */}
 
       <style>{`
         .chat-scroll-row::-webkit-scrollbar {
-          display: none;
+          height: 6px;
+        }
+
+        .chat-scroll-row::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 999px;
+        }
+
+        .chat-scroll-row::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 999px;
+        }
+
+        .chat-scroll-row::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
         }
 
         .chat-scroll-row {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 #f1f5f9;
         }
       `}</style>
 

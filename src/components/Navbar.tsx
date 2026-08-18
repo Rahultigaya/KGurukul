@@ -67,11 +67,10 @@ export default function Navbar() {
       </div>
 
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          scrolled
+        className={`sticky top-0 z-50 transition-all duration-300 ${scrolled
             ? "glass-nav border-b border-slate-200/80 shadow-sm py-0"
             : "bg-white/95 backdrop-blur-md border-b border-slate-100 py-0.5"
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-20">
           {/* Logo */}
@@ -84,8 +83,8 @@ export default function Navbar() {
               />
             </div>
             <div className="leading-none">
-              <p className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-1">
-                KGurukul<span className="text-blue-600 font-extrabold">'s</span>
+              <p className="text-xl lg:text-2xl font-black text-blue-600 font-extrabold tracking-tight flex items-center gap-1">
+                KGurukul's
               </p>
               <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase mt-0.5">
                 Computer Education
@@ -101,11 +100,10 @@ export default function Navbar() {
                 <a
                   key={link.label}
                   href={link.href}
-                  className={`text-[14px] font-semibold transition-all duration-200 relative py-1 ${
-                    isActive
+                  className={`text-[14px] font-semibold transition-all duration-200 relative py-1 ${isActive
                       ? "text-blue-600"
                       : "text-slate-600 hover:text-blue-600"
-                  }`}
+                    }`}
                 >
                   {link.label}
                   {isActive && (
@@ -187,11 +185,10 @@ export default function Navbar() {
                     key={link.label}
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className={`text-slate-800 text-base font-semibold py-2.5 px-3 rounded-xl transition-all ${
-                      isActive
+                    className={`text-slate-800 text-base font-semibold py-2.5 px-3 rounded-xl transition-all ${isActive
                         ? "bg-blue-50 text-blue-600 font-bold"
                         : "hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     {link.label}
                   </a>

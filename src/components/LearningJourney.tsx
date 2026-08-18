@@ -71,7 +71,7 @@ export default function LearningJourney() {
         .lj-card:hover .lj-title { color: #2563eb; }
       `}</style>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto   relative z-10">
         
         {/* Header */}
         <div className="text-center mb-14">

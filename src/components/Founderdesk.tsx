@@ -7,7 +7,7 @@ function FounderDeskImg() {
       <div className="absolute inset-0 bg-orange-400/20 rounded-3xl blur-xl group-hover:bg-orange-400/30 transition-all duration-300 -z-10" />
       <img
         src={founder_desk}
-        alt="Prof. Santosh Chipdey Founder Desk"
+        alt="Prof. Santoush Chipdey Founder Desk"
         className="w-full h-[360px] sm:h-[420px] object-cover object-top rounded-3xl border-2 border-amber-200/80 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]"
       />
     </div>
@@ -32,7 +32,7 @@ export default function FoundersDesk() {
                   Founder's <span className="text-orange-600">Desk</span>
                 </h2>
                 <p className="text-sm font-extrabold text-slate-500 mt-1">
-                  A Inspiring Message from Prof. Santosh Chipdey
+                  A Inspiring Message from Prof. Santoush Chipdey
                 </p>
               </div>
 
@@ -73,7 +73,7 @@ export default function FoundersDesk() {
                 <div className="mt-4 pl-8 flex justify-end items-center gap-3 border-t border-orange-100 pt-3">
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm">
-                      Prof. Santosh Chipdey
+                      Prof. Santoush Chipdey
                     </h4>
                     <p className="text-xs text-orange-600 font-extrabold">
                       Founder • M.Sc. CS, B.Ed.

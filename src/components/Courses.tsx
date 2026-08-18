@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "@mui/material/Button";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 
 import icseStd9 from "../assets/ICSE-IX.png";
 import icseStd10 from "../assets/ICSE-X.png";
@@ -116,6 +116,84 @@ export const COURSES_DATA: CourseDetail[] = [
 
 const BOARD_FILTERS = ["ALL", "ICSE", "HSC", "ISC"];
 
+const getCourseTheme = (classType: string, name: string) => {
+  switch (classType) {
+    case "ICSE":
+      if (name === "Std-IX") {
+        return {
+          primary: "#16a34a",
+          bg: "#f0fdf4",
+          border: "border-emerald-200",
+          badgeText: "text-emerald-700",
+          badgeBg: "bg-emerald-50",
+          badgeBorder: "border-emerald-200/60",
+          hasSplitPills: false,
+        };
+      }
+      return {
+        primary: "#2563eb",
+        bg: "#eff6ff",
+        border: "border-blue-200",
+        badgeText: "text-blue-700",
+        badgeBg: "bg-blue-50",
+        badgeBorder: "border-blue-200/60",
+        hasSplitPills: false,
+      };
+    case "HSC":
+      if (name === "Std-XI") {
+        return {
+          primary: "#7c3aed",
+          bg: "#f5f3ff",
+          border: "border-purple-200",
+          badgeText: "text-purple-700",
+          badgeBg: "bg-purple-50/70",
+          badgeBorder: "border-purple-200/60",
+          hasSplitPills: true,
+        };
+      }
+      return {
+        primary: "#ea580c",
+        bg: "#fff7ed",
+        border: "border-orange-200",
+        badgeText: "text-orange-700",
+        badgeBg: "bg-orange-50/70",
+        badgeBorder: "border-orange-200/60",
+        hasSplitPills: true,
+      };
+    case "ISC":
+      if (name === "Std-XI") {
+        return {
+          primary: "#0d9488",
+          bg: "#f0fdfa",
+          border: "border-teal-200",
+          badgeText: "text-teal-700",
+          badgeBg: "bg-teal-50",
+          badgeBorder: "border-teal-200/60",
+          hasSplitPills: false,
+        };
+      }
+      return {
+        primary: "#e11d48",
+        bg: "#fff1f2",
+        border: "border-rose-200",
+        badgeText: "text-rose-700",
+        badgeBg: "bg-rose-50",
+        badgeBorder: "border-rose-200/60",
+        hasSplitPills: true,
+      };
+    default:
+      return {
+        primary: "#2563eb",
+        bg: "#eff6ff",
+        border: "border-blue-200",
+        badgeText: "text-blue-700",
+        badgeBg: "bg-blue-50",
+        badgeBorder: "border-blue-200/60",
+        hasSplitPills: false,
+      };
+  }
+};
+
 interface CoursesProps {
   onSelectCourse?: (course: CourseDetail) => void;
 }
@@ -130,18 +208,18 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
 
   return (
     <section id="courses" className="py-12 sm:py-16 lg:py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto ">
         
         {/* Section Header */}
-        <div className="text-center mb-8 sm:mb-12">
-          <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-            Curriculum Aligned Courses
+        <div className="text-center mb-5 sm:mb-5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+            Our Courses
           </span>
           <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
-            Our Board Aligned <span className="text-blue-600">Courses</span>
+            Our <span className="text-blue-600">Courses</span>
           </h2>
-          <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
-            Comprehensive computer science programs specially tailored for ICSE, HSC, and ISC board exams.
+          <p className="text-slate-500 mt-2 text-sm leading-relaxed max-w-xl mx-auto">
+            Board-aligned computer science programs for ICSE and HSC students.
           </p>
 
           {/* Board Filter Tabs */}
@@ -164,92 +242,108 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
         </div>
 
         {/* Courses Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredCourses.map((course) => {
             const points = course.details
               .split("|")
               .map((p) => p.trim())
               .filter(Boolean);
+            
+            const theme = getCourseTheme(course.class, course.name);
+            const subject = course.class === "ICSE" ? "Computer Applications" : "Computer Science";
 
             return (
               <div
                 key={`${course.class}-${course.name}`}
-                className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 overflow-hidden flex flex-col justify-between"
+                className="group relative overflow-hidden bg-white rounded-3xl border border-slate-150 p-3 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                <div>
-                  {/* Course Image Banner */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
+                {/* Decorative corner dot grid */}
+                <div className="absolute top-5 right-5 grid grid-cols-4 gap-[5px] opacity-50 pointer-events-none z-0">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <span key={i} className="h-[3px] w-[3px] rounded-full bg-slate-300" />
+                  ))}
+                </div>
+
+                {/* Decorative soft blob */}
+                <div
+                  className="absolute -top-12 -right-12 w-44 h-44 rounded-full opacity-60 blur-2xl pointer-events-none z-0"
+                  style={{ backgroundColor: theme.bg }}
+                />
+
+                {/* Top: Image + Copy */}
+                <div className="relative z-10 flex items-center gap-5">
+                  {/* Image showcase with circular backdrop */}
+                  {/* <div
+                    className="shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center shadow-xs"
+                    style={{ backgroundColor: theme.bg }}
+                  > */}
                     <img
                       src={course.images[0]}
                       alt={course.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-20 sm:w-36 h-auto object-contain transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
-                      {course.class} Board
-                    </div>
-                  </div>
+                  {/* </div> */}
 
-                  {/* Content Body */}
-                  <div className="p-5 sm:p-6">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <h3 className="font-serif-display font-bold text-xl text-slate-900">
-                        {course.name}
-                      </h3>
-                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                        {course.class}
-                      </span>
-                    </div>
+                  {/* Copy */}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <span className={`inline-flex text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${theme.badgeText} ${theme.badgeBg} ${theme.badgeBorder}`}>
+                      {course.class}
+                    </span>
 
-                    <p className="text-xs font-bold text-blue-600 mb-4">
-                      {course.description}
+                    <h3 className="font-serif-display font-black text-2xl sm:text-2xl text-slate-900 leading-none">
+                      {course.name.toUpperCase()}
+                    </h3>
+                    <p
+                      className="text-xs sm:text-sm font-bold leading-none"
+                      style={{ color: theme.primary }}
+                    >
+                      {subject}
                     </p>
 
-                    {/* Syllabus Points */}
-                    <ul className="space-y-2 mb-4">
-                      {points.map((point) => (
-                        <li
-                          key={point}
-                          className="flex items-start gap-2 text-xs text-slate-600 leading-snug"
-                        >
-                          <CheckCircleIcon
-                            fontSize="small"
-                            className="text-emerald-500 mt-0.5 shrink-0"
-                          />
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {/* Small decorative underline for cards without split pills */}
+                    {!theme.hasSplitPills && (
+                      <span
+                        className="block h-[2px] w-6 rounded-full mt-1.5"
+                        style={{ backgroundColor: theme.primary }}
+                      />
+                    )}
+
+                    {/* Split Pills */}
+                    {theme.hasSplitPills && (
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        <div className={`inline-flex items-center overflow-hidden rounded border text-[9px] sm:text-[10px] font-extrabold ${theme.badgeBorder}`}>
+                          <span className="text-white px-1.5 py-0.5" style={{ backgroundColor: theme.primary }}>CS 1</span>
+                          <span className={`px-1.5 py-0.5 ${theme.badgeBg} ${theme.badgeText}`}>Computer Science 1</span>
+                        </div>
+                        <div className={`inline-flex items-center overflow-hidden rounded border text-[9px] sm:text-[10px] font-extrabold ${theme.badgeBorder}`}>
+                          <span className="text-white px-1.5 py-0.5" style={{ backgroundColor: theme.primary }}>CS 2</span>
+                          <span className={`px-1.5 py-0.5 ${theme.badgeBg} ${theme.badgeText}`}>Computer Science 2</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Footer Action */}
-                <div className="px-5 sm:px-6 pb-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-auto">
+                {/* Points - filled column-major to match reference (down first column, then second) */}
+                <div className="relative z-10 grid grid-rows-2 grid-flow-col gap-x-4 gap-y-2 pt-4 mt-4 border-t border-slate-100">
+                  {points.map((point) => (
+                    <div key={point} className="flex items-center gap-2 text-xs sm:text-sm   text-slate-600">
+                      <CheckCircleIcon sx={{ fontSize: 14, color: theme.primary }} className="shrink-0" />
+                      <span className="truncate" title={point}>{point}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Link - centered, full width */}
+                <div className="relative z-10 flex justify-center pt-4">
                   <button
                     type="button"
                     onClick={() => onSelectCourse && onSelectCourse(course)}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 transition-colors py-2"
+                    className="text-xs sm:text-sm font-black uppercase tracking-wider inline-flex items-center gap-1.5 transition-colors hover:underline"
+                    style={{ color: theme.primary }}
                   >
-                    <InfoOutlinedIcon fontSize="small" /> View Detailed Syllabus
+                    View Details <ArrowForwardIcon sx={{ fontSize: 14 }} />
                   </button>
-
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => onSelectCourse && onSelectCourse(course)}
-                    endIcon={<ArrowForwardIcon fontSize="small" />}
-                    sx={{
-                      borderRadius: 2,
-                      px: 2,
-                      py: 0.8,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      textTransform: "none",
-                      bgcolor: "#2563eb",
-                      "&:hover": { bgcolor: "#1d4ed8" },
-                    }}
-                  >
-                    Details
-                  </Button>
                 </div>
               </div>
             );
@@ -257,27 +351,37 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
         </div>
 
         {/* View All CTA */}
-        <div className="flex justify-center mt-10">
+        <div className="flex justify-center mt-12">
           <Button
             href="#contact"
             variant="contained"
             size="large"
-            endIcon={<ArrowForwardIcon fontSize="small" />}
+            startIcon={<MenuBookIcon />}
+            endIcon={<ArrowForwardIcon fontSize="small" className="btn-arrow" />}
             sx={{
               borderRadius: 999,
               px: 4,
-              py: 1.4,
+              py: 1.6,
               fontSize: 15,
               fontWeight: 700,
               textTransform: "none",
-              background: "linear-gradient(135deg, #2563eb, #16a34a)",
-              boxShadow: "0 8px 20px -6px rgba(37,99,235,0.4)",
+              background: "#2563eb",
+              boxShadow: "0 8px 24px -6px rgba(37,99,235,0.45)",
+              transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+              "& .btn-arrow": {
+                transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+              },
               "&:hover": {
-                background: "linear-gradient(135deg, #1d4ed8, #15803d)",
+                background: "#1d4ed8",
+                boxShadow: "0 12px 28px -6px rgba(37,99,235,0.55)",
+                transform: "translateY(-1px)",
+                "& .btn-arrow": {
+                  transform: "translateX(4px)",
+                },
               },
             }}
           >
-            Inquire About Custom Batches
+            View All Courses
           </Button>
         </div>
 

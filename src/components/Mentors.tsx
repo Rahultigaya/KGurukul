@@ -13,48 +13,48 @@ import ExposureIcon from "@mui/icons-material/Exposure";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import founder_img from "../assets/Santosh Chipdey.jpeg";
-import co_founder_img from "../assets/Riya Chipdey.jpeg";
+import founder_img from "../assets/Santoush_Chipdey.jpeg";
+import co_founder_img from "../assets/Riya_Chipdey.jpeg";
 
 const MENTORS = [
   {
     tag: "FOUNDER & LEAD EDUCATOR",
     tagColor: "bg-blue-600",
     photo: founder_img,
-    name: "Prof. Santosh Chipdey",
-    role: "Founder & Lead Computer Faculty",
+    name: "Santosh Chipdey",
+    role: "Founder & Lead Educator",
     roleColor: "text-blue-600",
     accentColor: "bg-blue-600",
-    stat: { Icon: StarIcon, value: "30+ Years", label: "Teaching Experience" },
-    statBg: "bg-blue-50 border-blue-100",
+    stat: { Icon: StarIcon, value: "30+ Years", label: "of Experience" },
+    statBg: "bg-blue-50/50 border-blue-100/50",
     statValueColor: "text-blue-900",
     statIconColor: "#2563eb",
-    education: ["M.Sc. Computer Science", "B.Ed. Education"],
-    bio: "Pioneer in computer science education in Thane. Specialized in teaching Java, C++, Data Structures, and preparing ICSE and HSC board exam toppers.",
+    education: ["M.Sc. Computer Science", "B.Ed."],
+    bio: "Experienced in teaching programming and computer science. Passionate about making complex concepts simple and engaging.",
     tags: [
-      { Icon: CodeIcon, label: "Java & C++" },
+      { Icon: CodeIcon, label: "Programming" },
       { Icon: AccountTreeIcon, label: "Data Structures" },
-      { Icon: PublicIcon, label: "Web Tech" },
+      { Icon: PublicIcon, label: "Web Development" },
       { Icon: MemoryIcon, label: "Algorithms" },
       { Icon: LightbulbIcon, label: "Problem Solving" },
-      { Icon: GroupsIcon, label: "Board Mentorship" },
+      { Icon: GroupsIcon, label: "Mentorship" },
     ],
-    tagColorClasses: "bg-blue-50 text-blue-700 border border-blue-100",
+    tagColorClasses: "bg-blue-50/60 text-blue-700 border border-blue-100/50",
   },
   {
-    tag: "DIRECTOR & MATHEMATICS FACULTY",
+    tag: "DIRECTOR & MANAGEMENT",
     tagColor: "bg-emerald-600",
     photo: co_founder_img,
-    name: "Prof. Riya Chipdey",
-    role: "Director & Academic Head",
+    name: "Riya Chipdey",
+    role: "Director & Management",
     roleColor: "text-emerald-600",
     accentColor: "bg-emerald-600",
-    stat: { Icon: EmojiEventsIcon, value: "100%", label: "Scoring Track Record" },
-    statBg: "bg-emerald-50 border-emerald-100",
+    stat: { Icon: EmojiEventsIcon, value: "100%", label: "Results Track Record" },
+    statBg: "bg-emerald-50/50 border-emerald-100/50",
     statValueColor: "text-emerald-900",
     statIconColor: "#16a34a",
     education: ["M.Sc. Mathematics", "NET Qualified"],
-    bio: "Expert mathematician & strategist with a proven track record of student academic perfection. Specializes in advanced calculus, algebra, and exam strategies.",
+    bio: "Expert in competitive exam preparation with a track record of 100% results. Specializes in calculus, algebra, and statistics.",
     tags: [
       { Icon: FunctionsIcon, label: "Mathematics" },
       { Icon: CalculateIcon, label: "Calculus" },
@@ -63,80 +63,86 @@ const MENTORS = [
       { Icon: GpsFixedIcon, label: "Exam Strategy" },
       { Icon: AutoAwesomeIcon, label: "Concept Clarity" },
     ],
-    tagColorClasses: "bg-emerald-50 text-emerald-700 border border-emerald-100",
+    tagColorClasses: "bg-emerald-50/60 text-emerald-700 border border-emerald-100/50",
   },
 ];
 
 function MentorCard({ mentor }: { mentor: any }) {
   const StatIcon = mentor.stat.Icon;
+  const ribbonText = mentor.tag.split(" ")[0]; // "FOUNDER" or "DIRECTOR"
+  
   return (
-    <div className="relative bg-white rounded-3xl border border-slate-200/80 shadow-lg overflow-hidden flex flex-col justify-between p-6 sm:p-7 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+    <div className="relative bg-white rounded-3xl border border-slate-150 shadow-xs overflow-hidden flex flex-col justify-between p-6 sm:p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      {/* Corner Ribbon */}
+      <div className="absolute top-0 left-0 overflow-hidden w-28 h-28 pointer-events-none z-20">
+        <div className={`absolute top-0 left-0 transform -rotate-45 -translate-x-[32px] translate-y-[18px] w-[140px] text-center text-[9px] font-black uppercase tracking-widest text-white py-1 shadow-md ${mentor.tagColor}`}>
+          {ribbonText}
+        </div>
+      </div>
+
       <div>
         {/* Header: Photo + Info */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
-          <div className="relative w-40 h-40 sm:w-44 sm:h-44 shrink-0">
-            <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-xl ring-2 ring-slate-200/60">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-5">
+          {/* Oval Profile Photo with Shadow & Ring */}
+          <div className="relative w-32 h-44 sm:w-36 sm:h-48 shrink-0">
+            <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md ring-1 ring-slate-100">
               <img
                 src={mentor.photo}
                 alt={mentor.name}
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Tag Badge */}
-            <div
-              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${mentor.tagColor} text-white text-[10px] font-black tracking-wider text-center py-1 px-3 rounded-full shadow-md whitespace-nowrap`}
-            >
-              {mentor.tag}
-            </div>
           </div>
 
-          <div className="flex flex-col text-center sm:text-left flex-1">
-            <h3 className="text-2xl font-bold font-serif-display text-slate-900 leading-tight">
+          {/* Details Column */}
+          <div className="flex flex-col text-center sm:text-left flex-1 min-w-0">
+            <h3 className="text-3xl font-black font-serif-display text-slate-900 leading-none">
               {mentor.name}
             </h3>
-            <p className={`text-sm font-bold mt-1 ${mentor.roleColor}`}>
+            
+            <p className={`text-sm font-bold mt-1.5 leading-none ${mentor.roleColor}`}>
               {mentor.role}
             </p>
-            <div className={`w-12 h-1 rounded-full mt-2 mb-4 mx-auto sm:mx-0 ${mentor.accentColor}`} />
+            
+            <div className={`w-8 h-[3px] rounded-full mt-2.5 mb-4 mx-auto sm:mx-0 ${mentor.accentColor}`} />
 
             {/* Stat Box */}
             <div
-              className={`flex items-center gap-3 ${mentor.statBg} border rounded-2xl px-4 py-2.5 mb-3`}
+              className={`flex items-center gap-3 ${mentor.statBg} border rounded-2xl px-4 py-2.5 mb-4`}
             >
-              <StatIcon sx={{ fontSize: 26, color: mentor.statIconColor }} />
+              <StatIcon sx={{ fontSize: 22, color: mentor.statIconColor }} className="shrink-0" />
               <div>
-                <p className={`text-base font-extrabold leading-none ${mentor.statValueColor}`}>
+                <p className={`text-base font-black leading-none ${mentor.statValueColor}`}>
                   {mentor.stat.value}
                 </p>
-                <p className="text-xs text-slate-500 font-medium mt-1">{mentor.stat.label}</p>
+                <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-none">{mentor.stat.label}</p>
               </div>
             </div>
 
-            {/* Education */}
-            <div className="mt-1">
+            {/* Qualifications / Education */}
+            <div className="space-y-1">
               <div className="flex items-center justify-center sm:justify-start gap-1.5 mb-1.5">
                 <SchoolIcon sx={{ fontSize: 16 }} className={mentor.roleColor} />
                 <span className={`text-xs font-bold uppercase tracking-wider ${mentor.roleColor}`}>
-                  Qualifications
+                  Education
                 </span>
               </div>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-1.5">
+              
+              <div className="space-y-1 pl-1">
                 {mentor.education.map((item: string) => (
-                  <span
-                    key={item}
-                    className="text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60"
-                  >
+                  <p key={item} className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 justify-center sm:justify-start">
+                    <span className="h-1 w-1 rounded-full bg-slate-400" />
                     {item}
-                  </span>
+                  </p>
                 ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bio */}
-        <p className="text-sm text-slate-600 leading-relaxed mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
-          "{mentor.bio}"
+        {/* Bio paragraph description */}
+        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6 text-center sm:text-left">
+          {mentor.bio}
         </p>
 
         {/* Skill Tags */}
@@ -146,7 +152,7 @@ function MentorCard({ mentor }: { mentor: any }) {
             return (
               <div
                 key={t.label}
-                className={`flex items-center justify-center gap-1.5 ${mentor.tagColorClasses} text-xs font-bold rounded-xl px-2.5 py-2`}
+                className={`flex items-center justify-center gap-1.5 ${mentor.tagColorClasses} text-xs font-bold rounded-xl px-2 py-2`}
               >
                 <TagIcon sx={{ fontSize: 14 }} className="shrink-0" />
                 <span className="truncate">{t.label}</span>

@@ -22,6 +22,8 @@ export const COURSES_DATA: CourseDetail[] = [
       "Java Fundamentals | Programming Basics | School Exam Preparation | Practical Coding",
     images: [icseStd9],
     duration: "Full Academic Year",
+      showHighlights: false,
+
     topics: [
       "Introduction to Java & OOP Concepts",
       "Data Types, Variables & Operators",
@@ -213,7 +215,7 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
         {/* Section Header */}
         <div className="text-center mb-5 sm:mb-5">
           <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-            Our Courses
+            WHAT WE TEACH
           </span>
           <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
             Our <span className="text-blue-600">Courses</span>

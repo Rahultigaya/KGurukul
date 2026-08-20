@@ -8,12 +8,18 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import logo from "../assets/logo-gurukul-new.png";
 
+const ADMISSION_YEAR = 2027;
+
+const ACADEMIC_YEAR = `${ADMISSION_YEAR}-${String(
+  ADMISSION_YEAR + 1
+).slice(-2)}`;
+
 const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "Success Stories", href: "#toppers" },
   { label: "About Us", href: "#about" },
   { label: "Courses", href: "#courses" },
-  { label: "Our Teachers", href: "#mentors" },
+  { label: "Our Mentors", href: "#mentors" },
   { label: "Gallery", href: "#gallery" },
   { label: "Contact Us", href: "#contact" },
 ];
@@ -56,20 +62,19 @@ export default function Navbar() {
           <LocalOfferIcon sx={{ fontSize: 11 }} /> Admissions Open
         </span>
         <span className="truncate">
-          Enrollments open for 2025-26 ICSE, HSC & ISC Computer Science Batches!
-        </span>
+          Enrollments open for {ACADEMIC_YEAR} ICSE, HSC & ISC Computer Science Batches!        </span>
         <a
           href="#contact"
           className="hidden md:inline-flex items-center gap-1 text-amber-300 font-bold hover:underline shrink-0 ml-1"
         >
-          Book Free Demo Class →
+          Enroll Now →
         </a>
       </div>
 
       <header
         className={`sticky top-0 z-50 transition-all duration-300 ${scrolled
-            ? "glass-nav border-b border-slate-200/80 shadow-sm py-0"
-            : "bg-white/95 backdrop-blur-md border-b border-slate-100 py-0.5"
+          ? "glass-nav border-b border-slate-200/80 shadow-sm py-0"
+          : "bg-white/95 backdrop-blur-md border-b border-slate-100 py-0.5"
           }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-20">
@@ -101,8 +106,8 @@ export default function Navbar() {
                   key={link.label}
                   href={link.href}
                   className={`text-[14px] font-semibold transition-all duration-200 relative py-1 ${isActive
-                      ? "text-blue-600"
-                      : "text-slate-600 hover:text-blue-600"
+                    ? "text-blue-600"
+                    : "text-slate-600 hover:text-blue-600"
                     }`}
                 >
                   {link.label}
@@ -186,8 +191,8 @@ export default function Navbar() {
                     href={link.href}
                     onClick={() => setOpen(false)}
                     className={`text-slate-800 text-base font-semibold py-2.5 px-3 rounded-xl transition-all ${isActive
-                        ? "bg-blue-50 text-blue-600 font-bold"
-                        : "hover:bg-slate-100"
+                      ? "bg-blue-50 text-blue-600 font-bold"
+                      : "hover:bg-slate-100"
                       }`}
                   >
                     {link.label}

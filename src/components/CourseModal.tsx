@@ -13,8 +13,7 @@ import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import LoopIcon from "@mui/icons-material/Loop";
 import StorageIcon from "@mui/icons-material/Storage";
 import SettingsIcon from "@mui/icons-material/Settings";
-import DownloadIcon from "@mui/icons-material/Download";
-import TargetIcon from "@mui/icons-material/MyLocation";
+ import TargetIcon from "@mui/icons-material/MyLocation";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 export interface CourseDetail {
@@ -26,8 +25,8 @@ export interface CourseDetail {
   duration?: string;
   prerequisites?: string;
   topics?: string[];
+  showHighlights?: boolean;
 }
-
 interface CourseModalProps {
   course: CourseDetail | null;
   onClose: () => void;
@@ -40,27 +39,27 @@ const getHighlightSubtitle = (point: string) => {
   if (p.includes("programming basics")) return "Logic building and problem solving";
   if (p.includes("school exam")) return "Important questions & exam tips";
   if (p.includes("practical coding")) return "Hands-on coding and assignments";
-  
+
   if (p.includes("advanced java")) return "Advanced Java & object-oriented programming";
   if (p.includes("oop concepts")) return "Classes, constructors, and encapsulation";
   if (p.includes("prelim exam") || p.includes("prelim mocks")) return "Full-length board pattern rehearsals";
   if (p.includes("board exam")) return "10-years papers practice & scoring tips";
-  
+
   if (p.includes("programming fundamentals")) return "Core algorithms and syntax basics";
   if (p.includes("practical preparation")) return "Lab manual completion and test cases";
   if (p.includes("annual exam")) return "Revision lectures & prep sheets";
   if (p.includes("regular assessment")) return "Weekly tests to evaluate concept clarity";
-  
+
   if (p.includes("advanced programming")) return "Complex logic, data structures & recursion";
   if (p.includes("mock board")) return "Full syllabus timed tests";
   if (p.includes("viva preparation") || p.includes("viva prep")) return "Confidence training for examiner viva";
-  
+
   return "Comprehensive syllabus coverage & practice";
 };
 
 const getTopicInfo = (topic: string) => {
   const t = topic.toLowerCase();
-  
+
   if (t.includes("introduction to java") || t.includes("basics of programming")) {
     return {
       sub: "Understand Java environment, classes, objects, and basic OOP principles.",
@@ -85,7 +84,7 @@ const getTopicInfo = (topic: string) => {
       icon: <LoopIcon fontSize="small" className="text-indigo-600" />
     };
   }
-  
+
   if (t.includes("array") || t.includes("data structures")) {
     return {
       sub: "Master arrays, lists, stacks, queues, and other linear data structures.",
@@ -104,7 +103,7 @@ const getTopicInfo = (topic: string) => {
       icon: <CheckCircleIcon fontSize="small" className="text-rose-600" />
     };
   }
-  
+
   return {
     sub: "Deep dive into code logic, concept reviews, and practical programming exercises.",
     icon: <SettingsIcon fontSize="small" className="text-slate-500" />
@@ -132,6 +131,9 @@ export default function CourseModal({
     "Previous Board Exam Papers & Solutions",
     "Weekly Chapter Tests & Mock Prelims",
   ];
+
+  // Hide the highlights panel specifically for ICSE Class 9
+  const hideHighlights = course.showHighlights === false;
 
   return (
     <Dialog
@@ -184,15 +186,15 @@ export default function CourseModal({
                   {course.class} BOARD CURRICULUM
                 </span>
               </div>
-              
+
               <h3 className="text-2xl sm:text-3xl font-black font-serif-display text-slate-900 leading-none">
                 {course.name}
               </h3>
-              
+
               <p className="text-base sm:text-lg font-bold text-blue-600 leading-none mt-1">
                 {course.description.replace(/[()]/g, "")}
               </p>
-              
+
               <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">
                 {course.class === "ICSE"
                   ? `A complete foundation course designed for ICSE ${course.name} students to build strong programming basics using Java.`
@@ -236,48 +238,50 @@ export default function CourseModal({
 
           {/* Side-by-side details layout */}
           <div className="grid md:grid-cols-12 gap-6 items-stretch">
-            {/* Left panel: highlights */}
-            <div className="md:col-span-5 border border-slate-100 bg-slate-50/10 rounded-3xl p-5 flex flex-col justify-between">
-              <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-5 relative inline-block">
-                  Key Syllabus Highlights
-                  <span className="absolute bottom-[-6px] left-0 h-[2px] w-8 bg-emerald-500 rounded" />
-                </h4>
-                
-                <div className="space-y-4">
-                  {points.map((pt) => {
-                    const subtitle = getHighlightSubtitle(pt);
-                    return (
-                      <div key={pt} className="flex items-start gap-2.5">
-                        <CheckCircleIcon className="text-emerald-500 shrink-0 mt-0.5 !text-lg" />
-                        <div>
-                          <p className="text-xs font-black text-slate-800 leading-snug">{pt}</p>
-                          <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug">{subtitle}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+            {/* Left panel: highlights (hidden for ICSE Class 9) */}
+            {!hideHighlights && (
+              <div className="md:col-span-5 border border-slate-100 bg-slate-50/10 rounded-3xl p-5 flex flex-col justify-between">
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-5 relative inline-block">
+                    Key Highlights
+                    <span className="absolute bottom-[-6px] left-0 h-[2px] w-8 bg-emerald-500 rounded" />
+                  </h4>
 
-              {/* Decorative dot array in the corner */}
-              <div className="flex justify-end opacity-20 mt-6 pointer-events-none">
-                <div className="grid grid-cols-4 gap-[4px]">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <span key={i} className="h-[2.5px] w-[2.5px] rounded-full bg-slate-400" />
-                  ))}
+                  <div className="space-y-4">
+                    {points.map((pt) => {
+                      const subtitle = getHighlightSubtitle(pt);
+                      return (
+                        <div key={pt} className="flex items-start gap-2.5">
+                          <CheckCircleIcon className="text-emerald-500 shrink-0 mt-0.5 !text-lg" />
+                          <div>
+                            <p className="text-xs font-black text-slate-800 leading-snug">{pt}</p>
+                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug">{subtitle}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Decorative dot array in the corner */}
+                <div className="flex justify-end opacity-20 mt-6 pointer-events-none">
+                  <div className="grid grid-cols-4 gap-[4px]">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <span key={i} className="h-[2.5px] w-[2.5px] rounded-full bg-slate-400" />
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Right panel: syllabus stack */}
-            <div className="md:col-span-7 space-y-4">
+            <div className={hideHighlights ? "md:col-span-12 space-y-4" : "md:col-span-7 space-y-4"}>
               <div>
                 <h4 className="text-xs font-black uppercase tracking-wider text-blue-600 mb-5 relative inline-block">
                   What Students Learn & Practice
                   <span className="absolute bottom-[-6px] left-0 h-[2px] w-8 bg-blue-500 rounded" />
                 </h4>
-                
+
                 <div className="space-y-2.5">
                   {topicsList.slice(0, 4).map((t, idx) => {
                     const topicInfo = getTopicInfo(t);
@@ -295,7 +299,7 @@ export default function CourseModal({
                             <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug break-words">{topicInfo.sub}</p>
                           </div>
                         </div>
-                        
+
                         <div className="shrink-0 w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center mt-0.5">
                           {topicInfo.icon}
                         </div>
@@ -326,55 +330,19 @@ export default function CourseModal({
         </div>
 
         {/* Sticky footer buttons area */}
-        <div className="border-t border-slate-100 p-4 sm:p-6 bg-slate-50/60 grid grid-cols-1 sm:grid-cols-2 gap-3 sticky bottom-0 z-20">
-          <Button
-            variant="outlined"
-            href={`https://wa.me/919967442515?text=Hi%20KGurukul,%20I%20want%20to%20download%20the%20syllabus%20for%20${encodeURIComponent(course.class + ' ' + course.name)}`}
-            target="_blank"
-            rel="noreferrer"
-            startIcon={<DownloadIcon />}
-            sx={{
-              borderRadius: 3,
-              py: isMobile ? 1 : 1.5,
-              fontWeight: 700,
-              textTransform: "none",
-              fontSize: 13,
-              borderColor: "#cbd5e1",
-              color: "#334155",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-              "&:hover": {
-                borderColor: "#94a3b8",
-                bgcolor: "#f8fafc",
-              },
-            }}
-          >
-            Download Syllabus
-          </Button>
-
+        <div className="border-t border-slate-100 p-4 sm:p-6 bg-slate-50/60 flex justify-center sticky bottom-0 z-20">
           <Button
             variant="contained"
+            size="large"
             endIcon={<ArrowForwardIcon />}
             onClick={() => {
               onClose();
               onEnroll(`${course.class} ${course.name}`);
             }}
-            sx={{
-              borderRadius: 3,
-              py: isMobile ? 1 : 1.5,
-              fontWeight: 700,
-              textTransform: "none",
-              fontSize: 13,
-              background: "#2563eb",
-              boxShadow: "0 8px 20px -6px rgba(37,99,235,0.4)",
-              "&:hover": {
-                background: "#1d4ed8",
-              },
-            }}
           >
             Enroll Now
           </Button>
         </div>
-
       </div>
     </Dialog>
   );

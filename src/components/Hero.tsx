@@ -8,9 +8,7 @@ import CodeIcon from "@mui/icons-material/Code";
 import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import heroIllustration from "../assets/hero-illustration.png";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import VerifiedIcon from "@mui/icons-material/Verified";
-
+ 
 interface Step {
   title: string;
   icon: React.ReactElement<SvgIconProps>;
@@ -55,9 +53,9 @@ interface HeadlinePhrase {
 }
 
 const HEADLINE_PHRASES: HeadlinePhrase[] = [
-  { word1: "bright", word2: "future" },
-  { word1: "tech", word2: "career" },
-  { word1: "coding", word2: "skills" },
+  { word1: "Bright", word2: "Future" },
+  { word1: "Tech", word2: "Career" },
+  { word1: "Coding", word2: "Skills" },
 ];
 
 const TYPING_SPEED_MS = 80;
@@ -243,15 +241,7 @@ export default function Hero() {
           {/* Left Column: Hero Content */}
           <div className="lg:col-span-6 space-y-5">
             
-            {/* Trust Badge */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-50 to-blue-50 border border-amber-200/60 rounded-full px-3.5 py-1.5 shadow-sm">
-              <EmojiEventsIcon sx={{ fontSize: 18 }} className="text-amber-500" />
-              <span className="text-xs font-bold text-slate-800">
-                #1 Rated Computer Institute in Thane
-              </span>
-              <VerifiedIcon sx={{ fontSize: 15 }} className="text-blue-600" />
-            </div>
-
+            
             {/* Learn - Code - Succeed Banner Pills */}
             <div className="flex items-center gap-1 sm:gap-2.5 py-1">
               {STEPS.map((s, i) => (
@@ -270,7 +260,7 @@ export default function Hero() {
 
             {/* Headline */}
             <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-[2.6rem] lg:text-4xl xl:text-5xl font-black text-slate-900 leading-tight tracking-tight whitespace-nowrap">
-              Build your <TypingHeadline phrases={HEADLINE_PHRASES} />
+              Build Your <TypingHeadline phrases={HEADLINE_PHRASES} />
             </h1>
 
             {/* Subtitle */}

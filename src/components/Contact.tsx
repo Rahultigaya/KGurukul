@@ -35,7 +35,7 @@ const CONTACT_ITEMS = [
   {
     icon: <PhoneIcon fontSize="small" />,
     label: "Call Us Direct",
-    text: "+91 9967442515, +91 8879987836",
+    text: "+91 9967442515, +91 9930776829",
     bg: "#dcfce7",
     color: "#16a34a",
     link: "tel:+919967442515",
@@ -43,15 +43,15 @@ const CONTACT_ITEMS = [
   {
     icon: <EmailIcon fontSize="small" />,
     label: "Email Support",
-    text: "kgurukuls90@gmail.com",
+    text: "kgurukuls09@gmail.com",
     bg: "#fef3c7",
     color: "#d97706",
-    link: "mailto:kgurukuls90@gmail.com",
+    link: "mailto:kgurukuls09@gmail.com",
   },
   {
     icon: <AccessTimeIcon fontSize="small" />,
     label: "Working Hours",
-    text: "Mon - Sat: 9:00 AM - 8:00 PM (Sunday Closed)",
+    text: "Monday - Sunday : 11:00 AM - 8:00 PM ",
     bg: "#ede9fe",
     color: "#7c3aed",
   },
@@ -106,7 +106,7 @@ export default function Contact() {
       `}</style>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        
+
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
@@ -121,7 +121,7 @@ export default function Contact() {
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center">
-          
+
           {/* Left Column: Contact Cards */}
           <div className="lg:col-span-5 space-y-3">
             {CONTACT_ITEMS.map((item, i) => (

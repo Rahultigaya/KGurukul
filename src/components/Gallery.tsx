@@ -53,7 +53,7 @@ export default function Gallery({ onOpenLightbox }: GalleryProps) {
         {/* Header */}
         <div className="text-center mb-5">
           <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-            Campus Life & Events
+            OUR GALLERY
           </span>
           <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
             <span className="text-blue-600">Moments</span> at KGurukul's

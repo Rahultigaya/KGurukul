@@ -11,7 +11,7 @@ const FEATURES = [
     color: "#2563eb",
     bg: "#dbeafe",
     title: "30+ Yrs Expert Faculty",
-    desc: "Learn directly from Prof. Santoush Chipdey with 30+ years of teaching legacy.",
+    desc: "Learn directly from Prof. Santoush P Chipdey with 30+ years of teaching legacy.",
   },
   {
     icon: <MenuBookIcon sx={{ fontSize: 20 }} />,
@@ -65,7 +65,7 @@ export default function WhyChoose() {
                 Why Choose <span className="text-blue-600">KGurukul</span>?
             </h2>
             <p className="text-slate-500 text-base leading-relaxed max-w-sm">
-              At KGurukul, we go beyond standard textbooks to nurture logic, problem-solving, and coding confidence. Through Prof. Santoush Chipdey's veteran pedagogy, personalized worksheets, and structured practical lab sessions, we bridge the gap between classroom theory and real-world execution.
+              At KGurukul, we go beyond standard textbooks to nurture logic, problem-solving, and coding confidence. Through Prof. Santoush P Chipdey's veteran pedagogy, personalized worksheets, and structured practical lab sessions, we bridge the gap between classroom theory and real-world execution.
             </p>
           </div>
 

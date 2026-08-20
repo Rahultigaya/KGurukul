@@ -186,13 +186,13 @@ export default function About() {
             {/* Sub-grid: Paragraphs on the left, Stats on the right */}
             <div className="grid md:grid-cols-12 gap-5 items-center pt-0.5">
               <div className="md:col-span-8 space-y-3">
-                <p className="text-slate-600 text-xs sm:text-base leading-relaxed">
+                <p className="text-slate-600 text-xs sm:text-base leading-relaxed text-justify">
                   KGurukul is a premier computer education institute in Thane dedicated to equipping 
                   ICSE, HSC, and ISC students with foundational and advanced computer programming skills. 
                   With over 30 years of teaching excellence, we combine structured board syllabi with hands-on 
                   practical lab coding.
                 </p>
-                <p className="text-slate-600 text-xs sm:text-base leading-relaxed">
+                <p className="text-slate-600 text-xs sm:text-base leading-relaxed text-justify">
                   Our unique pedagogy focuses on logic building and deep conceptual understanding, moving away 
                   from rote memorization. Through customized study materials, topic-wise worksheets, and regular 
                   mock exams, we build the confidence and skills required to excel in school board exams and beyond.

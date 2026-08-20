@@ -14,7 +14,7 @@ const QUICK_LINKS = [
   { label: "Success Stories", href: "#toppers" },
   { label: "About Us", href: "#about" },
   { label: "Courses", href: "#courses" },
-  { label: "Our Teachers", href: "#mentors" },
+  { label: "Our Mentors", href: "#mentors" },
   { label: "Gallery", href: "#gallery" },
   { label: "Contact Us", href: "#contact" },
 ];

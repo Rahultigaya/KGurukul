@@ -21,7 +21,7 @@ const MENTORS = [
     tag: "FOUNDER & LEAD EDUCATOR",
     tagColor: "bg-blue-600",
     photo: founder_img,
-    name: "Santoush Chipdey",
+    name: "Santoush P Chipdey",
     role: "Founder & Lead Educator",
     roleColor: "text-blue-600",
     accentColor: "bg-blue-600",
@@ -29,7 +29,7 @@ const MENTORS = [
     statBg: "bg-blue-50/50 border-blue-100/50",
     statValueColor: "text-blue-900",
     statIconColor: "#2563eb",
-    education: ["M.Sc. Computer Science", "B.Ed."],
+    education: ["MCA","ADCSSA"],
     bio: "Experienced in teaching programming and computer science. Passionate about making complex concepts simple and engaging.",
     tags: [
       { Icon: CodeIcon, label: "Programming" },
@@ -42,18 +42,18 @@ const MENTORS = [
     tagColorClasses: "bg-blue-50/60 text-blue-700 border border-blue-100/50",
   },
   {
-    tag: "DIRECTOR & MANAGEMENT",
+    tag: "DIRECTOR",
     tagColor: "bg-emerald-600",
     photo: co_founder_img,
     name: "Riyaa Chipdey",
-    role: "Director & Management",
+    role: "Director Of Admin",
     roleColor: "text-emerald-600",
     accentColor: "bg-emerald-600",
     stat: { Icon: EmojiEventsIcon, value: "100%", label: "Results Track Record" },
     statBg: "bg-emerald-50/50 border-emerald-100/50",
     statValueColor: "text-emerald-900",
     statIconColor: "#16a34a",
-    education: ["M.Sc. Mathematics", "NET Qualified"],
+education: ["B.Ed.", "M.Ed.", "ADCSSA"],
     bio: "Expert in competitive exam preparation with a track record of 100% results. Specializes in calculus, algebra, and statistics.",
     tags: [
       { Icon: FunctionsIcon, label: "Mathematics" },
@@ -96,9 +96,9 @@ function MentorCard({ mentor }: { mentor: any }) {
 
           {/* Details Column */}
           <div className="flex flex-col text-center sm:text-left flex-1 min-w-0">
-            <h3 className="text-3xl font-black font-serif-display text-slate-900 leading-none">
-              {mentor.name}
-            </h3>
+        <h3 className="text-3xl font-black font-serif-display text-slate-900 leading-none mb-1 [word-spacing:0.15em]">
+  {mentor.name}
+</h3>
             
             <p className={`text-sm font-bold mt-1.5 leading-none ${mentor.roleColor}`}>
               {mentor.role}
@@ -174,7 +174,7 @@ export default function Mentors() {
             Leadership & Faculty
           </span>
           <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
-            Meet Our <span className="text-blue-600">Expert Teachers</span>
+            Meet Our <span className="text-blue-600">Mentors</span>
           </h2>
           <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl mx-auto">
             Decades of experience. Passion for teaching. Dedicated to your board success.

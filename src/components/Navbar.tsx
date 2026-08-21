@@ -165,18 +165,19 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu toggle */}
-          <IconButton
-            className="lg:hidden"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Toggle menu"
-            sx={{
-              color: "#1e293b",
-              bgcolor: "#f1f5f9",
-              "&:hover": { bgcolor: "#e2e8f0" },
-            }}
-          >
-            {open ? <CloseIcon /> : <MenuIcon />}
-          </IconButton>
+          <div className="lg:hidden">
+            <IconButton
+              onClick={() => setOpen((v) => !v)}
+              aria-label="Toggle menu"
+              sx={{
+                color: "#1e293b",
+                bgcolor: "#f1f5f9",
+                "&:hover": { bgcolor: "#e2e8f0" },
+              }}
+            >
+              {open ? <CloseIcon /> : <MenuIcon />}
+            </IconButton>
+          </div>
         </div>
 
         {/* Mobile nav Drawer */}

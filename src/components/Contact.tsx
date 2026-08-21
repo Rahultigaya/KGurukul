@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
@@ -67,6 +67,13 @@ export default function Contact() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // trigger entrance animations shortly after mount
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleChange = (field: string) => (e: React.ChangeEvent<any>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -98,17 +105,72 @@ export default function Contact() {
       className="relative overflow-hidden py-10 lg:py-0 lg:h-screen lg:min-h-[600px] xl:min-h-[720px] lg:flex lg:items-center bg-white"
     >
       <style>{`
-        .ct-field .MuiOutlinedInput-root { border-radius: 12px; }
+        .ct-field .MuiOutlinedInput-root { border-radius: 12px; transition: box-shadow 0.25s ease, transform 0.25s ease; }
         .ct-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
           border-color: #2563eb;
         }
+        .ct-field .MuiOutlinedInput-root.Mui-focused {
+          box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+        }
         .ct-field .MuiInputLabel-root.Mui-focused { color: #2563eb; }
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(18px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.94); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulseRing {
+          0% { box-shadow: 0 0 0 0 rgba(37,211,102,0.45); }
+          70% { box-shadow: 0 0 0 10px rgba(37,211,102,0); }
+          100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+        }
+        @keyframes checkPop {
+          0% { transform: scale(0); opacity: 0; }
+          60% { transform: scale(1.2); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+
+        .ct-header {
+          opacity: 0;
+          animation: fadeUp 0.6s ease forwards;
+        }
+        .ct-card {
+          opacity: 0;
+          animation: fadeUp 0.55s ease forwards;
+        }
+        .ct-whatsapp {
+          opacity: 0;
+          animation: fadeUp 0.55s ease forwards, pulseRing 2.4s ease-in-out 1.5s infinite;
+        }
+        .ct-form-wrap {
+          opacity: 0;
+          animation: scaleIn 0.6s ease 0.25s forwards;
+        }
+        .ct-success {
+          animation: fadeUp 0.4s ease forwards;
+        }
+        .ct-check {
+          animation: checkPop 0.5s ease forwards;
+        }
+        .ct-submit-btn {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .ct-submit-btn:active {
+          transform: scale(0.97);
+        }
       `}</style>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
+        <div className="text-center mb-6 sm:mb-8 ct-header">
           <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
             Get In Touch
           </span>
@@ -128,12 +190,13 @@ export default function Contact() {
               <a
                 key={i}
                 href={item.link || "#"}
-                target={item.link?.startsWith("http") ? "_blank" : "_self"}
+                target={item.link && item.link.startsWith("http") ? "_blank" : "_self"}
                 rel="noreferrer"
-                className="flex items-start gap-3.5 bg-slate-50 rounded-2xl border border-slate-250 p-3.5 sm:p-4 hover:bg-white hover:shadow-md hover:border-blue-200 transition-all duration-300 group"
+                className="ct-card flex items-start gap-3.5 bg-slate-50 rounded-2xl border border-slate-200 p-3.5 sm:p-4 hover:bg-white hover:shadow-md hover:border-blue-200 transition-all duration-300 group"
+                style={{ animationDelay: `${0.15 + i * 0.1}s` }}
               >
                 <span
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs transition-transform duration-300 group-hover:scale-110"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
                   style={{ backgroundColor: item.bg, color: item.color }}
                 >
                   {item.icon}
@@ -154,17 +217,19 @@ export default function Contact() {
               href="https://wa.me/919967442515?text=Hi%20KGurukul!%20I%20want%20to%20enroll%20in%20a%20course."
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-2.5 text-sm sm:text-base font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-2xl py-3 shadow-md shadow-emerald-500/10 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 mt-2"
+              className="ct-whatsapp flex items-center justify-center gap-2.5 text-sm sm:text-base font-bold text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-2xl py-3 shadow-md shadow-emerald-500/10 hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mt-2"
+              style={{ animationDelay: "0.55s" }}
             >
-              <WhatsAppIcon fontSize="medium" /> Chat directly on WhatsApp
+              <WhatsAppIcon fontSize="medium" className="animate-bounce" style={{ animationDuration: "2s" }} />
+              Chat directly on WhatsApp
             </a>
           </div>
 
           {/* Right Column: Contact Form */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 ct-form-wrap">
             <form
               onSubmit={handleSubmit}
-              className="ct-field bg-slate-50/80 rounded-3xl border border-slate-200/80 shadow-md p-5 sm:p-6 space-y-4"
+              className="ct-field bg-slate-50/80 rounded-3xl border border-slate-200/80 shadow-md p-5 sm:p-6 space-y-4 transition-shadow duration-300 hover:shadow-lg"
             >
               <div>
                 <h3 className="font-serif-display text-xl sm:text-2xl font-bold text-slate-900 mb-0.5">
@@ -176,8 +241,8 @@ export default function Contact() {
               </div>
 
               {submitted && (
-                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">
-                  <CheckCircleIcon fontSize="small" className="text-emerald-600" />
+                <div className="ct-success flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">
+                  <CheckCircleIcon fontSize="small" className="text-emerald-600 ct-check" />
                   Your message has been sent! We will contact you shortly.
                 </div>
               )}
@@ -246,6 +311,7 @@ export default function Contact() {
                 variant="contained"
                 fullWidth
                 endIcon={<SendIcon fontSize="small" />}
+                className="ct-submit-btn"
                 sx={{
                   borderRadius: 3,
                   py: 1.25,
@@ -256,6 +322,7 @@ export default function Contact() {
                   boxShadow: "0 6px 16px -4px rgba(37,99,235,0.4)",
                   "&:hover": {
                     background: "linear-gradient(135deg, #1d4ed8, #15803d)",
+                    boxShadow: "0 8px 20px -4px rgba(37,99,235,0.55)",
                   },
                 }}
               >
@@ -263,9 +330,8 @@ export default function Contact() {
               </Button>
             </form>
           </div>
-
+</div>
         </div>
-      </div>
-    </section>
+    </section >
   );
 }

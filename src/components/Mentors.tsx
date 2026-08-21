@@ -78,7 +78,7 @@ const cardVariants = {
     scale: 1,
     transition: {
       duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      ease: [0.22, 1, 0.36, 1] as const,
       delay: i * 0.15,
       staggerChildren: 0.08,
       delayChildren: i * 0.15 + 0.15,
@@ -88,17 +88,17 @@ const cardVariants = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" as const } },
 };
 
 const fadeIn = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
+  show: { opacity: 1, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
 const scaleX = {
   hidden: { scaleX: 0 },
-  show: { scaleX: 1, transition: { duration: 0.4, ease: "easeOut" } },
+  show: { scaleX: 1, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 const tagContainer = {
@@ -108,7 +108,7 @@ const tagContainer = {
 
 const tagItem = {
   hidden: { opacity: 0, y: 6 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
 };
 
 function MentorCard({ mentor, index }: { mentor: any; index: number }) {

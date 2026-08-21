@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
@@ -67,13 +67,6 @@ export default function Contact() {
   });
 
   const [submitted, setSubmitted] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // trigger entrance animations shortly after mount
-    const t = setTimeout(() => setMounted(true), 50);
-    return () => clearTimeout(t);
-  }, []);
 
   const handleChange = (field: string) => (e: React.ChangeEvent<any>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));

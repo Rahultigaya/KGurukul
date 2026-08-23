@@ -18,9 +18,6 @@ const COURSE_OPTIONS = [
   "HSC Std-XII (CS1 + CS2)",
   "ISC Std-XI (CS1 + CS2)",
   "ISC Std-XII (CS1 + CS2)",
-  "Python Programming",
-  "Web Development",
-  "C / C++ Programming",
 ];
 
 const CONTACT_ITEMS = [
@@ -67,11 +64,12 @@ export default function Contact() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field: string) => (e: React.ChangeEvent<any>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.phone) {
       Swal.fire({
@@ -83,11 +81,65 @@ export default function Contact() {
       return;
     }
 
+    setLoading(true);
+
+    // 1. Prepare WhatsApp pre-filled message & URL
+    const whatsappMessage = encodeURIComponent(
+      `New Student Inquiry - KGurukul Website\n\n` +
+      `- Name: ${form.name}\n` +
+      `- Phone: ${form.phone}\n` +
+      (form.email ? `- Email: ${form.email}\n` : "") +
+      `- Course: ${form.course}\n` +
+      (form.message ? `- Message: ${form.message}\n` : "") +
+      `\nI would like to know more about this course and would appreciate your guidance regarding the next steps.\n\n` +
+      `Thank you!`
+    );
+    const whatsappUrl = `https://wa.me/919967442515?text=${whatsappMessage}`;
+
+    // 2. Send email notification directly to kgurukuls09@gmail.com via FormSubmit AJAX
+    try {
+      await fetch("https://formsubmit.co/ajax/kgurukuls09@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          _subject: `🚨 [IMPORTANT INQUIRY] ${form.name} - ${form.course}`,
+          _template: "table",
+          _captcha: "false",
+          "📌 INQUIRY STATUS": "🚨 HIGH PRIORITY - NEW STUDENT INQUIRY",
+          "Student / Parent Name": form.name,
+          "Phone Number": form.phone,
+          "Email Address": form.email || "Not Provided",
+          "Interested Course": form.course,
+          "Questions / Details": form.message || "No additional message",
+        }),
+      });
+    } catch (err) {
+      console.error("Email submission error:", err);
+    }
+
+    setLoading(false);
     setSubmitted(true);
+
+    // Reset form fields
+    setForm({
+      name: "",
+      email: "",
+      phone: "",
+      course: "ICSE Std-X (Advanced Java)",
+      message: "",
+    });
+
+    // 3. Open WhatsApp and show sweetalert success dialog
+    window.open(whatsappUrl, "_blank");
+
     Swal.fire({
       icon: "success",
-      title: "Inquiry Submitted!",
-      text: `Thank you ${form.name}! We have received your inquiry for ${form.course}. Our team will contact you within 4 hours.`,
+      title: "Inquiry Sent!",
+      text: `Thank you ${form.name}! Your inquiry for ${form.course} has been sent via Email to kgurukuls09@gmail.com and WhatsApp. Our team will contact you shortly!`,
+      confirmButtonText: "Great!",
       confirmButtonColor: "#16a34a",
     });
   };
@@ -303,6 +355,7 @@ export default function Contact() {
                 type="submit"
                 variant="contained"
                 fullWidth
+                disabled={loading}
                 endIcon={<SendIcon fontSize="small" />}
                 className="ct-submit-btn"
                 sx={{
@@ -319,12 +372,12 @@ export default function Contact() {
                   },
                 }}
               >
-                Submit Inquiry
+                {loading ? "Sending Inquiry..." : "Submit Inquiry"}
               </Button>
             </form>
           </div>
-</div>
         </div>
+      </div>
     </section >
   );
 }

@@ -7,108 +7,38 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Button from "@mui/material/Button";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CodeIcon from "@mui/icons-material/Code";
-import CalculateIcon from "@mui/icons-material/Calculate";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import LoopIcon from "@mui/icons-material/Loop";
-import StorageIcon from "@mui/icons-material/Storage";
-import SettingsIcon from "@mui/icons-material/Settings";
- import TargetIcon from "@mui/icons-material/MyLocation";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import type { ComponentType } from "react";
+
+export interface HighlightItem {
+  title: string;
+  subtitle: string;
+}
+
+export interface TopicItem {
+  title: string;
+  subtitle: string;
+  icon: ComponentType<{ fontSize?: "small" | "medium" | "large"; className?: string }>;
+  iconColor?: string;
+}
 
 export interface CourseDetail {
   class: string;
   name: string;
   description: string;
-  details: string;
+   highlights: HighlightItem[];
   images: string[];
   duration?: string;
   prerequisites?: string;
-  topics?: string[];
+  topics: TopicItem[];
   showHighlights?: boolean;
 }
+
 interface CourseModalProps {
   course: CourseDetail | null;
   onClose: () => void;
   onEnroll: (courseName: string) => void;
 }
-
-const getHighlightSubtitle = (point: string) => {
-  const p = point.toLowerCase().trim();
-  if (p.includes("java fundamentals")) return "Basics of Java and OOP concepts";
-  if (p.includes("programming basics")) return "Logic building and problem solving";
-  if (p.includes("school exam")) return "Important questions & exam tips";
-  if (p.includes("practical coding")) return "Hands-on coding and assignments";
-
-  if (p.includes("advanced java")) return "Advanced Java & object-oriented programming";
-  if (p.includes("oop concepts")) return "Classes, constructors, and encapsulation";
-  if (p.includes("prelim exam") || p.includes("prelim mocks")) return "Full-length board pattern rehearsals";
-  if (p.includes("board exam")) return "10-years papers practice & scoring tips";
-
-  if (p.includes("programming fundamentals")) return "Core algorithms and syntax basics";
-  if (p.includes("practical preparation")) return "Lab manual completion and test cases";
-  if (p.includes("annual exam")) return "Revision lectures & prep sheets";
-  if (p.includes("regular assessment")) return "Weekly tests to evaluate concept clarity";
-
-  if (p.includes("advanced programming")) return "Complex logic, data structures & recursion";
-  if (p.includes("mock board")) return "Full syllabus timed tests";
-  if (p.includes("viva preparation") || p.includes("viva prep")) return "Confidence training for examiner viva";
-
-  return "Comprehensive syllabus coverage & practice";
-};
-
-const getTopicInfo = (topic: string) => {
-  const t = topic.toLowerCase();
-
-  if (t.includes("introduction to java") || t.includes("basics of programming")) {
-    return {
-      sub: "Understand Java environment, classes, objects, and basic OOP principles.",
-      icon: <CodeIcon fontSize="small" className="text-blue-600" />
-    };
-  }
-  if (t.includes("data types") || t.includes("variables")) {
-    return {
-      sub: "Learn different data types, variables, declarations, and operators in Java.",
-      icon: <CalculateIcon fontSize="small" className="text-emerald-600" />
-    };
-  }
-  if (t.includes("control structures") || t.includes("decision")) {
-    return {
-      sub: "Implement decision making and branching using conditional statements.",
-      icon: <AccountTreeIcon fontSize="small" className="text-amber-600" />
-    };
-  }
-  if (t.includes("iterative constructs") || t.includes("loops")) {
-    return {
-      sub: "Use loops to solve real-world programming problems efficiently.",
-      icon: <LoopIcon fontSize="small" className="text-indigo-600" />
-    };
-  }
-
-  if (t.includes("array") || t.includes("data structures")) {
-    return {
-      sub: "Master arrays, lists, stacks, queues, and other linear data structures.",
-      icon: <StorageIcon fontSize="small" className="text-purple-600" />
-    };
-  }
-  if (t.includes("oop") || t.includes("class") || t.includes("method")) {
-    return {
-      sub: "Structure clean, reusable modules using methods, constructors, and classes.",
-      icon: <CodeIcon fontSize="small" className="text-blue-600" />
-    };
-  }
-  if (t.includes("board") || t.includes("exam") || t.includes("prelim") || t.includes("mock")) {
-    return {
-      sub: "Solve mock exam papers and board revision questions to build confidence.",
-      icon: <CheckCircleIcon fontSize="small" className="text-rose-600" />
-    };
-  }
-
-  return {
-    sub: "Deep dive into code logic, concept reviews, and practical programming exercises.",
-    icon: <SettingsIcon fontSize="small" className="text-slate-500" />
-  };
-};
 
 export default function CourseModal({
   course,
@@ -119,18 +49,6 @@ export default function CourseModal({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (!course) return null;
-
-  const points = course.details
-    .split("|")
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  const topicsList = course.topics || [
-    "Core Theory & Fundamentals",
-    "Hands-on Lab Coding Practice",
-    "Previous Board Exam Papers & Solutions",
-    "Weekly Chapter Tests & Mock Prelims",
-  ];
 
   // Hide the highlights panel specifically for ICSE Class 9
   const hideHighlights = course.showHighlights === false;
@@ -248,18 +166,15 @@ export default function CourseModal({
                   </h4>
 
                   <div className="space-y-4">
-                    {points.map((pt) => {
-                      const subtitle = getHighlightSubtitle(pt);
-                      return (
-                        <div key={pt} className="flex items-start gap-2.5">
-                          <CheckCircleIcon className="text-emerald-500 shrink-0 mt-0.5 !text-lg" />
-                          <div>
-                            <p className="text-xs font-black text-slate-800 leading-snug">{pt}</p>
-                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug">{subtitle}</p>
-                          </div>
+                    {course.highlights.map((h) => (
+                      <div key={h.title} className="flex items-start gap-2.5">
+                        <CheckCircleIcon className="text-emerald-500 shrink-0 mt-0.5 !text-lg" />
+                        <div>
+                          <p className="text-xs font-black text-slate-800 leading-snug">{h.title}</p>
+                          <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug">{h.subtitle}</p>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -283,11 +198,11 @@ export default function CourseModal({
                 </h4>
 
                 <div className="space-y-2.5">
-                  {topicsList.slice(0, 4).map((t, idx) => {
-                    const topicInfo = getTopicInfo(t);
+                  {course.topics.map((t, idx) => {
+                    const TopicIcon = t.icon;
                     return (
                       <div
-                        key={idx}
+                        key={t.title}
                         className="flex items-start justify-between gap-3 bg-white border border-slate-100 rounded-xl p-3 shadow-xs hover:shadow-sm transition-all duration-200"
                       >
                         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -295,13 +210,13 @@ export default function CourseModal({
                             {idx + 1}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-black text-slate-800 leading-snug break-words">{t}</p>
-                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug break-words">{topicInfo.sub}</p>
+                            <p className="text-xs font-black text-slate-800 leading-snug break-words">{t.title}</p>
+                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-snug break-words">{t.subtitle}</p>
                           </div>
                         </div>
 
                         <div className="shrink-0 w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center mt-0.5">
-                          {topicInfo.icon}
+                          <TopicIcon fontSize="small" className={t.iconColor ?? "text-slate-500"} />
                         </div>
                       </div>
                     );
@@ -311,22 +226,7 @@ export default function CourseModal({
             </div>
           </div>
 
-          {/* Target highlight info bar */}
-          <div className="flex items-center gap-3.5 p-3.5 bg-blue-50/40 border border-blue-100 rounded-2xl">
-            <span className="w-10 h-10 rounded-full bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0">
-              <TargetIcon fontSize="small" />
-            </span>
-            <div>
-              <p className="text-xs font-black text-blue-900 leading-tight">
-                {course.class === "ICSE"
-                  ? "Build a Strong Foundation in Java Programming"
-                  : "Build a Strong Foundation in Computer Science"}
-              </p>
-              <p className="text-[10px] font-bold text-blue-700/80 mt-0.5 leading-tight">
-                Boost your logic, coding, and problem-solving skills for a successful future.
-              </p>
-            </div>
-          </div>
+          
         </div>
 
         {/* Sticky footer buttons area */}

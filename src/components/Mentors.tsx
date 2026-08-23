@@ -1,19 +1,18 @@
 import { motion } from "framer-motion";
 import StarIcon from "@mui/icons-material/Star";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import SchoolIcon from "@mui/icons-material/School";
-import CodeIcon from "@mui/icons-material/Code";
+ import CodeIcon from "@mui/icons-material/Code";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import PublicIcon from "@mui/icons-material/Public";
 import MemoryIcon from "@mui/icons-material/Memory";
 import LightbulbIcon from "@mui/icons-material/Lightbulb";
 import GroupsIcon from "@mui/icons-material/Groups";
-import FunctionsIcon from "@mui/icons-material/Functions";
-import CalculateIcon from "@mui/icons-material/Calculate";
-import ExposureIcon from "@mui/icons-material/Exposure";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import GpsFixedIcon from "@mui/icons-material/GpsFixed";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import SchoolIcon from "@mui/icons-material/School";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import EventNoteIcon from "@mui/icons-material/EventNote";
+import PsychologyIcon from "@mui/icons-material/Psychology";
 import founder_img from "../assets/Santoush_Chipdey.jpeg";
 import co_founder_img from "../assets/Riyaa_Chipdey.jpeg";
 
@@ -55,15 +54,15 @@ const MENTORS = [
     statValueColor: "text-emerald-900",
     statIconColor: "#16a34a",
     education: ["B.Ed.", "M.Ed.", "ADCSSA"],
-    bio: "Expert in competitive exam preparation with a track record of 100% results. Specializes in calculus, algebra, and statistics.",
-    tags: [
-      { Icon: FunctionsIcon, label: "Mathematics" },
-      { Icon: CalculateIcon, label: "Calculus" },
-      { Icon: ExposureIcon, label: "Algebra" },
-      { Icon: BarChartIcon, label: "Statistics" },
-      { Icon: GpsFixedIcon, label: "Exam Strategy" },
-      { Icon: AutoAwesomeIcon, label: "Concept Clarity" },
-    ],
+    bio: "Dedicated to effective administration and student development. Passionate about creating a supportive learning environment where every student can thrive.",
+   tags: [
+  { Icon: AdminPanelSettingsIcon, label: "Administration" },
+  { Icon: SchoolIcon, label: "Student Development" },
+  { Icon: SupportAgentIcon, label: "Remedial Learning" },
+  { Icon: AssessmentIcon, label: "Academic Monitoring" },
+  { Icon: EventNoteIcon, label: "Exam Strategy" },
+  { Icon: PsychologyIcon, label: "Career Counselling" },
+],
     tagColorClasses: "bg-emerald-50/60 text-emerald-700 border border-emerald-100/50",
   },
 ];
@@ -223,7 +222,7 @@ function MentorCard({ mentor, index }: { mentor: any; index: number }) {
         {/* Skill Tags */}
         <motion.div
           variants={tagContainer}
-          className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-2 items-stretch"
         >
           {mentor.tags.map((t: any) => {
             const TagIcon = t.Icon;
@@ -234,10 +233,10 @@ function MentorCard({ mentor, index }: { mentor: any; index: number }) {
                 whileHover={{ scale: 1.06, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                className={`flex items-center justify-center gap-1.5 ${mentor.tagColorClasses} text-xs font-bold rounded-xl px-2 py-2 cursor-default shadow-2xs`}
+                className={`flex items-center justify-center gap-1.5 text-center ${mentor.tagColorClasses} text-xs font-bold rounded-xl px-2 py-2 cursor-default shadow-2xs min-h-[2.75rem]`}
               >
                 <TagIcon sx={{ fontSize: 14 }} className="shrink-0" />
-                <span className="truncate">{t.label}</span>
+                <span className="leading-tight whitespace-normal break-words">{t.label}</span>
               </motion.div>
             );
           })}

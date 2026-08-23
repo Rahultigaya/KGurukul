@@ -8,6 +8,27 @@ import TopperCard from "./TopperCard";
 // Your leaf/laurel ornament images — update the path if they live elsewhere.
 import leftLeaves from "../assets/left-leaves.png";
 import rightLeaves from "../assets/right-leaves.png";
+import dummyUserPhoto from "../assets/dummy_user2.png";
+
+// Dynamically load all topper photos from src/assets/toppers/
+const topperPhotos = import.meta.glob("../assets/toppers/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG,WEBP}", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+
+export const getTopperPhoto = (photo: string): string => {
+  if (!photo || photo.trim() === "") return dummyUserPhoto;
+  if (photo.startsWith("http://") || photo.startsWith("https://") || photo.startsWith("data:")) {
+    return photo;
+  }
+  const filename = photo.split("/").pop();
+  for (const [path, url] of Object.entries(topperPhotos)) {
+    if (path.endsWith(`/${filename}`)) {
+      return url;
+    }
+  }
+  return dummyUserPhoto;
+};
 
 interface Performer {
   rank: number;
@@ -19,94 +40,55 @@ interface Performer {
   batch: string;
 }
 
-// The last 4 academic years shown as tabs, newest first.
-const YEARS = ["2025", "2024", "2023", "2022"] as const;
-type AcademicYear = (typeof YEARS)[number];
-
-// Base student list (photo/course/school stay put here for the demo).
-// TODO: replace each of these four arrays with your real toppers list for
-// that academic year. Right now they're distinct placeholder rosters just
-// so you can see the year tabs actually swap the list.
-const PERFORMERS_2025: Omit<Performer, "batch">[] = [
-  { rank: 1, name: "Aditya Sharma", course: "Python Development", school: "Modern College, Pune", score: "92%", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 2, name: "Priya Verma", course: "Web Development", school: "Fergusson College, Pune", score: "90%", photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 3, name: "Rahul Mehta", course: "Data Structures", school: "Garware College, Pune", score: "88%", photo: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 4, name: "Sneha Iyer", course: "Java Programming", school: "BMCC, Pune", score: "87%", photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 5, name: "Karan Malhotra", course: "C / C++ Programming", school: "Modern College, Pune", score: "86%", photo: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 6, name: "Ananya Reddy", course: "Web Development", school: "Fergusson College, Pune", score: "85%", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 7, name: "Vivaan Joshi", course: "Python Development", school: "Garware College, Pune", score: "84%", photo: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 8, name: "Ishita Kapoor", course: "Tally with GST", school: "BMCC, Pune", score: "83%", photo: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 9, name: "Rohan Desai", course: "Data Structures", school: "Modern College, Pune", score: "82%", photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 10, name: "Meera Nair", course: "Java Programming", school: "Fergusson College, Pune", score: "81%", photo: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=200&h=200&fit=crop&crop=faces" },
-];
-
-const PERFORMERS_2024: Omit<Performer, "batch">[] = [
-  { rank: 1, name: "Arjun Kulkarni", course: "Web Development", school: "Fergusson College, Pune", score: "94%", photo: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 2, name: "Kavya Patil", course: "Python Development", school: "Modern College, Pune", score: "91%", photo: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 3, name: "Nikhil Rao", course: "Data Structures", school: "BMCC, Pune", score: "89%", photo: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 4, name: "Riya Deshmukh", course: "Java Programming", school: "Garware College, Pune", score: "88%", photo: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 5, name: "Aryan Gupta", course: "C / C++ Programming", school: "Fergusson College, Pune", score: "87%", photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 6, name: "Diya Kulkarni", course: "Web Development", school: "Modern College, Pune", score: "86%", photo: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 7, name: "Yash Bhosale", course: "Python Development", school: "BMCC, Pune", score: "85%", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 8, name: "Simran Chavan", course: "Tally with GST", school: "Garware College, Pune", score: "84%", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 9, name: "Om Patwardhan", course: "Data Structures", school: "Fergusson College, Pune", score: "83%", photo: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 10, name: "Tanvi Joshi", course: "Java Programming", school: "Modern College, Pune", score: "82%", photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces" },
-];
-
-const PERFORMERS_2023: Omit<Performer, "batch">[] = [
-  { rank: 1, name: "Devansh Pawar", course: "Data Structures", school: "Garware College, Pune", score: "93%", photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 2, name: "Anushka More", course: "Web Development", school: "BMCC, Pune", score: "90%", photo: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 3, name: "Harsh Thakur", course: "Python Development", school: "Modern College, Pune", score: "89%", photo: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 4, name: "Pooja Shinde", course: "Java Programming", school: "Fergusson College, Pune", score: "87%", photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 5, name: "Sarthak Jadhav", course: "C / C++ Programming", school: "Garware College, Pune", score: "86%", photo: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 6, name: "Neha Kale", course: "Web Development", school: "BMCC, Pune", score: "85%", photo: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 7, name: "Aniket Wagh", course: "Python Development", school: "Modern College, Pune", score: "84%", photo: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 8, name: "Vaishnavi Bhosale", course: "Tally with GST", school: "Fergusson College, Pune", score: "83%", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 9, name: "Prathamesh Gaikwad", course: "Data Structures", school: "Garware College, Pune", score: "82%", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 10, name: "Sakshi Naik", course: "Java Programming", school: "BMCC, Pune", score: "81%", photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces" },
-];
-
-const PERFORMERS_2022: Omit<Performer, "batch">[] = [
-  { rank: 1, name: "Rohit Bhagat", course: "Web Development", school: "Modern College, Pune", score: "91%", photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 2, name: "Shreya Kulkarni", course: "Python Development", school: "Fergusson College, Pune", score: "90%", photo: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 3, name: "Aditya Pandit", course: "Data Structures", school: "BMCC, Pune", score: "88%", photo: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 4, name: "Isha Deshpande", course: "Java Programming", school: "Garware College, Pune", score: "87%", photo: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 5, name: "Kunal Salvi", course: "C / C++ Programming", school: "Modern College, Pune", score: "85%", photo: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 6, name: "Radhika Jagtap", course: "Web Development", school: "Fergusson College, Pune", score: "84%", photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 7, name: "Siddharth Rane", course: "Python Development", school: "BMCC, Pune", score: "83%", photo: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 8, name: "Gauri Tambe", course: "Tally with GST", school: "Garware College, Pune", score: "82%", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 9, name: "Mihir Chaudhari", course: "Data Structures", school: "Modern College, Pune", score: "81%", photo: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces" },
-  { rank: 10, name: "Aditi Bane", course: "Java Programming", school: "Fergusson College, Pune", score: "80%", photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces" },
-];
-
-// One batch label per year — edit these to match your real batch names.
-const BATCH_BY_YEAR: Record<AcademicYear, string> = {
-  "2025": "Batch A · Jan 2025",
-  "2024": "Batch D · Jan 2024",
-  "2023": "Batch G · Jan 2023",
-  "2022": "Batch J · Jan 2022",
+// Performers data grouped by Academic Year key.
+// To add new years (e.g. 2025, 2024), simply add a new year key to this object!
+export const PERFORMERS_DATA_BY_YEAR: Record<string, Performer[]> = {
+  "ICSE 2026": [
+    { rank: 1, name: "Rama Jog", course: "Computer Application", school: "Singhania School", score: "100", photo: "rama_jog.png", batch: "" },
+    { rank: 2, name: "Aarna Subramanian", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 3, name: "Aarohi Deshmukh", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 4, name: "Arnav Pachpande", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 5, name: "Diti Tembulkar", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 6, name: "Jiya Shah", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 7, name: "Kanish Mehta", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 8, name: "Vridha Pathare", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 9, name: "Sanay Joshi", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 10, name: "Sia Wani", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+  ],
+  "ISC 2023": [
+    { rank: 1, name: "Manav Gurnani", course: "Computer Application", school: "", score: "99", photo: "", batch: "" },
+    { rank: 2, name: "Aarya Inamdar", course: "Computer Application", school: "", score: "98", photo: "", batch: "" },
+    { rank: 3, name: "Prisha Vadhavkar", course: "Computer Application", school: "", score: "98", photo: "", batch: "" },
+    { rank: 4, name: "Rian Pardal", course: "Computer Application", school: "", score: "98", photo: "", batch: "" },
+    { rank: 5, name: "Rishaan Damani", course: "Computer Application", school: "", score: "97", photo: "", batch: "" },
+    { rank: 6, name: "Dhruv Joshi", course: "Computer Application", school: "", score: "96", photo: "", batch: "" },
+    { rank: 7, name: "Pranav Gajare", course: "Computer Application", school: "", score: "95", photo: "", batch: "" },
+    { rank: 8, name: "Aayush Garg", course: "Computer Application", school: "", score: "94", photo: "", batch: "" },
+    { rank: 9, name: "Megh Giri", course: "Computer Application", school: "", score: "93", photo: "", batch: "" },
+    { rank: 10, name: "Ryan Pinto", course: "Computer Application", school: "", score: "91", photo: "", batch: "" }
+  ],
+  "HSC 2024": [
+    { rank: 1, name: "Shreya Agarwal", course: "Computer Science", school: "", score: "200", photo: "shreya_agarwal.png", batch: "" },
+    { rank: 2, name: "Arya Patil", course: "Computer Science", school: "", score: "200", photo: "arya_patil.png", batch: "" },
+    { rank: 3, name: "Arnav Gawade", course: "Computer Science", school: "", score: "198", photo: "", batch: "" },
+    { rank: 4, name: "Parth Jairam", course: "Computer Science", school: "", score: "198", photo: "", batch: "" },
+    { rank: 5, name: "Vedant Mudras", course: "Computer Science", school: "", score: "194", photo: "", batch: "" },
+    { rank: 6, name: "Anuj Vajha", course: "Computer Science", school: "", score: "193", photo: "", batch: "" },
+    { rank: 7, name: "Riya Joglekar", course: "Computer Science", school: "", score: "193", photo: "", batch: "" },
+    { rank: 8, name: "Shresht Khandpur", course: "Computer Science", school: "", score: "193", photo: "", batch: "" },
+    { rank: 9, name: "Tanishk Tasgaonkar", course: "Computer Science", school: "", score: "192", photo: "", batch: "" },
+    { rank: 10, name: "Arjun Vad", course: "Computer Science", school: "", score: "190", photo: "", batch: "" }
+  ]
 };
 
-const ROSTER_BY_YEAR: Record<AcademicYear, Omit<Performer, "batch">[]> = {
-  "2025": PERFORMERS_2025,
-  "2024": PERFORMERS_2024,
-  "2023": PERFORMERS_2023,
-  "2022": PERFORMERS_2022,
-};
-
-const PERFORMERS_BY_YEAR: Record<AcademicYear, Performer[]> = YEARS.reduce(
-  (acc, year) => {
-    acc[year] = ROSTER_BY_YEAR[year].map((p) => ({ ...p, batch: BATCH_BY_YEAR[year] }));
-    return acc;
-  },
-  {} as Record<AcademicYear, Performer[]>
-);
+// Dynamically extract year keys as tabs
+export const YEARS: string[] = Object.keys(PERFORMERS_DATA_BY_YEAR);
 
 const VISIBLE_DESKTOP = 3; // cards shown at once on sm+ screens
-const VISIBLE_MOBILE = 1; // cards shown at once on mobile, matching the reference layout
+const VISIBLE_MOBILE = 1; // cards shown at once on mobile
 
 export default function TopPerformersDark() {
-  const [year, setYear] = useState<AcademicYear>(YEARS[0]);
+  const [year, setYear] = useState<string>(YEARS[0] || "HSC 2026");
   const [index, setIndex] = useState(0);
   const [withTransition, setWithTransition] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -126,15 +108,17 @@ export default function TopPerformersDark() {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  // The active year's student list — swapping years swaps this whole array.
-  const performers = PERFORMERS_BY_YEAR[year];
+  // Active year's student list
+  const rawPerformers = PERFORMERS_DATA_BY_YEAR[year] || [];
+  const performers = rawPerformers.map((p) => ({
+    ...p,
+    photo: getTopperPhoto(p.photo),
+  }));
   const total = performers.length;
-  // Duplicate the first `visible` cards onto the end so the track can advance
-  // past the last real card and snap back to 0 invisibly (classic infinite-carousel trick).
   const track = [...performers, ...performers.slice(0, visible)];
 
   // Changing year: snap straight back to the first card, no leftover slide.
-  const selectYear = (y: AcademicYear) => {
+  const selectYear = (y: string) => {
     if (y === year) return;
     setYear(y);
     setWithTransition(false);
@@ -174,12 +158,12 @@ export default function TopPerformersDark() {
   const activeDot = index % total;
 
   return (
-   <section
-  id="toppers"
-  className="px-4 sm:px-8 lg:px-12 py-10 sm:py-14 min-h-screen flex items-center box-border"
-  onMouseEnter={() => setPaused(true)}
-  onMouseLeave={() => setPaused(false)}
->
+    <section
+      id="toppers"
+      className="px-4 sm:px-8 lg:px-12 py-10 sm:py-14 min-h-screen flex items-center box-border"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <style>{`
         @keyframes floatCrown {
           0%, 100% { transform: translateY(0) rotate(-4deg); }
@@ -220,8 +204,8 @@ export default function TopPerformersDark() {
                   className="drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] shrink-0"
                 />
                 <h2 className="font-serif-display text-xl sm:text-3xl font-semibold text-white tracking-tight whitespace-nowrap">
-  Our <span className="text-amber-400">Top</span> Performers
-</h2>
+                  Our <span className="text-amber-400">Top</span> Performers
+                </h2>
               </div>
               <p className="text-slate-300 text-xs sm:text-sm mt-2">
                 Celebrating the success of our brilliant students.
@@ -233,11 +217,10 @@ export default function TopPerformersDark() {
                   <button
                     key={y}
                     onClick={() => selectYear(y)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
-                      y === year
-                        ? "bg-amber-400 text-slate-900 shadow-[0_0_10px_rgba(251,191,36,0.5)]"
-                        : "bg-white/10 text-slate-200 hover:bg-white/20 ring-1 ring-white/15"
-                    }`}
+                    className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${y === year
+                      ? "bg-amber-400 text-slate-900 shadow-[0_0_10px_rgba(251,191,36,0.5)]"
+                      : "bg-white/10 text-slate-200 hover:bg-white/20 ring-1 ring-white/15"
+                      }`}
                   >
                     {y === year ? `Academic Year ${y}` : y}
                   </button>
@@ -255,7 +238,7 @@ export default function TopPerformersDark() {
           </div>
         </div>
 
-      {/* carousel: 1 card visible on mobile, 3 on sm+, auto-advances one at a time */}
+        {/* carousel: 1 card visible on mobile, 3 on sm+, auto-advances one at a time */}
         <div className="relative z-10 mx-[6%] sm:mx-[8%] mt-6 sm:mt-2 flow-root">
           <div className="overflow-hidden" style={{ paddingTop: 50, marginTop: -50, pointerEvents: "none" }}>
             <div
@@ -297,9 +280,8 @@ export default function TopPerformersDark() {
               key={i}
               aria-label={`Go to student ${i + 1}`}
               onClick={() => goTo(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === activeDot ? "w-5 bg-amber-400" : "w-1.5 bg-white/25 hover:bg-white/40"
-              }`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === activeDot ? "w-5 bg-amber-400" : "w-1.5 bg-white/25 hover:bg-white/40"
+                }`}
             />
           ))}
         </div>

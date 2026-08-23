@@ -5,20 +5,14 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 
-export const GALLERY_IMAGES = [
-  "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1529390079861-591de354faf5?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=600&fit=crop",
-];
+const galleryModules = import.meta.glob(
+  "../assets/gallery/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG,WEBP}",
+  { eager: true, import: "default" }
+);
+
+export const GALLERY_IMAGES: string[] = Object.values(
+  galleryModules
+) as string[];
 
 const IMAGE_WIDTH_MOBILE = 220;
 const IMAGE_WIDTH_DESKTOP = 300;

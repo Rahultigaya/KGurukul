@@ -7,7 +7,7 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
-import logo from "../assets/logo-gurukul-new.png";
+import logo from "../assets/kgurukuls-logo.png";
 
 const QUICK_LINKS = [
   { label: "Home", href: "#home" },
@@ -39,27 +39,24 @@ export default function Footer() {
   return (
     <footer className="bg-slate-950 text-slate-400 pt-12 pb-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 pb-10 border-b border-slate-800">
-          
+
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-4">
             <a href="#home" className="flex items-center gap-3">
-              <div className="p-1 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
+              <div className="shrink-0 group-hover:scale-105 transition-transform duration-300">
                 <img
                   src={logo}
-                  alt="KGurukul Logo"
-                  className="h-10 w-auto object-contain"
+                  alt="KGurukul logo"
+                  className="h-10 sm:h-14 lg:h-13 w-auto object-contain"
                 />
               </div>
               <div>
-                <h3 className="text-white font-bold text-xl leading-none">
+                <h3 className="text-white font-bold text-3xl leading-none underline">
                   KGurukul<span className="text-blue-500">'s</span>
                 </h3>
-                <p className="text-xs text-slate-400 font-medium mt-1">
-                  Learn. Code. Succeed.
-                </p>
               </div>
             </a>
 
@@ -138,18 +135,18 @@ export default function Footer() {
               <li className="flex items-center gap-2">
                 <PhoneIcon sx={{ fontSize: 16 }} className="text-emerald-500 shrink-0" />
                 <a href="tel:+919967442515" className="hover:text-white transition-colors">
-                  +91 9967442515 / 8879987836
+                  +91 9967442515, +91 9930776829
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <EmailIcon sx={{ fontSize: 16 }} className="text-amber-500 shrink-0" />
-                <a href="mailto:kgurukuls90@gmail.com" className="hover:text-white transition-colors">
-                  kgurukuls90@gmail.com
+                <a href="mailto:kgurukuls09@gmail.com" className="hover:text-white transition-colors">
+                  kgurukuls09@gmail.com
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <AccessTimeIcon sx={{ fontSize: 16 }} className="text-purple-500 shrink-0" />
-                <span>Mon - Sat: 9:00 AM - 8:00 PM</span>
+                <span>Mon - Sat: 11:00 AM - 8:00 PM</span>
               </li>
             </ul>
           </div>
@@ -159,9 +156,9 @@ export default function Footer() {
         {/* Copyright */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} KGurukul. All rights reserved.</p>
-          <p className="flex items-center gap-1">
+          {/* <p className="flex items-center gap-1">
             Empowering Thane's future programmers <span className="text-rose-500">♥</span>
-          </p>
+          </p> */}
         </div>
 
       </div>

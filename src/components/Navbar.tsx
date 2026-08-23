@@ -6,7 +6,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import PhoneIcon from "@mui/icons-material/Phone";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import logo from "../assets/logo-gurukul-new.png";
+import logo from "../assets/kgurukuls-logo.png";
 
 const ADMISSION_YEAR = 2027;
 
@@ -77,36 +77,36 @@ export default function Navbar() {
           : "bg-white/95 backdrop-blur-md border-b border-slate-100 py-0.5"
           }`}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-20">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-20 gap-4">
           {/* Logo */}
-          <a href="#home" className="flex items-center gap-3 shrink-0 group">
-            <div className="relative p-1 rounded-xl bg-gradient-to-br from-blue-50 to-emerald-50 border border-slate-100 group-hover:scale-105 transition-transform duration-300">
+          <a href="#home" className="flex items-center gap-3 shrink-0 group mr-2 lg:mr-6 xl:mr-10">
+            <div className="shrink-0 group-hover:scale-105 transition-transform duration-300">
               <img
                 src={logo}
                 alt="KGurukul logo"
-                className="h-10 lg:h-11 w-auto object-contain"
+                className="h-10 sm:h-14 lg:h-13 w-auto object-contain"
               />
             </div>
-            <div className="leading-none">
-              <p className="text-xl lg:text-2xl font-black text-blue-600 font-extrabold tracking-tight flex items-center gap-1">
+            <div className="leading-tight">
+              <p className="text-xl sm:text-4xl font-black text-blue-600 tracking-wide flex items-center gap-1 underline decoration-blue-600 underline-offset-4 decoration-4">
                 KGurukul's
               </p>
-              <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase mt-0.5">
+              {/* <p className="text-[10px] sm:text-xs font-bold tracking-[0.18em] text-slate-500 uppercase mt-0.5">
                 Computer Education
-              </p>
+              </p> */}
             </div>
           </a>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-7 shrink-0">
             {NAV_LINKS.map((link) => {
               const isActive = activeSection === link.href.substring(1);
               return (
                 <a
                   key={link.label}
                   href={link.href}
-                  className={`text-[14px] font-semibold transition-all duration-200 relative py-1 ${isActive
-                    ? "text-blue-600"
+                  className={`text-[13px] xl:text-[14px] font-semibold transition-all duration-200 relative py-1 whitespace-nowrap ${isActive
+                    ? "text-blue-600 font-bold"
                     : "text-slate-600 hover:text-blue-600"
                     }`}
                 >
@@ -120,7 +120,7 @@ export default function Navbar() {
           </nav>
 
           {/* Header Action CTA */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 ml-auto xl:ml-2">
             <a
               href="tel:+919967442515"
               className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors"

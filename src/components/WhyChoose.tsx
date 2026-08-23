@@ -62,7 +62,7 @@ export default function WhyChoose() {
               Our Advantages
             </span>
           <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
-                Why Choose <span className="text-blue-600">KGurukul</span>?
+                Why Choose <span className="text-blue-600">KGurukul's</span>?
             </h2>
             <p className="text-slate-500 text-base leading-relaxed max-w-sm">
               At KGurukul, we go beyond standard textbooks to nurture logic, problem-solving, and coding confidence. Through Prof. Santoush P Chipdey's veteran pedagogy, personalized worksheets, and structured practical lab sessions, we bridge the gap between classroom theory and real-world execution.

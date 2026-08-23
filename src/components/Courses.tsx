@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
- import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
- import CodeIcon from "@mui/icons-material/Code";
+import CodeIcon from "@mui/icons-material/Code";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import LoopIcon from "@mui/icons-material/Loop";
@@ -488,7 +488,7 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
           className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
         >
           {filteredCourses.map((course) => {
- 
+
             const theme = getCourseTheme(course.class, course.name);
             const subject = course.class === "ICSE" ? "Computer Applications" : "Computer Science";
 

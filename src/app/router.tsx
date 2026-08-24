@@ -34,6 +34,7 @@ import AreaPage from "../pages/admin/Master/Area";
 import BranchPage from "../pages/admin/Master/Branch";
 import StandardPage from "../pages/admin/Master/Standard";
 import SubjectPage from "../pages/admin/Master/Subject";
+import NewLogin from "../pages/auth/NewLogin";
 
 export const router = createBrowserRouter([
   {
@@ -49,6 +50,10 @@ export const router = createBrowserRouter([
   {
     path: "/auth/login",
     element: <Login />,
+  },
+  {
+    path:"/login",
+    element: <NewLogin/>
   },
   {
     path: "/",

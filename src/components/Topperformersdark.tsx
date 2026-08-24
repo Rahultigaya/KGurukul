@@ -44,41 +44,54 @@ interface Performer {
 // To add new years (e.g. 2025, 2024), simply add a new year key to this object!
 export const PERFORMERS_DATA_BY_YEAR: Record<string, Performer[]> = {
   "ICSE 2026": [
-    { rank: 1, name: "Rama Jog", course: "Computer Application", school: "Singhania School", score: "100", photo: "rama_jog.png", batch: "" },
-    { rank: 2, name: "Aarna Subramanian", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 3, name: "Aarohi Deshmukh", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 4, name: "Arnav Pachpande", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 5, name: "Diti Tembulkar", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 6, name: "Jiya Shah", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 7, name: "Kanish Mehta", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 8, name: "Vridha Pathare", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 9, name: "Sanay Joshi", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
-    { rank: 10, name: "Sia Wani", course: "Computer Application", school: "", score: "100", photo: "", batch: "" },
+    { rank: 1, name: "Rama Jog", course: "Computer Application", school: "Singhania School", score: "100 / 100", photo: "rama_jog.png", batch: "" },
+    { rank: 2, name: "Aarna Subramanian", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 3, name: "Aarohi Deshmukh", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 4, name: "Arnav Pachpande", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 5, name: "Diti Tembulkar", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 6, name: "Jiya Shah", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 7, name: "Kanish Mehta", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 8, name: "Vridha Pathare", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 9, name: "Sanay Joshi", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 10, name: "Sia Wani", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
   ],
-  "ISC 2023": [
-    { rank: 1, name: "Manav Gurnani", course: "Computer Application", school: "", score: "99", photo: "", batch: "" },
-    { rank: 2, name: "Aarya Inamdar", course: "Computer Application", school: "", score: "98", photo: "", batch: "" },
-    { rank: 3, name: "Prisha Vadhavkar", course: "Computer Application", school: "", score: "98", photo: "", batch: "" },
-    { rank: 4, name: "Rian Pardal", course: "Computer Application", school: "", score: "98", photo: "", batch: "" },
-    { rank: 5, name: "Rishaan Damani", course: "Computer Application", school: "", score: "97", photo: "", batch: "" },
-    { rank: 6, name: "Dhruv Joshi", course: "Computer Application", school: "", score: "96", photo: "", batch: "" },
-    { rank: 7, name: "Pranav Gajare", course: "Computer Application", school: "", score: "95", photo: "", batch: "" },
-    { rank: 8, name: "Aayush Garg", course: "Computer Application", school: "", score: "94", photo: "", batch: "" },
-    { rank: 9, name: "Megh Giri", course: "Computer Application", school: "", score: "93", photo: "", batch: "" },
-    { rank: 10, name: "Ryan Pinto", course: "Computer Application", school: "", score: "91", photo: "", batch: "" }
+  "ICSE 2025": [
+    { rank: 1, name: "Ankit Agarwal", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 2, name: "Annirudh Palande", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 3, name: "Atharva Marathe", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 4, name: "Girdhar Shetty", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 5, name: "Meher Mehta", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 6, name: "Mukta Shetty", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 7, name: "Nitya Bhosale", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 8, name: "Ritvyag Bindal", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 9, name: "Samruddhi Patel", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
+    { rank: 10, name: "Sana Sonalkar", course: "Computer Application", school: "", score: "100 / 100", photo: "", batch: "" },
   ],
   "HSC 2024": [
-    { rank: 1, name: "Shreya Agarwal", course: "Computer Science", school: "", score: "200", photo: "shreya_agarwal.png", batch: "" },
-    { rank: 2, name: "Arya Patil", course: "Computer Science", school: "", score: "200", photo: "arya_patil.png", batch: "" },
-    { rank: 3, name: "Arnav Gawade", course: "Computer Science", school: "", score: "198", photo: "", batch: "" },
-    { rank: 4, name: "Parth Jairam", course: "Computer Science", school: "", score: "198", photo: "", batch: "" },
-    { rank: 5, name: "Vedant Mudras", course: "Computer Science", school: "", score: "194", photo: "", batch: "" },
-    { rank: 6, name: "Anuj Vajha", course: "Computer Science", school: "", score: "193", photo: "", batch: "" },
-    { rank: 7, name: "Riya Joglekar", course: "Computer Science", school: "", score: "193", photo: "", batch: "" },
-    { rank: 8, name: "Shresht Khandpur", course: "Computer Science", school: "", score: "193", photo: "", batch: "" },
-    { rank: 9, name: "Tanishk Tasgaonkar", course: "Computer Science", school: "", score: "192", photo: "", batch: "" },
-    { rank: 10, name: "Arjun Vad", course: "Computer Science", school: "", score: "190", photo: "", batch: "" }
-  ]
+    { rank: 1, name: "Shreya Agarwal", course: "Computer Science", school: "", score: "200 / 200", photo: "shreya_agarwal.png", batch: "" },
+    { rank: 2, name: "Arya Patil", course: "Computer Science", school: "", score: "200 / 200", photo: "arya_patil.png", batch: "" },
+    { rank: 3, name: "Arnav Gawade", course: "Computer Science", school: "", score: "198 / 200", photo: "", batch: "" },
+    { rank: 4, name: "Parth Jairam", course: "Computer Science", school: "", score: "198 / 200", photo: "", batch: "" },
+    { rank: 5, name: "Vedant Mudras", course: "Computer Science", school: "", score: "194 / 200", photo: "", batch: "" },
+    { rank: 6, name: "Anuj Vajha", course: "Computer Science", school: "", score: "193 / 200", photo: "", batch: "" },
+    { rank: 7, name: "Riya Joglekar", course: "Computer Science", school: "", score: "193 / 200", photo: "", batch: "" },
+    { rank: 8, name: "Shresht Khandpur", course: "Computer Science", school: "", score: "193 / 200", photo: "", batch: "" },
+    { rank: 9, name: "Tanishk Tasgaonkar", course: "Computer Science", school: "", score: "192 / 200", photo: "", batch: "" },
+    { rank: 10, name: "Arjun Vad", course: "Computer Science", school: "", score: "190 / 200", photo: "", batch: "" }
+  ],
+  "ISC 2023": [
+    { rank: 1, name: "Manav Gurnani", course: "Computer Application", school: "", score: "99 / 100", photo: "", batch: "" },
+    { rank: 2, name: "Aarya Inamdar", course: "Computer Application", school: "", score: "98 / 100", photo: "", batch: "" },
+    { rank: 3, name: "Prisha Vadhavkar", course: "Computer Application", school: "", score: "98 / 100", photo: "", batch: "" },
+    { rank: 4, name: "Rian Pardal", course: "Computer Application", school: "", score: "98 / 100", photo: "", batch: "" },
+    { rank: 5, name: "Rishaan Damani", course: "Computer Application", school: "", score: "97 / 100", photo: "", batch: "" },
+    { rank: 6, name: "Dhruv Joshi", course: "Computer Application", school: "", score: "96 / 100", photo: "", batch: "" },
+    { rank: 7, name: "Pranav Gajare", course: "Computer Application", school: "", score: "95 / 100", photo: "", batch: "" },
+    { rank: 8, name: "Aayush Garg", course: "Computer Application", school: "", score: "94 / 100", photo: "", batch: "" },
+    { rank: 9, name: "Megh Giri", course: "Computer Application", school: "", score: "93 / 100", photo: "", batch: "" },
+    { rank: 10, name: "Ryan Pinto", course: "Computer Application", school: "", score: "91 / 100", photo: "", batch: "" }
+  ],
+
 };
 
 // Dynamically extract year keys as tabs

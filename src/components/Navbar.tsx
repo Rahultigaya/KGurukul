@@ -80,15 +80,15 @@ export default function Navbar() {
         <div className="max-w-[1440px] mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-20 gap-4">
           {/* Logo */}
           <a href="#home" className="flex items-center gap-3 shrink-0 group mr-2 lg:mr-6 xl:mr-10">
-            <div className="shrink-0 group-hover:scale-105 transition-transform duration-300">
+            <div className="shrink-0 rounded-xl border border-slate-200   shadow-xs overflow-hidden group-hover:scale-105 group-hover:border-blue-300 transition-all duration-300 flex items-center justify-center">
               <img
                 src={logo}
                 alt="KGurukul logo"
-                className="h-10 sm:h-14 lg:h-13 w-auto object-contain"
+                className="h-9 sm:h-12 w-auto object-contain rounded-lg sm:rounded-xl"
               />
             </div>
             <div className="leading-tight">
-              <p className="text-xl sm:text-4xl font-black text-blue-600 tracking-wide flex items-center gap-1 underline decoration-blue-600 underline-offset-4 decoration-4">
+              <p className="font-serif-display text-xl sm:text-4xl font-extrabold bg-gradient-to-r from-blue-800 via-blue-700 to-sky-500 bg-clip-text text-transparent tracking-wide flex items-center gap-1 underline decoration-blue-600 underline-offset-4 decoration-4">
                 KGurukul's
               </p>
               {/* <p className="text-[10px] sm:text-xs font-bold tracking-[0.18em] text-slate-500 uppercase mt-0.5">

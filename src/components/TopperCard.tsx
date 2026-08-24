@@ -99,8 +99,8 @@ export default function TopperCard({
           }}
         />
 
-        {/* Score Badge */}
-        <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs px-2.5 py-1 rounded-full shadow-sm">
+        {/* Score Badge below image */}
+        <div className="inline-flex items-center justify-center bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-sm px-3 py-1 rounded-full shadow-sm">
           {score}
         </div>
 

@@ -259,12 +259,12 @@ export default function Hero() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-[2.6rem] lg:text-4xl xl:text-5xl font-black text-slate-900 leading-tight tracking-tight whitespace-nowrap">
+            <h1 className="font-serif-display text-2xl xs:text-3xl sm:text-4xl md:text-[2.6rem] lg:text-4xl xl:text-5xl font-bold text-slate-900 leading-tight tracking-tight whitespace-nowrap">
               Build Your <TypingHeadline phrases={HEADLINE_PHRASES} />
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-xl">
+            <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-xl text-justify">
               Empowering ICSE, HSC, and ISC students with practical computer programming, 
               expert 1-on-1 guidance from 30+ year veteran faculty, and 100% board exam preparation.
             </p>

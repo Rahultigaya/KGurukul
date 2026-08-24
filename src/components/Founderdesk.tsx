@@ -91,7 +91,7 @@ export default function FoundersDesk() {
 
               <motion.p
                 variants={fadeUp}
-                className="text-xs sm:text-sm lg:text-base text-slate-700 leading-relaxed"
+                className="text-xs sm:text-sm lg:text-base text-slate-700 leading-relaxed text-justify"
               >
                 Education is one of the most powerful gifts we can offer to the
                 next generation. It has the ability to transform lives, build
@@ -103,7 +103,7 @@ export default function FoundersDesk() {
 
               <motion.p
                 variants={fadeUp}
-                className="text-xs sm:text-sm lg:text-base text-slate-700 leading-relaxed"
+                className="text-xs sm:text-sm lg:text-base text-slate-700 leading-relaxed text-justify"
               >
                 At KGURUKUL'S, we believe that every student possesses unique
                 creative and analytical abilities. Our role as educators is to identify those strengths,
@@ -113,7 +113,7 @@ export default function FoundersDesk() {
 
               <motion.p
                 variants={fadeUp}
-                className="text-xs sm:text-sm lg:text-base text-slate-700 leading-relaxed"
+                className="text-xs sm:text-sm lg:text-base text-slate-700 leading-relaxed text-justify"
               >
                 As we move forward, our commitment remains unchanged—to provide
                 top-quality computer education, build strong values, encourage curiosity, and

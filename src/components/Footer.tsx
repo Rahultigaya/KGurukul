@@ -24,8 +24,8 @@ const COURSES = [
   { class: "ICSE", name: "Std-X (Advanced Java)" },
   { class: "HSC", name: "Std-XI (CS1 + CS2)" },
   { class: "HSC", name: "Std-XII (CS1 + CS2)" },
-  { class: "ISC", name: "Std-XI (CS1 + CS2)" },
-  { class: "ISC", name: "Std-XII (CS1 + CS2)" },
+  { class: "ISC", name: "Std-XI (Computer Application)" },
+  { class: "ISC", name: "Std-XII (Computer Application)" },
 ];
 
 const SOCIALS = [
@@ -54,13 +54,13 @@ export default function Footer() {
                 />
               </div>
               <div>
-                <h3 className="text-white font-bold text-3xl leading-none underline">
+                <h3 className="font-serif-display text-white font-bold text-3xl leading-none underline">
                   KGurukul<span className="text-blue-500">'s</span>
                 </h3>
               </div>
             </a>
 
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm text-justify">
               KGurukul is Thane's leading computer education institute specializing in ICSE, HSC, and ISC board computer science, Java, C++, and practical lab training.
             </p>
 

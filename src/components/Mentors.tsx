@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import StarIcon from "@mui/icons-material/Star";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
- import CodeIcon from "@mui/icons-material/Code";
+import CodeIcon from "@mui/icons-material/Code";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import PublicIcon from "@mui/icons-material/Public";
 import MemoryIcon from "@mui/icons-material/Memory";
@@ -49,7 +48,7 @@ const MENTORS = [
     role: "Director Of Admin",
     roleColor: "text-emerald-600",
     accentColor: "bg-emerald-600",
-    stat: { Icon: EmojiEventsIcon, value: "100%", label: "Results Track Record" },
+    stat: { Icon: StarIcon, value: "20+ Years", label: "of Experience" },
     statBg: "bg-emerald-50/50 border-emerald-100/50",
     statValueColor: "text-emerald-900",
     statIconColor: "#16a34a",

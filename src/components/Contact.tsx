@@ -16,8 +16,8 @@ const COURSE_OPTIONS = [
   "ICSE Std-X (Advanced Java)",
   "HSC Std-XI (CS1 + CS2)",
   "HSC Std-XII (CS1 + CS2)",
-  "ISC Std-XI (CS1 + CS2)",
-  "ISC Std-XII (CS1 + CS2)",
+  "ISC Std-XI (Computer Application)",
+  "ISC Std-XII (Computer Application)",
 ];
 
 const CONTACT_ITEMS = [
@@ -219,7 +219,7 @@ export default function Contact() {
           <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
             Get In Touch
           </span>
-          <h2 className="font-serif-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-slate-900 leading-tight mt-2.5">
+          <h2 className="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight mt-3">
             Let's <span className="text-blue-600">Connect With Us</span>
           </h2>
           <p className="text-slate-500 mt-2 text-xs sm:text-sm max-w-xl mx-auto">

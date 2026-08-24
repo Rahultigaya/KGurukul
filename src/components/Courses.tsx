@@ -219,7 +219,7 @@ export const COURSES_DATA: CourseDetail[] = [
   {
     class: "ISC",
     name: "Std-XI",
-    description: "(Computer Science: CS1 + CS2)",
+    description: "Computer Application",
     images: [iscStd11],
     duration: "Full Academic Year",
     highlights: [
@@ -260,7 +260,7 @@ export const COURSES_DATA: CourseDetail[] = [
   {
     class: "ISC",
     name: "Std-XII",
-    description: "(Computer Science: CS1 + CS2)",
+    description: "Computer Application",
     images: [iscStd12],
     duration: "Full Academic Year",
     highlights: [
@@ -365,7 +365,7 @@ const getCourseTheme = (classType: string, name: string) => {
         badgeText: "text-rose-700",
         badgeBg: "bg-rose-50",
         badgeBorder: "border-rose-200/60",
-        hasSplitPills: true,
+        hasSplitPills: false,
       };
     default:
       return {
@@ -454,7 +454,7 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
             Our <span className="text-blue-600">Courses</span>
           </h2>
           <p className="text-slate-500 mt-2 text-sm leading-relaxed max-w-xl mx-auto">
-            Board-aligned computer science programs for ICSE and HSC students.
+            Board-aligned computer science and application programs for ICSE, HSC, and ISC students.
           </p>
 
           {/* Board Filter Tabs */}
@@ -490,7 +490,12 @@ export default function Courses({ onSelectCourse }: CoursesProps) {
           {filteredCourses.map((course) => {
 
             const theme = getCourseTheme(course.class, course.name);
-            const subject = course.class === "ICSE" ? "Computer Applications" : "Computer Science";
+            const subject =
+              course.class === "HSC"
+                ? "Computer Science"
+                : course.class === "ISC"
+                ? "Computer Application"
+                : "Computer Applications";
 
             return (
               <motion.div

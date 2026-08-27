@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/kgurukuls-logo.png";
-import loginBgIcon from "../../assets/login-bg-icon.png";
+import loginBgIcon from "../../assets/login-logo2.png";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -267,31 +267,32 @@ export default function NewLogin() {
     return (
         <div className="h-screen w-full flex flex-col bg-white font-sans overflow-hidden">
             {/* Main content */}
-            <div className="relative flex-1 flex flex-col justify-center items-center overflow-hidden p-4 sm:p-6 md:p-8">
+            <div className="relative flex-1 flex flex-col justify-center items-center overflow-hidden p-6 sm:p-8 md:p-10 lg:p-12 xl:py-14">
                 {/* Background curve */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50 to-white" />
 
                 {/* 3-Shade Layered Background Waves */}
                 <svg
-                    className="absolute bottom-0 left-0 w-full pointer-events-none h-[45%] sm:h-[52%] md:h-[60%] lg:h-[65%] transition-all duration-300"
+                    className="absolute bottom-0 left-0 w-full pointer-events-none h-[18%] sm:h-[22%] md:h-[25%] lg:h-[28%] transition-all duration-300"
                     viewBox="0 0 1440 520"
                     preserveAspectRatio="none"
                 >
-                    {/* Layer 1: Lightest Blue (Back) */}
+                    {/* Layer 1: Very Soft Sky Blue (Back) */}
                     <path
-                        fill="#93c5fd"
-                        fillOpacity="0.6"
+                        fill="#dbeafe"
+                        fillOpacity="0.4"
                         d="M0,180 C320,400 760,40 1440,10 L1440,520 L0,520 Z"
                     />
-                    {/* Layer 2: Medium Vibrant Blue (Middle) */}
+                    {/* Layer 2: Soft Light Blue (Middle) */}
                     <path
-                        fill="#3b82f6"
-                        fillOpacity="0.8"
+                        fill="#bfdbfe"
+                        fillOpacity="0.5"
                         d="M0,250 C360,440 800,100 1440,60 L1440,520 L0,520 Z"
                     />
-                    {/* Layer 3: Deep Royal Blue (Front) */}
+                    {/* Layer 3: Light Slate/Sky Blue (Front) */}
                     <path
-                        fill="#1d4ed8"
+                        fill="#93c5fd"
+                        fillOpacity="0.65"
                         d="M0,330 C420,470 850,180 1440,120 L1440,520 L0,520 Z"
                     />
                 </svg>
@@ -309,66 +310,66 @@ export default function NewLogin() {
                 </div>
 
                 {/* Main Container */}
-                <div className="relative max-w-7xl mx-auto px-2 sm:px-6 md:px-8 lg:px-12 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 lg:gap-14 items-center w-full my-auto">
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 lg:gap-14 items-center w-full my-auto py-2 sm:py-4">
                     {/* Left column */}
                     <div className="relative flex flex-col items-center md:items-start text-center md:text-left">
                         {/* Logo */}
                         <a
                             href="#home"
-                            className="flex items-center justify-center md:justify-start gap-2.5 sm:gap-3 shrink-0 group mb-4 sm:mb-6"
+                            className="flex items-center justify-center md:justify-start gap-2.5 sm:gap-3.5 shrink-0 group mb-3 sm:mb-4 lg:mb-5"
                         >
                             <div className="shrink-0 rounded-xl border border-slate-200 shadow-xs overflow-hidden group-hover:scale-105 group-hover:border-blue-300 transition-all duration-300 flex items-center justify-center">
                                 <img
                                     src={logo}
                                     alt="KGurukul logo"
-                                    className="h-10 sm:h-12 md:h-16 w-auto object-contain rounded-lg sm:rounded-xl"
+                                    className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain rounded-lg sm:rounded-xl"
                                 />
                             </div>
                             <div className="leading-tight">
-                                <p className="font-serif-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-blue-800 via-blue-700 to-sky-500 bg-clip-text text-transparent tracking-wide underline decoration-blue-600 underline-offset-4 decoration-4">
+                                <p className="font-serif-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-blue-800 via-blue-700 to-sky-500 bg-clip-text text-transparent tracking-wide underline decoration-blue-600 underline-offset-4 decoration-4">
                                     KGurukul's
                                 </p>
                             </div>
                         </a>
 
                         {/* Welcome line */}
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight">
                             Welcome to <span className="text-blue-700">Our Classes</span>
                         </h2>
-                        <span className="block h-1 w-12 sm:w-14 bg-blue-700 rounded-full mt-2 sm:mt-3 mb-3 sm:mb-4" />
+                        <span className="block h-1 w-12 sm:w-14 bg-blue-700 rounded-full mt-2 sm:mt-2.5 mb-2.5 sm:mb-3.5" />
 
-                        <p className="hidden md:block text-slate-600 text-sm sm:text-base max-w-md sm:max-w-lg leading-relaxed text-center md:text-left">
+                        <p className="hidden md:block text-slate-600 text-xs sm:text-sm lg:text-base max-w-md sm:max-w-lg leading-relaxed text-center md:text-left">
                             Empowering ICSE, HSC &amp; ISC students with quality computer
                             education and expert guidance for a brighter future.
                         </p>
 
                         {/* Floating icons (tablet & laptop) */}
                         <CodeRoundedIcon
-                            className="absolute -top-2 right-6 lg:right-10 text-blue-200/80 hidden md:block"
-                            sx={{ fontSize: { md: 24, lg: 28 } }}
+                            className="absolute -top-1  right-8   text-blue-200/80 hidden md:block"
+                            sx={{ fontSize: { md: 22, lg: 56 } }}
                         />
                         <LaptopMacRoundedIcon
-                            className="absolute top-36 lg:top-40 -right-2 lg:right-0 text-blue-200/80 hidden md:block"
-                            sx={{ fontSize: { md: 32, lg: 40 } }}
+                            className="absolute top-8 lg:top-32 -right-3  text-blue-200/80 hidden md:block"
+                            sx={{ fontSize: { md: 28, lg: 56 } }}
                         />
                         <SchoolRoundedIcon
-                            className="absolute top-60 lg:top-64 right-12 lg:right-16 text-blue-200/80 hidden md:block"
-                            sx={{ fontSize: { md: 28, lg: 36 } }}
+                            className="absolute top-24 lg:top-56 right-8  text-blue-200/80 hidden md:block"
+                            sx={{ fontSize: { md: 24, lg: 56 } }}
                         />
 
                         {/* Illustration: login-bg-icon (hidden on mobile) */}
-                        <div className="hidden md:flex mt-4 sm:mt-6 w-full justify-center md:justify-start">
+                        <div className="hidden md:flex mt-3 sm:mt-4 lg:mt-5 w-full justify-center md:justify-start">
                             <img
                                 src={loginBgIcon}
                                 alt="Login Illustration"
-                                className="w-full max-w-[220px] sm:max-w-xs md:max-w-sm lg:max-w-md h-auto object-contain drop-shadow-md"
+                                className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-[340px] lg:max-w-[390px] h-auto object-contain drop-shadow-md"
                             />
                         </div>
                     </div>
 
                     {/* Right column: login card */}
                     <div className="relative flex justify-center md:justify-end w-full">
-                        <div className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-xl md:shadow-2xl p-5 sm:p-7 md:p-9 border border-slate-100 transition-all duration-300">
+                        <div className="w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-xl md:shadow-2xl p-5 sm:p-7 md:p-8 lg:p-9 border border-slate-100 transition-all duration-300">
                             
                             {/* Error Banner */}
                             {error && (
@@ -437,7 +438,7 @@ export default function NewLogin() {
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
                                                     placeholder="Enter your email ID"
-                                                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-200 text-xs sm:text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                                                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-200 bg-white text-slate-900 text-xs sm:text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
                                                 />
                                             </div>
                                         </div>
@@ -518,7 +519,7 @@ export default function NewLogin() {
                                                     value={otp}
                                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                                                     placeholder="123456"
-                                                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-200 text-center font-mono text-base sm:text-lg tracking-[0.25em] placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                                                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-200 bg-white text-slate-900 text-center font-mono text-base sm:text-lg tracking-[0.25em] placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
                                                 />
                                             </div>
                                         </div>

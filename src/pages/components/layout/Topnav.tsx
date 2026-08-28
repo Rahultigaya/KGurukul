@@ -7,8 +7,6 @@ import {
   IconLogout,
   IconChevronDown,
   IconMenu2,
-  IconSun,
-  IconMoon,
   IconSettings,
 } from "@tabler/icons-react";
 import { useTheme } from "../../../context/ThemeContext";
@@ -31,7 +29,7 @@ const TopNav: React.FC<TopNavProps> = ({
   setIsMobileMenuOpen,
 }) => {
   const navigate = useNavigate();
-  const { toggleTheme, isDark } = useTheme();
+  const { isDark } = useTheme();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -146,29 +144,8 @@ const TopNav: React.FC<TopNavProps> = ({
             </div>
           </div>
 
-          {/* Right — Theme toggle + Notifications + User */}
+          {/* Right — Notifications + User */}
           <div className="flex items-center gap-2 md:gap-3">
-
-            {/* ── Theme Toggle ─────────────────────────────────────── */}
-            <button
-              onClick={toggleTheme}
-              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              className="relative p-2 rounded-xl transition-all duration-300 group"
-              style={{
-                background: isDark
-                  ? "rgba(124,58,237,0.15)"
-                  : "rgba(234,108,0,0.1)",
-                border: `1px solid ${isDark ? "rgba(124,58,237,0.3)" : "rgba(234,108,0,0.25)"}`,
-                color: isDark ? "#a78bfa" : "#ea6c00",
-              }}
-            >
-              <span
-                className="block transition-transform duration-500"
-                style={{ transform: isDark ? "rotate(0deg)" : "rotate(180deg)" }}
-              >
-                {isDark ? <IconMoon size={20} /> : <IconSun size={20} />}
-              </span>
-            </button>
 
             {/* ── Notifications ────────────────────────────────────── */}
             <div className="relative">

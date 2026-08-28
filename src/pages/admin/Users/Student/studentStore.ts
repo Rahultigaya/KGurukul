@@ -2,6 +2,7 @@
 
 import type { StudentRegistrationData } from "./types";
 import { getStudents as apiGetStudents, getStudentById as apiGetStudentById, updateStudent as apiUpdateStudent } from "../../../../api/api";
+import { DUMMY_STUDENT } from "./dummyStudent";
 
 // ── In-memory cache for synchronous access (used by MarkAttendance, BatchAssign) ──
 export const studentCache: Record<string, StudentRegistrationData & { id: string }> = {};
@@ -27,16 +28,25 @@ export const studentStore = studentCache as Record<string, StudentRegistrationDa
 
 /** Fetch one student by id from the API. Returns null if not found. */
 export async function getStudentById(id: string): Promise<StudentRegistrationData | null> {
+  if (id === DUMMY_STUDENT.id || id === "dummy-1") {
+    return DUMMY_STUDENT;
+  }
   try {
     const res = await apiGetStudentById(Number(id));
     return transformApiToFormData(res.data);
   } catch {
+    if (id === DUMMY_STUDENT.id || id === "dummy-1") {
+      return DUMMY_STUDENT;
+    }
     return null;
   }
 }
 
 /** Update student via API. */
 export async function updateStudent(id: string, data: StudentRegistrationData): Promise<void> {
+  if (id === DUMMY_STUDENT.id || id === "dummy-1") {
+    return;
+  }
   const payload = transformFormDataToPayload(data);
   await apiUpdateStudent(Number(id), payload);
 }

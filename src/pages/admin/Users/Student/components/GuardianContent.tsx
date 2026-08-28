@@ -1,10 +1,12 @@
-// src\pages\admin\Users\Student\components\GuardianContent.tsx
+// src/pages/admin/Users/Student/components/GuardianContent.tsx
 
 import React from "react";
 import {
-  Stack, Paper, Title, Grid, Card,
-  Badge, ActionIcon, Button, TextInput,
-} from "@mantine/core";
+  Paper,
+  Typography,
+  TextField,
+  Chip,
+} from "@mui/material";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import type { GuardianDetails, StudentRegistrationData, ValidationErrors } from "../types";
 
@@ -16,150 +18,165 @@ interface GuardianProps {
   errors: ValidationErrors;
 }
 
-const inputStyles = {
-  label: { color: "var(--text-primary)", marginBottom: 6 },
-  input: {
-    backgroundColor: "var(--bg-input)",
-    color: "var(--text-primary)",
-    borderColor: "var(--border-default)",
+const inputSxWhite = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#ffffff",
+    borderRadius: "8px",
   },
 };
 
+const formHelperSlotProps = { className: "!bg-transparent !m-0 !mt-1" };
+
 const GuardianContent = React.memo<GuardianProps>(
   ({ formData, handleGuardianChange, addGuardian, removeGuardian, errors }) => (
-    <Stack gap="md">
-      <Paper
-        className="p-4 sm:p-6"
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-accent)",
-        }}
-      >
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-          <Title
-            order={5}
-            style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}
-          >
-            Parent / Guardian Details
-          </Title>
-
-          {formData.guardians.length < 2 && (
-            <Button
-              leftSection={<IconPlus size={16} />}
-              onClick={addGuardian}
-              color="green"
-              variant="light"
-              size="sm"
-              fullWidth
-              className="sm:w-auto"
-            >
-              Add Guardian
-            </Button>
-          )}
+    <Paper
+      elevation={1}
+      className="p-5 sm:p-7 bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all space-y-6"
+    >
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border-l-4 border-blue-600 pl-3">
+        <div>
+          <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg">
+            Parent / Guardian Information
+          </Typography>
+          <Typography variant="caption" className="text-slate-500">
+            Provide contact info for primary guardian (Father/Mother) and optional secondary guardian
+          </Typography>
         </div>
 
-        {/* Guardian cards */}
-        <Stack gap="md">
-          {formData.guardians.map((guardian, index) => (
-            <Card
-              key={guardian.id}
-              className="p-4 sm:p-6"
-              style={{
-                background: "var(--bg-secondary)",
-                border: "1px solid var(--border-accent)",
-              }}
-            >
-              {/* Card header — badge + remove button */}
-              <div className="flex justify-between items-start mb-4 gap-2">
-                <Badge
-                  color={index === 0 ? "violet" : "gray"}
-                  size="lg"
-                  variant="light"
-                  className="text-xs sm:text-sm"
-                >
-                  {index === 0 ? "Guardian 1 (Required)" : "Guardian 2 (Optional)"}
-                </Badge>
+        {formData.guardians.length < 2 && (
+          <button
+            type="button"
+            onClick={addGuardian}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer"
+          >
+            <IconPlus size={16} />
+            <span>Add Secondary Guardian</span>
+          </button>
+        )}
+      </div>
 
-                {index > 0 && (
-                  <ActionIcon
-                    color="red"
-                    variant="light"
-                    size="lg"
-                    onClick={() => removeGuardian(guardian.id)}
-                  >
-                    <IconTrash size={18} />
-                  </ActionIcon>
-                )}
+      {/* Guardian cards — Styled exactly like Installment 1 / 2 cards */}
+      <div className="space-y-5">
+        {formData.guardians.map((guardian, index) => (
+          <div
+            key={guardian.id}
+            className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl space-y-4"
+          >
+            {/* Card Section Header with Numbered Badge & Icons */}
+            <div className="flex justify-between items-center pb-2.5 border-b border-slate-200/90">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 ${
+                    index === 0
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {index + 1}
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-bold text-slate-800">
+                    {index === 0 ? "Primary Parent / Guardian" : "Secondary Parent / Guardian"}
+                  </span>
+                  <Chip
+                    label={index === 0 ? "Required" : "Optional"}
+                    color={index === 0 ? "error" : "default"}
+                    size="small"
+                    variant="outlined"
+                    className="!font-semibold !text-[11px]"
+                  />
+                </div>
               </div>
 
-              {/* Fields */}
-              <Grid gutter="md">
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <TextInput
-                    label="Guardian Name"
-                    placeholder="Enter name"
-                    value={guardian.name}
-                    onChange={(e) => handleGuardianChange(guardian.id, "name", e.target.value)}
-                    required={index === 0}
-                    withAsterisk={index === 0}
-                    size="md"
-                    error={errors[index === 0 ? "guardian_0_name" : "guardian_1_name"]}
-                    styles={inputStyles}
-                  />
-                </Grid.Col>
+              {index > 0 && (
+                <button
+                  type="button"
+                  onClick={() => removeGuardian(guardian.id)}
+                  className="flex items-center gap-1 bg-white hover:bg-red-50 text-red-600 border border-red-200 text-xs font-semibold px-2.5 py-1 rounded-lg transition-all shadow-sm cursor-pointer"
+                  title="Remove Guardian"
+                >
+                  <IconTrash size={14} />
+                  <span>Remove</span>
+                </button>
+              )}
+            </div>
 
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <TextInput
-                    label="Relation"
-                    placeholder="Enter relation"
-                    value={guardian.relation}
-                    onChange={(e) => handleGuardianChange(guardian.id, "relation", e.target.value)}
-                    required={index === 0}
-                    withAsterisk={index === 0}
-                    size="md"
-                    error={errors[index === 0 ? "guardian_0_relation" : "guardian_1_relation"]}
-                    styles={inputStyles}
-                  />
-                </Grid.Col>
+            {/* Fields Grid — 4 inputs in 1 row on desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <TextField
+                  label={`Guardian Name ${index === 0 ? "*" : ""}`}
+                  placeholder="Full name (e.g. Ramesh Patil)"
+                  size="small"
+                  variant="outlined"
+                  fullWidth
+                  value={guardian.name}
+                  onChange={(e) => handleGuardianChange(guardian.id, "name", e.target.value)}
+                  error={Boolean(errors[index === 0 ? "guardian_0_name" : "guardian_1_name"])}
+                  helperText={errors[index === 0 ? "guardian_0_name" : "guardian_1_name"]}
+                  slotProps={{ formHelperText: formHelperSlotProps }}
+                  sx={inputSxWhite}
+                />
+              </div>
 
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <TextInput
-                    label="Mobile No"
-                    type="text"
-                    placeholder="Enter mobile number"
-                    value={guardian.contact}
-                    onChange={(e) => handleGuardianChange(guardian.id, "contact", e.target.value)}
-                    required={index === 0}
-                    withAsterisk={index === 0}
-                    size="md"
-                    maxLength={10}
-                    error={errors[index === 0 ? "guardian_0_contact" : "guardian_1_contact"]}
-                    styles={inputStyles}
-                  />
-                </Grid.Col>
+              <div>
+                <TextField
+                  label={`Relation ${index === 0 ? "*" : ""}`}
+                  placeholder="Father / Mother / Guardian"
+                  size="small"
+                  variant="outlined"
+                  fullWidth
+                  value={guardian.relation}
+                  onChange={(e) => handleGuardianChange(guardian.id, "relation", e.target.value)}
+                  error={Boolean(errors[index === 0 ? "guardian_0_relation" : "guardian_1_relation"])}
+                  helperText={errors[index === 0 ? "guardian_0_relation" : "guardian_1_relation"]}
+                  slotProps={{ formHelperText: formHelperSlotProps }}
+                  sx={inputSxWhite}
+                />
+              </div>
 
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <TextInput
-                    label="Email"
-                    type="email"
-                    placeholder="parent@example.com"
-                    value={guardian.email}
-                    onChange={(e) => handleGuardianChange(guardian.id, "email", e.target.value)}
-                    required={index === 0}
-                    withAsterisk={index === 0}
-                    size="md"
-                    error={errors[index === 0 ? "guardian_0_email" : "guardian_1_email"]}
-                    styles={inputStyles}
-                  />
-                </Grid.Col>
-              </Grid>
-            </Card>
-          ))}
-        </Stack>
-      </Paper>
-    </Stack>
-  ),
+              <div>
+                <TextField
+                  label={`Mobile No ${index === 0 ? "*" : ""}`}
+                  placeholder="10 digit mobile number"
+                  size="small"
+                  variant="outlined"
+                  fullWidth
+                  value={guardian.contact}
+                  onChange={(e) => handleGuardianChange(guardian.id, "contact", e.target.value.replace(/\D/g, ""))}
+                  error={Boolean(errors[index === 0 ? "guardian_0_contact" : "guardian_1_contact"])}
+                  helperText={errors[index === 0 ? "guardian_0_contact" : "guardian_1_contact"]}
+                  slotProps={{
+                    htmlInput: { maxLength: 10 },
+                    formHelperText: formHelperSlotProps,
+                  }}
+                  sx={inputSxWhite}
+                />
+              </div>
+
+              <div>
+                <TextField
+                  label={`Email ${index === 0 ? "*" : ""}`}
+                  placeholder="parent@example.com"
+                  type="email"
+                  size="small"
+                  variant="outlined"
+                  fullWidth
+                  value={guardian.email}
+                  onChange={(e) => handleGuardianChange(guardian.id, "email", e.target.value)}
+                  error={Boolean(errors[index === 0 ? "guardian_0_email" : "guardian_1_email"])}
+                  helperText={errors[index === 0 ? "guardian_0_email" : "guardian_1_email"]}
+                  slotProps={{ formHelperText: formHelperSlotProps }}
+                  sx={inputSxWhite}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Paper>
+  )
 );
 
-export default GuardianContent; 
+export default GuardianContent;

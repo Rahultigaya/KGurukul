@@ -2,34 +2,34 @@
 :root,
 [data-theme="dark"],
 [data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #f1f3f4;
+  --bg-primary: #f0f4f9;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e8f0fe;
   --bg-card: #ffffff;
-  --bg-card-hover: #f8f9fa;
+  --bg-card-hover: #f1f5f9;
   --bg-sidebar: #ffffff;
   --bg-topnav: #ffffff;
-  --bg-input: #f1f3f4;
+  --bg-input: #f8fafc;
 
-  --border-default: #dadce0;
-  --border-card: #e8eaed;
-  --border-accent: rgba(26, 115, 232, 0.3);
+  --border-default: #dbe0e6;
+  --border-card: #e2e8f0;
+  --border-accent: rgba(37, 99, 235, 0.3);
 
-  --text-primary: #202124;
-  --text-secondary: #5f6368;
-  --text-muted: #80868b;
-  --text-accent: #1a73e8;
-  --text-accent-primary: #1a73e8;
-  --text-accent-secondary: #1765cc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-accent: #2563eb;
+  --text-accent-primary: #2563eb;
+  --text-accent-secondary: #1d4ed8;
 
-  --accent-purple: #1a73e8; /* GPay blue (kept var name so Mantine overrides below still work) */
-  --accent-orange: #fbbc04;
-  --accent-red: #ea4335;
-  --accent-green: #34a853;
+  --accent-purple: #2563eb; /* Primary Blue accent */
+  --accent-orange: #3b82f6; /* Secondary Blue accent */
+  --accent-red: #ef4444;
+  --accent-green: #10b981;
 
-  --shadow-card: 0 1px 3px rgba(60, 64, 67, 0.15), 0 1px 2px rgba(60, 64, 67, 0.1);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
 
-  --btn-tertiary: #f1f3f4;
+  --btn-tertiary: #e8f0fe;
 }
 
 /* ─────────────────────────────────────────────

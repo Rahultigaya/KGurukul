@@ -1,12 +1,20 @@
-// src\pages\admin\Users\Student\components\EnrollmentContent.tsx
+// src/pages/admin/Users/Student/components/EnrollmentContent.tsx
 
 import React, { useState, useEffect } from "react";
-import { Stack, Paper, Title, Grid, Text, Radio, Select } from "@mantine/core";
-import { TextInput } from "@mantine/core";
-import { DateInput } from "@mantine/dates";
-import { getAllSubjects, getAllBranches } from "../../../Master/masterStore";
-import type { Subject, Branch } from "../../../Master/masterStore";
+import {
+  Paper,
+  Typography,
+  TextField,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  FormHelperText,
+  Autocomplete
+} from "@mui/material";
 import type { StudentRegistrationData, ValidationErrors } from "../types";
+import { getAllBranches, getAllSubjects } from "../../../Master/masterStore";
 
 interface EnrollmentProps {
   formData: StudentRegistrationData;
@@ -14,216 +22,225 @@ interface EnrollmentProps {
   errors: ValidationErrors;
 }
 
-// ── Generate academic year options ────────────────────────────────────────────
-// Academic year runs June → May, e.g. "2024-25", "2025-26"
-function getAcademicYears(): { value: string; label: string }[] {
-  const currentYear = new Date().getFullYear();
-  const years: { value: string; label: string }[] = [];
-  // show 2 past + current + 1 future
-  for (let y = currentYear; y <= currentYear + 2; y++) {
-    const short = String(y + 1).slice(2); // "25" from 2025
-    const value = `${y}-${short}`;
-    const label = `${y}–${short} (Jun ${y} – May ${y + 1})`;
-    years.push({ value, label });
-  }
-  return years; // newest first
+interface Option {
+  value: string;
+  label: string;
 }
 
-const ACADEMIC_YEARS = getAcademicYears();
+const ACADEMIC_YEARS: Option[] = [
+  { value: "2023-2024", label: "2023-2024" },
+  { value: "2024-2025", label: "2024-2025" },
+  { value: "2025-2026", label: "2025-2026" },
+  { value: "2026-2027", label: "2026-2027" },
+];
 
-const selectStyles = {
-  styles: {
-    label: { color: "var(--text-primary)", marginBottom: 6 },
-    input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-    section: { color: "var(--text-muted)" },
-    option: { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-    placeholder: { color: "var(--text-muted)" },
-    error: { color: "#f87171" },
-  },
-  comboboxProps: {
-    styles: {
-      dropdown: {
-        background: "var(--bg-secondary)",
-        border: "1px solid var(--border-accent)",
-        color: "var(--text-primary)",
-      },
-    },
+const DEFAULT_SUBJECTS: Option[] = [
+  { value: "1", label: "Computer Science" },
+  { value: "2", label: "Mathematics" },
+  { value: "3", label: "Physics" },
+  { value: "4", label: "Chemistry" },
+  { value: "5", label: "Biology" },
+  { value: "6", label: "English" },
+];
+
+const DEFAULT_BRANCHES: Option[] = [
+  { value: "1", label: "Main Branch" },
+  { value: "2", label: "Thane Branch" },
+  { value: "3", label: "Mulund Branch" },
+  { value: "4", label: "Kalyan Branch" },
+];
+
+const inputSxSlate = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#f8fafc",
+    borderRadius: "8px",
   },
 };
 
-const inputStyles = {
-  label: { color: "var(--text-primary)", marginBottom: 6 },
-  input: {
-    backgroundColor: "var(--bg-input)",
-    color: "var(--text-primary)",
-    borderColor: "var(--border-default)",
-  },
-  placeholder: { color: "var(--text-muted)" },
-};
+const formHelperSlotProps = { className: "!bg-transparent !m-0 !mt-1" };
 
 const EnrollmentContent = React.memo<EnrollmentProps>(
   ({ formData, handleInputChange, errors }) => {
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [branches, setBranches] = useState<Branch[]>([]);
+    const [branches, setBranches] = useState<Option[]>(DEFAULT_BRANCHES);
+    const [subjects, setSubjects] = useState<Option[]>(DEFAULT_SUBJECTS);
 
+    // Dynamic API fetch for Branches and Subjects from backend masterStore
     useEffect(() => {
-      const loadDropdownData = async () => {
+      let isMounted = true;
+      const loadOptionsFromApi = async () => {
         try {
-          const [subjectsData, branchesData] = await Promise.all([
-            getAllSubjects(),
+          const [branchesData, subjectsData] = await Promise.all([
             getAllBranches(),
+            getAllSubjects(),
           ]);
-          // Filter only active records
-          setSubjects(subjectsData.filter((s) => s.is_active === 1));
-          setBranches(branchesData.filter((b) => b.is_active === 1));
-        } catch (error) {
-          console.error("Error loading subject/branch data:", error);
+
+          if (isMounted) {
+            if (branchesData && branchesData.length > 0) {
+              setBranches(branchesData.map((b: { id: string | number; name: string }) => ({ value: String(b.id), label: b.name })));
+            }
+            if (subjectsData && subjectsData.length > 0) {
+              setSubjects(subjectsData.map((s: { id: string | number; name: string }) => ({ value: String(s.id), label: s.name })));
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching branches/subjects from API:", err);
         }
       };
-      loadDropdownData();
+      loadOptionsFromApi();
+      return () => {
+        isMounted = false;
+      };
     }, []);
 
-    const subjectOptions = subjects.map((s) => ({ value: String(s.id), label: s.name }));
-    const branchOptions = branches.map((b) => ({ value: String(b.id), label: b.name }));
+   const findOption = (options: Option[], value: string | undefined) =>
+  options.find((o) => o.value === value?.trim()) || null;
 
     return (
-      <Stack gap="md">
-        <Paper
-          className="p-4 sm:p-6"
-          style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border-accent)",
-          }}
-        >
-          <Title
-            order={5}
-            mb="md"
-            style={{ color: "var(--text-accent)", fontSize: "clamp(14px, 2vw, 18px)" }}
-          >
+      <Paper
+        elevation={1}
+        className="p-5 sm:p-7 bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all space-y-6"
+      >
+        <div className="border-l-4 border-blue-600 pl-3">
+          <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg">
             Enrollment Information
-          </Title>
+          </Typography>
+          <Typography variant="caption" className="text-slate-500">
+            Select academic year, branch, subject and course type
+          </Typography>
+        </div>
 
-          <Grid gutter="md">
-
-            {/* Academic Year */}
-            <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-              <Select
-                label="Academic Year"
-                placeholder="Select academic year"
-                value={formData.academicYear ?? null}
-                onChange={(value) => handleInputChange("academicYear", value)}
-                data={ACADEMIC_YEARS}
-                required
-                withAsterisk
-                error={errors.academicYear}
-                {...selectStyles}
-              />
-            </Grid.Col>
-
-            {/* Registration Date */}
-            <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-              <DateInput
-                label="Registration Date"
-                placeholder="Select date"
-                value={formData.registrationDate}
-                onChange={(value) => handleInputChange("registrationDate", value)}
-                required
-                withAsterisk
-                error={errors.registrationDate}
-                onKeyDown={(e) => e.preventDefault()}
-                size="md"
-                // Show only month + year in the header; user picks a day
-                // This is native DateInput — restrict to month/year level if needed
-                popoverProps={{
-                  styles: {
-                    dropdown: { backgroundColor: "var(--bg-secondary)" },
-                  },
-                }}
-                styles={{
-                  label: { color: "var(--text-primary)", marginBottom: 6 },
-                  input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-                  calendarHeader: { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-                  calendarHeaderLevel: { color: "var(--text-primary)" },
-                  calendarHeaderControl: { color: "var(--text-primary)" },
-                  weekday: { color: "var(--text-secondary)" },
-                  day: { color: "var(--text-primary)" },
-                }}
-              />
-            </Grid.Col>
-
-            {/* Subject */}
-            <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-              <Select
-                label="Subject"
-                placeholder="Select subject"
-                value={formData.subject ?? null}
-                onChange={(value) => handleInputChange("subject", value)}
-                data={subjectOptions}
-                required
-                withAsterisk
-                error={errors.subject}
-                searchable
-                clearable
-                {...selectStyles}
-              />
-            </Grid.Col>
-
-            {/* Branch */}
-            <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-              <Select
-                label="Branch"
-                placeholder="Select branch"
-                value={formData.branch ?? null}
-                onChange={(value) => handleInputChange("branch", value)}
-                data={branchOptions}
-                required
-                withAsterisk
-                error={errors.branch}
-                searchable
-                clearable
-                {...selectStyles}
-              />
-            </Grid.Col>
-
-            {/* Course Type */}
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <label
-                className="text-sm font-medium block mb-2"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Course Type <span className="text-red-500">*</span>
-              </label>
-              <Radio.Group
-                value={formData.courseType}
-                onChange={(value) => handleInputChange("courseType", value)}
-                required
-                size="md"
-              >
-                <Stack gap="xs">
-                  <Radio value="Regular" label="Regular" color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
-                  <Radio value="Crash (Backlog)" label="Crash (Backlog)" color="violet" styles={{ label: { color: "var(--text-primary)" } }} />
-                </Stack>
-              </Radio.Group>
-              {errors.courseType && (
-                <Text size="xs" c="red" mt={4}>{errors.courseType}</Text>
+        {/* Responsive Grid Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
+          {/* Row 1 — Item 1: Academic Year Dropdown */}
+          <div>
+            <Autocomplete
+              options={ACADEMIC_YEARS}
+              getOptionLabel={(option) => option.label}
+              isOptionEqualToValue={(option, value) => option.value === value.value}
+value={findOption(ACADEMIC_YEARS, String(formData.academicYear ?? "").trim())}
+              onChange={(_e, newValue) =>
+                handleInputChange("academicYear", newValue ? newValue.value : "")
+              }
+              size="small"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Academic Year *"
+                  error={Boolean(errors.academicYear)}
+                  helperText={errors.academicYear}
+                   sx={inputSxSlate}
+                />
               )}
-            </Grid.Col>
+            />
 
-            {/* Reference */}
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <TextInput
-                label="Reference"
-                placeholder="Enter reference (optional)"
-                value={formData.reference}
-                onChange={(e) => handleInputChange("reference", e.target.value)}
-                size="md"
-                styles={inputStyles}
-              />
-            </Grid.Col>
+          </div>
 
-          </Grid>
-        </Paper>
-      </Stack>
+          {/* Row 1 — Item 2: Registration Date */}
+          <div>
+            <TextField
+              label="Registration Date *"
+              type="date"
+              size="small"
+              variant="outlined"
+              fullWidth
+              value={formData.registrationDate || ""}
+              onChange={(e) => handleInputChange("registrationDate", e.target.value)}
+              error={Boolean(errors.registrationDate)}
+              helperText={errors.registrationDate}
+              slotProps={{
+                inputLabel: { shrink: true },
+                formHelperText: formHelperSlotProps,
+              }}
+              sx={inputSxSlate}
+            />
+          </div>
+
+          {/* Row 1 — Item 3: Subject Dropdown (Dynamic API Data) */}
+          <div>
+           <Autocomplete
+  options={subjects}
+  getOptionLabel={(option) => option.label}
+  value={subjects.find((s) => s.value === formData.subject) || null}
+  onChange={(_e, newValue) => handleInputChange("subject", newValue ? newValue.value : "")}
+  isOptionEqualToValue={(option, value) => option.value === value.value}
+  size="small"
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label="Subject *"
+      error={Boolean(errors.subject)}
+      helperText={errors.subject}
+      sx={inputSxSlate}
+    />
+  )}
+/>
+          </div>
+
+          {/* Row 2 — Item 4: Branch Dropdown (Dynamic API Data) */}
+          <div>
+            <Autocomplete
+              options={branches}
+              getOptionLabel={(option) => option.label}
+              isOptionEqualToValue={(option, value) => option.value === value.value}
+              value={findOption(branches, formData.branch)}
+              onChange={(_e, newValue) =>
+                handleInputChange("branch", newValue ? newValue.value : "")
+              }
+              size="small"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Branch *"
+                  error={Boolean(errors.branch)}
+                  helperText={errors.branch}
+                   sx={inputSxSlate}
+                />
+              )}
+            />
+          </div>
+
+          {/* Row 2 — Item 5: Course Type Radio Group */}
+          <div>
+            <FormControl component="fieldset" fullWidth error={Boolean(errors.courseType)}>
+              <FormLabel className="!text-xs !font-semibold !text-slate-700 mb-1 block">
+                Course Type *
+              </FormLabel>
+              <RadioGroup
+                value={formData.courseType || "Regular"}
+                onChange={(e) => handleInputChange("courseType", e.target.value)}
+                row
+                className="!flex !w-full !items-center !justify-between pt-1"
+              >
+                <FormControlLabel
+                  value="Regular"
+                  control={<Radio size="small" color="primary" />}
+                  label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Regular</span>}
+                />
+                <FormControlLabel
+                  value="Crash (Backlog)"
+                  control={<Radio size="small" color="primary" />}
+                  label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Crash</span>}
+                />
+              </RadioGroup>
+              {errors.courseType && <FormHelperText error className="!bg-transparent !m-0 !mt-1">{errors.courseType}</FormHelperText>}
+            </FormControl>
+          </div>
+
+          {/* Row 2 — Item 6: Reference */}
+          <div>
+            <TextField
+              label="Reference"
+              placeholder="Enter reference (optional)"
+              size="small"
+              variant="outlined"
+              fullWidth
+              value={formData.reference || ""}
+              onChange={(e) => handleInputChange("reference", e.target.value)}
+              sx={inputSxSlate}
+            />
+          </div>
+        </div>
+      </Paper>
     );
   }
 );

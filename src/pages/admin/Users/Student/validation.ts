@@ -1,4 +1,4 @@
-// src\pages\admin\Users\Student\validation.ts
+// src/pages/admin/Users/Student/validation.ts
 
 import {
   isValidAddress,
@@ -16,7 +16,7 @@ export function validateField(key: string, value: any): string | null {
 
   switch (key) {
     // ── Step 0 ──
-     case "academicYear":
+    case "academicYear":
       return !value || !str.trim() ? "Academic year is required." : null;
     case "registrationDate":
       return !value ? "Registration date is required." : null;
@@ -36,15 +36,15 @@ export function validateField(key: string, value: any): string | null {
     // ── Step 1 ──
     case "firstName":
       if (!str.trim()) return "First name is required.";
-      if (!isValidAlpha(str)) return "First name must contain letters only ";
+      if (!isValidAlpha(str)) return "First name must contain letters only.";
       return null;
     case "middleName":
       if (str.trim() && !isValidAlpha(str))
-        return "Middle name must contain letters only ";
+        return "Middle name must contain letters only.";
       return null;
     case "surname":
       if (!str.trim()) return "Surname is required.";
-      if (!isValidAlpha(str)) return "Surname must contain letters only ";
+      if (!isValidAlpha(str)) return "Surname must contain letters only.";
       return null;
     case "gender":
       return !value ? "Gender is required." : null;
@@ -74,11 +74,11 @@ export function validateField(key: string, value: any): string | null {
     // ── Step 2 (guardian 0) ──
     case "guardian_0_name":
       if (!str.trim()) return "Guardian name is required.";
-      if (!isValidAlpha(str)) return "Guardian name must contain letters only ";
+      if (!isValidAlpha(str)) return "Guardian name must contain letters only.";
       return null;
     case "guardian_0_relation":
       if (!str.trim()) return "Relation is required.";
-      if (!isValidAlpha(str)) return "Relation must contain letters only ";
+      if (!isValidAlpha(str)) return "Relation must contain letters only.";
       return null;
     case "guardian_0_contact":
       if (!str.trim()) return "Mobile number is required.";
@@ -133,7 +133,7 @@ export function validateStep(
   };
 
   if (step === 0) {
-    check("academicYear", formData.academicYear);   // ← added
+    check("academicYear", formData.academicYear);
     check("registrationDate", formData.registrationDate);
     check("subject", formData.subject);
     check("branch", formData.branch);
@@ -193,25 +193,23 @@ export function validateStep(
     }
 
     if (formData.paymentType === "installment") {
-      const filled = formData.installments.filter(
-        (i) => i.amount || i.date || i.mode || i.paidTo,
-      );
+      // Installment 1 (index 0) is required
+      check("inst_0_amount", formData.installments[0]?.amount);
+      check("inst_0_date", formData.installments[0]?.date);
+      check("inst_0_mode", formData.installments[0]?.mode);
+      check("inst_0_paidTo", formData.installments[0]?.paidTo);
 
-      if (filled.length === 0) {
-        ["amount", "date", "mode", "paidTo"].forEach((f) =>
-          check(`inst_0_${f}`, ""),
-        );
-      } else {
-        formData.installments.forEach((inst, idx) => {
-          const hasAny = inst.amount || inst.date || inst.mode || inst.paidTo;
-          if (hasAny) {
-            check(`inst_${idx}_amount`, inst.amount);
-            check(`inst_${idx}_date`, inst.date);
-            check(`inst_${idx}_mode`, inst.mode);
-            check(`inst_${idx}_paidTo`, inst.paidTo);
-          }
-        });
-      }
+      // Installments 2 and 3 (index 1 & 2) are optional; only validate if amount is filled
+      formData.installments.forEach((inst, idx) => {
+        if (idx === 0) return;
+        const isFilled = Boolean(inst.amount && parseFloat(inst.amount) > 0);
+        if (isFilled) {
+          check(`inst_${idx}_amount`, inst.amount);
+          check(`inst_${idx}_date`, inst.date);
+          check(`inst_${idx}_mode`, inst.mode);
+          check(`inst_${idx}_paidTo`, inst.paidTo);
+        }
+      });
     }
   }
 

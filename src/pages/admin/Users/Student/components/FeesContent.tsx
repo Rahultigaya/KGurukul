@@ -1,12 +1,15 @@
-// src\pages\admin\Users\Student\components\FeesContent.tsx
+// src/pages/admin/Users/Student/components/FeesContent.tsx
 
 import React from "react";
 import {
-  Stack, Paper, Title, Grid, Text, Group,
-  Radio, TextInput, NumberInput, Select, Divider, Badge,
-} from "@mantine/core";
-import { IconCurrencyRupee } from "@tabler/icons-react";
-import { DateInput } from "@mantine/dates";
+  Paper,
+  Typography,
+  TextField,
+  MenuItem,
+  Chip,
+  InputAdornment,
+} from "@mui/material";
+import { IconCurrencyRupee, IconCreditCard, IconCalendar, IconClock } from "@tabler/icons-react";
 import type { Installment, StudentRegistrationData, ValidationErrors } from "../types";
 
 interface FeesProps {
@@ -20,302 +23,599 @@ interface FeesProps {
   errors: ValidationErrors;
 }
 
-// ── Shared style builders (read CSS vars at render time) ──────────────────────
+interface Option {
+  value: string;
+  label: string;
+}
 
-const inputStyles = {
-  label: { color: "var(--text-primary)",   marginBottom: 6 },
-  input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-};
+const PAYMENT_MODE_OPTIONS: Option[] = [
+  { value: "Cash", label: "Cash" },
+  { value: "Cheque", label: "Cheque" },
+  { value: "Online", label: "Online" },
+];
 
-const dateStyles = {
-  ...inputStyles,
-  calendarHeader:        { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-  calendarHeaderLevel:   { color: "var(--text-primary)" },
-  calendarHeaderControl: { color: "var(--text-primary)" },
-  weekday:               { color: "var(--text-secondary)" },
-  day:                   { color: "var(--text-primary)"  },
-};
+const PAID_TO_OPTIONS: Option[] = [
+  { value: "Sir Account", label: "Sir Account" },
+  { value: "Ma'am Account", label: "Ma'am Account" },
+];
 
-const datePopover = {
-  styles: { dropdown: { backgroundColor: "var(--bg-secondary)" } },
-};
-
-const selectDropdownStyles = {
-  comboboxProps: {
-    styles: {
-      dropdown: {
-        background: "var(--bg-secondary)",
-        border: "1px solid var(--border-accent)",
-        color: "var(--text-primary)",
-      },
-    },
-  },
-  styles: {
-    ...inputStyles,
-    option: { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
+const inputSxSlate = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#f8fafc",
+    borderRadius: "8px",
   },
 };
 
-const radioLabel = { styles: { label: { color: "var(--text-primary)" } } };
+const inputSxWhite = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#ffffff",
+    borderRadius: "8px",
+  },
+};
 
-// ── Component ─────────────────────────────────────────────────────────────────
+const formHelperSlotProps = { className: "!bg-transparent !m-0 !mt-1" };
 
-const FeesContent = React.memo<FeesProps>(({
-  formData, handleInputChange, handleFullPaymentChange,
-  handleInstallmentChange, calculateDiscountPercentage,
-  calculateFinalAmount, calculateInstallmentTotal, errors,
-}) => (
-  <Stack gap="md">
+const FeesContent = React.memo<FeesProps>(
+  ({
+    formData,
+    handleInputChange,
+    handleFullPaymentChange,
+    handleInstallmentChange,
+    calculateDiscountPercentage,
+    calculateFinalAmount,
+    calculateInstallmentTotal,
+    errors,
+  }) => {
+    const formatDateForInput = (d: Date | string | null) => {
+      if (!d) return "";
+      if (typeof d === "string") return d.split("T")[0];
+      return d.toISOString().split("T")[0];
+    };
 
-    {/* ── Fees Structure ──────────────────────────────────────────── */}
-    <Paper className="p-4 sm:p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
-      <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
-        Fees Structure
-      </Title>
-
-      <Grid gutter="md">
-        {/* Total Fees */}
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <NumberInput
-            label="Total Fees"
-            placeholder="Enter total fees"
-            value={formData.totalFees}
-            onChange={(value) => handleInputChange("totalFees", value.toString())}
-            leftSection={<IconCurrencyRupee size={16} style={{ color: "var(--text-muted)" }} />}
-            min={0} required withAsterisk size="md" thousandSeparator=","
-            error={errors.totalFees} styles={inputStyles}
-          />
-        </Grid.Col>
-
-        {/* Discount Amount */}
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <NumberInput
-            label="Discount Amount"
-            placeholder="Enter discount"
-            value={formData.discountAmount}
-            onChange={(value) => handleInputChange("discountAmount", value.toString())}
-            leftSection={<IconCurrencyRupee size={16} style={{ color: "var(--text-muted)" }} />}
-            min={0} size="md" thousandSeparator=","
-            error={errors.discountAmount} styles={inputStyles}
-          />
-        </Grid.Col>
-
-        {/* Discount % — read-only highlight */}
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <TextInput
-            label="Discount Percentage"
-            value={`${calculateDiscountPercentage()}%`}
-            readOnly size="md"
-            styles={{
-              label: { color: "var(--text-primary)", marginBottom: 6 },
-              input: {
-                backgroundColor: "rgba(124,58,237,0.08)",
-                borderColor: "rgba(124,58,237,0.35)",
-                color: "var(--text-accent)",
-                fontWeight: 700,
-              },
-            }}
-          />
-        </Grid.Col>
-      </Grid>
-
-      {/* Final amount banner */}
-      {formData.totalFees && (
-        <Paper className="p-4 mt-4" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.35)" }}>
-          <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-            <Text className="font-medium text-base sm:text-lg" style={{ color: "var(--text-primary)" }}>
-              Final Amount to Pay:
-            </Text>
-            <Text className="text-lg sm:text-xl font-bold text-green-500">
-              ₹{calculateFinalAmount()}
-            </Text>
+    return (
+      <div className="space-y-6">
+        {/* ── Fees Structure ──────────────────────────────────────────── */}
+        <Paper
+          elevation={1}
+          className="p-5 sm:p-7 bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all space-y-6"
+        >
+          <div className="border-l-4 border-blue-600 pl-3">
+            <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg">
+              Fees Structure
+            </Typography>
+            <Typography variant="caption" className="text-slate-500">
+              Set total course fees, discount, and select payment model
+            </Typography>
           </div>
-        </Paper>
-      )}
 
-      <Divider my="lg" color="var(--border-accent)" />
-
-      {/* Payment Type radio */}
-      <div className="mb-3">
-        <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-          Payment Type <span className="text-red-500">*</span>
-        </label>
-      </div>
-      <Radio.Group
-        value={formData.paymentType}
-        onChange={(value) => handleInputChange("paymentType", value as "full" | "installment" | "later")}
-        required size="md"
-      >
-        <Stack gap="xs" className="sm:hidden">
-          <Radio value="full"        label="Full Payment"   color="violet" {...radioLabel} />
-          <Radio value="installment" label="3 Installments" color="violet" {...radioLabel} />
-          <Radio value="later"       label="Pay Later"      color="violet" {...radioLabel} />
-        </Stack>
-        <Group className="hidden sm:flex">
-          <Radio value="full"        label="Full Payment"   color="violet" {...radioLabel} />
-          <Radio value="installment" label="3 Installments" color="violet" {...radioLabel} />
-          <Radio value="later"       label="Pay Later"      color="violet" {...radioLabel} />
-        </Group>
-      </Radio.Group>
-
-      {/* Pay later notice */}
-      {formData.paymentType === "later" && (
-        <Paper className="p-4 mt-4" style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.35)" }}>
-          <Text size="sm" style={{ color: "#eab308" }}>
-            ⏳ Payment details can be added later. You can proceed with registration now.
-          </Text>
-        </Paper>
-      )}
-    </Paper>
-
-    {/* ── Full Payment ────────────────────────────────────────────── */}
-    {formData.paymentType === "full" && (
-      <Paper className="p-4 sm:p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
-        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
-          Payment Details
-        </Title>
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <NumberInput
-              label="Amount" placeholder="Enter amount"
-              value={formData.fullPayment.amount}
-              onChange={(value) => handleFullPaymentChange("amount", value.toString())}
-              leftSection={<IconCurrencyRupee size={16} style={{ color: "var(--text-muted)" }} />}
-              required withAsterisk size="md" thousandSeparator=","
-              error={errors["full_amount"]} styles={inputStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <DateInput
-              label="Payment Date" placeholder="Select date"
-              value={formData.fullPayment.date}
-              onChange={(value) => handleFullPaymentChange("date", value)}
-              required withAsterisk size="md"
-              error={errors["full_date"]} onKeyDown={(e) => e.preventDefault()}
-              popoverProps={datePopover} styles={dateStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Select
-              label="Payment Mode" placeholder="Select Mode"
-              value={formData.fullPayment.mode}
-              onChange={(value) => handleFullPaymentChange("mode", value || "")}
-              data={[{ value: "Cash", label: "Cash" }, { value: "Cheque", label: "Cheque" }, { value: "Online", label: "Online" }]}
-              required withAsterisk size="md"
-              error={errors["full_mode"]} {...selectDropdownStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <TextInput
-              label="Bank Name" placeholder="Enter bank name (if applicable)"
-              value={formData.fullPayment.bankName}
-              onChange={(e) => handleFullPaymentChange("bankName", e.target.value)}
-              size="md" styles={inputStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Select
-              label="Paid To" placeholder="Select Account"
-              value={formData.fullPayment.paidTo}
-              onChange={(value) => handleFullPaymentChange("paidTo", value || "")}
-              data={[{ value: "Sir Account", label: "Sir Account" }, { value: "Ma'am Account", label: "Ma'am Account" }]}
-              required withAsterisk size="md"
-              error={errors["full_paidTo"]} {...selectDropdownStyles}
-            />
-          </Grid.Col>
-        </Grid>
-      </Paper>
-    )}
-
-    {/* ── Installments ────────────────────────────────────────────── */}
-    {formData.paymentType === "installment" && (
-      <Stack gap="md">
-        {/* Hint banner */}
-        <Paper className="p-3" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.3)" }}>
-          <Text size="sm" style={{ color: "#60a5fa" }}>
-            💡 At least 1 installment is required. Installments 2 and 3 are optional — only fill them if payment has been made.
-          </Text>
-        </Paper>
-
-        {formData.installments.map((installment, index) => (
-          <Paper key={index} className="p-4 sm:p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
-            <div className="flex items-center gap-2 mb-2">
-              <Title order={5} style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
-                Installment {index + 1}
-              </Title>
-              {index === 0
-                ? <Badge color="red"  size="sm" variant="light">Required</Badge>
-                : <Badge color="gray" size="sm" variant="light">Optional</Badge>
-              }
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-end">
+            {/* 1. Total Fees */}
+            <div>
+              <TextField
+                label="Total Fees *"
+                placeholder="Enter total fees"
+                type="number"
+                size="small"
+                variant="outlined"
+                fullWidth
+                value={formData.totalFees || ""}
+                onChange={(e) => handleInputChange("totalFees", e.target.value)}
+                error={Boolean(errors.totalFees)}
+                helperText={errors.totalFees}
+                slotProps={{
+                  formHelperText: formHelperSlotProps,
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <IconCurrencyRupee size={16} className="text-slate-400" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={inputSxSlate}
+              />
             </div>
 
-            <Grid gutter="md" mt="xs">
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <NumberInput
-                  label="Amount" placeholder="Enter amount"
-                  value={installment.amount}
-                  onChange={(value) => handleInstallmentChange(index, "amount", value.toString())}
-                  leftSection={<IconCurrencyRupee size={16} style={{ color: "var(--text-muted)" }} />}
-                  required={index === 0} withAsterisk={index === 0} size="md" thousandSeparator=","
-                  error={errors[`inst_${index}_amount`]} styles={inputStyles}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <DateInput
-                  label="Payment Date" placeholder="Select date"
-                  value={installment.date}
-                  onChange={(value) => handleInstallmentChange(index, "date", value)}
-                  required={index === 0} withAsterisk={index === 0} size="md"
-                  error={errors[`inst_${index}_date`]} onKeyDown={(e) => e.preventDefault()}
-                  popoverProps={datePopover} styles={dateStyles}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <Select
-                  label="Payment Mode" placeholder="Select Mode"
-                  value={installment.mode}
-                  onChange={(value) => handleInstallmentChange(index, "mode", value || "")}
-                  data={[{ value: "Cash", label: "Cash" }, { value: "Cheque", label: "Cheque" }, { value: "Online", label: "Online" }]}
-                  required={index === 0} withAsterisk={index === 0} size="md"
-                  error={errors[`inst_${index}_mode`]} {...selectDropdownStyles}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="Bank Name" placeholder="Bank name (if applicable)"
-                  value={installment.bankName}
-                  onChange={(e) => handleInstallmentChange(index, "bankName", e.target.value)}
-                  size="md" styles={inputStyles}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <Select
-                  label="Paid To" placeholder="Select Account"
-                  value={installment.paidTo}
-                  onChange={(value) => handleInstallmentChange(index, "paidTo", value || "")}
-                  data={[{ value: "Sir Account", label: "Sir Account" }, { value: "Ma'am Account", label: "Ma'am Account" }]}
-                  required={index === 0} withAsterisk={index === 0} size="md"
-                  error={errors[`inst_${index}_paidTo`]} {...selectDropdownStyles}
-                />
-              </Grid.Col>
-            </Grid>
-          </Paper>
-        ))}
+            {/* 2. Discount Amount with % Badge on top right */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-semibold text-slate-700">Discount Amount</span>
+                {Number(calculateDiscountPercentage()) > 0 && (
+                  <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200 shadow-sm">
+                    {calculateDiscountPercentage()}% OFF
+                  </span>
+                )}
+              </div>
+              <TextField
+                placeholder="Enter discount"
+                type="number"
+                size="small"
+                variant="outlined"
+                fullWidth
+                value={formData.discountAmount || ""}
+                onChange={(e) => handleInputChange("discountAmount", e.target.value)}
+                error={Boolean(errors.discountAmount)}
+                helperText={errors.discountAmount}
+                slotProps={{
+                  formHelperText: formHelperSlotProps,
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <IconCurrencyRupee size={16} className="text-slate-400" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={inputSxSlate}
+              />
+            </div>
 
-        {/* Installment total banner */}
-        <Paper className="p-4" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.4)" }}>
-          <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-            <Text className="font-medium text-base sm:text-lg" style={{ color: "var(--text-primary)" }}>
-              Total from Installments:
-            </Text>
-            <Text className="text-lg sm:text-xl font-bold text-blue-400">
-              ₹{calculateInstallmentTotal()}
-            </Text>
+            {/* 3. Net Payable Amount Card Block */}
+            <div>
+              <div className="p-2.5 sm:p-3 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between shadow-sm">
+                <div>
+                  <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">
+                    Net Payable Amount
+                  </div>
+                  <div className="text-lg sm:text-xl font-extrabold text-emerald-700 leading-none mt-1">
+                    ₹{calculateFinalAmount()}
+                  </div>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-emerald-200/60 text-emerald-800 flex items-center justify-center font-bold text-sm shrink-0 border border-emerald-300/60">
+                  ₹
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Payment Type Selection Compact Card Buttons ─────────────────────────────── */}
+          <div className="pt-2">
+            <Typography variant="body2" className="!font-bold !text-slate-700 mb-2.5 block">
+              Payment Type Selection *
+            </Typography>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Full Payment Card Button */}
+              <div
+                onClick={() => handleInputChange("paymentType", "full")}
+                className={`px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
+                  formData.paymentType === "full"
+                    ? "border-blue-600 bg-blue-50/90 shadow-sm ring-1 ring-blue-200"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                    formData.paymentType === "full"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  <IconCreditCard size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className={`font-bold text-xs leading-tight ${formData.paymentType === "full" ? "text-blue-700" : "text-slate-800"}`}>
+                    Full Payment
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
+                    Pay complete net amount
+                  </div>
+                </div>
+                <span
+                  className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                    formData.paymentType === "full" ? "border-blue-600 bg-blue-600" : "border-slate-300"
+                  }`}
+                >
+                  {formData.paymentType === "full" && <span className="w-1 h-1 rounded-full bg-white" />}
+                </span>
+              </div>
+
+              {/* 3 Installments Card Button */}
+              <div
+                onClick={() => handleInputChange("paymentType", "installment")}
+                className={`px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
+                  formData.paymentType === "installment"
+                    ? "border-blue-600 bg-blue-50/90 shadow-sm ring-1 ring-blue-200"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                    formData.paymentType === "installment"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  <IconCalendar size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className={`font-bold text-xs leading-tight ${formData.paymentType === "installment" ? "text-blue-700" : "text-slate-800"}`}>
+                    3 Installments
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
+                    Split into 3 payments
+                  </div>
+                </div>
+                <span
+                  className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                    formData.paymentType === "installment" ? "border-blue-600 bg-blue-600" : "border-slate-300"
+                  }`}
+                >
+                  {formData.paymentType === "installment" && <span className="w-1 h-1 rounded-full bg-white" />}
+                </span>
+              </div>
+
+              {/* Pay Later Card Button */}
+              <div
+                onClick={() => handleInputChange("paymentType", "later")}
+                className={`px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
+                  formData.paymentType === "later"
+                    ? "border-blue-600 bg-blue-50/90 shadow-sm ring-1 ring-blue-200"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                }`}
+              >
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                    formData.paymentType === "later"
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  <IconClock size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className={`font-bold text-xs leading-tight ${formData.paymentType === "later" ? "text-blue-700" : "text-slate-800"}`}>
+                    Pay Later
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
+                    Collect payment later
+                  </div>
+                </div>
+                <span
+                  className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                    formData.paymentType === "later" ? "border-blue-600 bg-blue-600" : "border-slate-300"
+                  }`}
+                >
+                  {formData.paymentType === "later" && <span className="w-1 h-1 rounded-full bg-white" />}
+                </span>
+              </div>
+            </div>
           </div>
         </Paper>
-      </Stack>
-    )}
-  </Stack>
-));
 
-export default FeesContent; 
+        {/* ── Full Payment Details ──────────────────────────────────────── */}
+        {formData.paymentType === "full" && (
+          <Paper
+            elevation={1}
+            className="p-5 sm:p-7 bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all space-y-5"
+          >
+            <div className="border-l-4 border-blue-600 pl-3">
+              <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg">
+                Full Payment Details
+              </Typography>
+              <Typography variant="caption" className="text-slate-500">
+                Enter payment amount, mode, date and receiver account
+              </Typography>
+            </div>
+
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <TextField
+                    label="Amount *"
+                    type="number"
+                    placeholder="Enter amount"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.fullPayment.amount || ""}
+                    onChange={(e) => handleFullPaymentChange("amount", e.target.value)}
+                    error={Boolean(errors["full_amount"])}
+                    helperText={errors["full_amount"]}
+                    slotProps={{
+                      formHelperText: formHelperSlotProps,
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <IconCurrencyRupee size={16} className="text-slate-400" />
+                          </InputAdornment>
+                        ),
+                      },
+                    }}
+                    sx={inputSxSlate}
+                  />
+                </div>
+
+                <div>
+                  <TextField
+                    label="Payment Date *"
+                    type="date"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formatDateForInput(formData.fullPayment.date)}
+                    onChange={(e) =>
+                      handleFullPaymentChange("date", e.target.value ? new Date(e.target.value) : null)
+                    }
+                    error={Boolean(errors["full_date"])}
+                    helperText={errors["full_date"]}
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                      formHelperText: formHelperSlotProps,
+                    }}
+                    sx={inputSxSlate}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {/* Payment Mode Dropdown Select */}
+                <div>
+                  <TextField
+                    select
+                    label="Payment Mode *"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.fullPayment.mode || ""}
+                    onChange={(e) => handleFullPaymentChange("mode", e.target.value)}
+                    error={Boolean(errors["full_mode"])}
+                    helperText={errors["full_mode"]}
+                    slotProps={{
+                      formHelperText: formHelperSlotProps,
+                      select: { displayEmpty: true },
+                    }}
+                    sx={inputSxSlate}
+                  >
+                    <MenuItem value="" disabled className="!text-xs">
+                      Select Mode
+                    </MenuItem>
+                    {PAYMENT_MODE_OPTIONS.map((opt) => (
+                      <MenuItem key={opt.value} value={opt.value} className="!text-sm">
+                        {opt.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </div>
+
+                <div>
+                  <TextField
+                    label="Bank Name"
+                    placeholder="Enter bank name (if applicable)"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.fullPayment.bankName || ""}
+                    onChange={(e) => handleFullPaymentChange("bankName", e.target.value)}
+                    sx={inputSxSlate}
+                  />
+                </div>
+
+                {/* Paid To Dropdown Select */}
+                <div>
+                  <TextField
+                    select
+                    label="Paid To *"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.fullPayment.paidTo || ""}
+                    onChange={(e) => handleFullPaymentChange("paidTo", e.target.value)}
+                    error={Boolean(errors["full_paidTo"])}
+                    helperText={errors["full_paidTo"]}
+                    slotProps={{
+                      formHelperText: formHelperSlotProps,
+                      select: { displayEmpty: true },
+                    }}
+                    sx={inputSxSlate}
+                  >
+                    <MenuItem value="" disabled className="!text-xs">
+                      Select Account
+                    </MenuItem>
+                    {PAID_TO_OPTIONS.map((opt) => (
+                      <MenuItem key={opt.value} value={opt.value} className="!text-sm">
+                        {opt.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </div>
+              </div>
+            </div>
+          </Paper>
+        )}
+
+        {/* ── Installments Card Container ─────────────────────────────── */}
+        {formData.paymentType === "installment" && (
+          <Paper
+            elevation={1}
+            className="p-5 sm:p-7 bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all space-y-6"
+          >
+            {/* Card Header & Embedded Notice Banner */}
+            <div className="space-y-3">
+              <div className="border-l-4 border-blue-600 pl-3">
+                <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg">
+                  Installment Payment Plan
+                </Typography>
+                <Typography variant="caption" className="text-slate-500">
+                  Fill collected installment details below
+                </Typography>
+              </div>
+
+              {/* Notice tip box embedded inside the card */}
+              <div className="p-3.5 bg-blue-50/80 border border-blue-200/90 rounded-xl flex items-start gap-2.5">
+                <span className="text-base">💡</span>
+                <p className="text-xs sm:text-sm text-blue-900 leading-snug font-normal">
+                  <strong className="font-semibold text-blue-950">At least 1 installment is required.</strong>{" "}
+                  Installments 2 and 3 are optional — fill them if payment has been collected.
+                </p>
+              </div>
+            </div>
+
+            {/* Installments forms inside card */}
+            <div className="space-y-5">
+              {formData.installments.map((installment, index) => (
+                <div
+                  key={index}
+                  className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl space-y-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <Typography variant="h6" className="!font-bold !text-slate-800 !text-sm sm:!text-base">
+                      Installment {index + 1}
+                    </Typography>
+                    <Chip
+                      label={index === 0 ? "Required" : "Optional"}
+                      color={index === 0 ? "error" : "default"}
+                      size="small"
+                      variant="outlined"
+                      className="!font-semibold !text-[11px]"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <TextField
+                          label={`Amount ${index === 0 ? "*" : ""}`}
+                          type="number"
+                          placeholder="Enter amount"
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          value={installment.amount || ""}
+                          onChange={(e) => handleInstallmentChange(index, "amount", e.target.value)}
+                          error={Boolean(errors[`inst_${index}_amount`])}
+                          helperText={errors[`inst_${index}_amount`]}
+                          slotProps={{
+                            formHelperText: formHelperSlotProps,
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <IconCurrencyRupee size={16} className="text-slate-400" />
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                          sx={inputSxWhite}
+                        />
+                      </div>
+
+                      <div>
+                        <TextField
+                          label={`Payment Date ${index === 0 ? "*" : ""}`}
+                          type="date"
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          value={formatDateForInput(installment.date)}
+                          onChange={(e) =>
+                            handleInstallmentChange(
+                              index,
+                              "date",
+                              e.target.value ? new Date(e.target.value) : null
+                            )
+                          }
+                          error={Boolean(errors[`inst_${index}_date`])}
+                          helperText={errors[`inst_${index}_date`]}
+                          slotProps={{
+                            inputLabel: { shrink: true },
+                            formHelperText: formHelperSlotProps,
+                          }}
+                          sx={inputSxWhite}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Payment Mode Dropdown Select */}
+                      <div>
+                        <TextField
+                          select
+                          label={`Payment Mode ${index === 0 ? "*" : ""}`}
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          value={installment.mode || ""}
+                          onChange={(e) => handleInstallmentChange(index, "mode", e.target.value)}
+                          error={Boolean(errors[`inst_${index}_mode`])}
+                          helperText={errors[`inst_${index}_mode`]}
+                          slotProps={{
+                            formHelperText: formHelperSlotProps,
+                            select: { displayEmpty: true },
+                          }}
+                          sx={inputSxWhite}
+                        >
+                          <MenuItem value="" disabled className="!text-xs">
+                            Select Mode
+                          </MenuItem>
+                          {PAYMENT_MODE_OPTIONS.map((opt) => (
+                            <MenuItem key={opt.value} value={opt.value} className="!text-sm">
+                              {opt.label}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </div>
+
+                      <div>
+                        <TextField
+                          label="Bank Name"
+                          placeholder="Bank name (if applicable)"
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          value={installment.bankName || ""}
+                          onChange={(e) => handleInstallmentChange(index, "bankName", e.target.value)}
+                          sx={inputSxWhite}
+                        />
+                      </div>
+
+                      {/* Paid To Dropdown Select */}
+                      <div>
+                        <TextField
+                          select
+                          label={`Paid To ${index === 0 ? "*" : ""}`}
+                          size="small"
+                          variant="outlined"
+                          fullWidth
+                          value={installment.paidTo || ""}
+                          onChange={(e) => handleInstallmentChange(index, "paidTo", e.target.value)}
+                          error={Boolean(errors[`inst_${index}_paidTo`])}
+                          helperText={errors[`inst_${index}_paidTo`]}
+                          slotProps={{
+                            formHelperText: formHelperSlotProps,
+                            select: { displayEmpty: true },
+                          }}
+                          sx={inputSxWhite}
+                        >
+                          <MenuItem value="" disabled className="!text-xs">
+                            Select Account
+                          </MenuItem>
+                          {PAID_TO_OPTIONS.map((opt) => (
+                            <MenuItem key={opt.value} value={opt.value} className="!text-sm">
+                              {opt.label}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom Total Summary Banner */}
+            <div className="p-4 bg-blue-50/70 border border-blue-200/80 rounded-xl flex justify-between items-center shadow-sm">
+              <span className="text-slate-800 font-semibold text-sm">
+                Total Collected from Installments:
+              </span>
+              <span className="text-blue-700 font-bold text-lg">
+                ₹{calculateInstallmentTotal()}
+              </span>
+            </div>
+          </Paper>
+        )}
+      </div>
+    );
+  }
+);
+
+export default FeesContent;

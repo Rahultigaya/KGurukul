@@ -3,16 +3,33 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  Stepper, Button, Group, Paper, Title, Text,
-  ActionIcon, Box, Alert, Badge,
-} from "@mantine/core";
+  Typography,
+  IconButton,
+  Alert,
+  Chip,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 import {
-  IconArrowLeft, IconClipboardList, IconUser, IconUsers,
-  IconCurrencyRupee, IconAlertCircle, IconDeviceFloppy,
-  IconArrowRight, IconCreditCard, IconX,
+  IconArrowLeft,
+  IconCurrencyRupee,
+  IconAlertCircle,
+  IconDeviceFloppy,
+  IconArrowRight,
+  IconCreditCard,
+  IconX,
+  IconClipboardList,
+  IconUser,
+  IconUsers,
+  IconCheck,
 } from "@tabler/icons-react";
-import "@mantine/core/styles.css";
-import "@mantine/dates/styles.css";
+
+const stepItems = [
+  { label: "Enrollment", description: "Course details", icon: IconClipboardList },
+  { label: "Student", description: "Personal details", icon: IconUser },
+  { label: "Guardian", description: "Parent details", icon: IconUsers },
+  { label: "Fees", description: "Payment details", icon: IconCurrencyRupee },
+];
 import Swal from "sweetalert2";
 
 import type { GuardianDetails, Installment, StudentRegistrationData, ValidationErrors } from "./types";
@@ -23,20 +40,28 @@ import EnrollmentContent from "./components/EnrollmentContent";
 import StudentDetailsContent from "./components/StudentDetailsContent";
 import GuardianContent from "./components/GuardianContent";
 import FeesContent from "./components/FeesContent";
-import { useTheme } from "../../../../context/ThemeContext";
-
-// ── Initial state ─────────────────────────────────────────────────────────────
 
 const initialFormData: StudentRegistrationData = {
   photo: null,
   academicYear: "",
   registrationDate: new Date().toISOString().split("T")[0],
-  subject: "", branch: "", courseType: "", reference: "",
-  surname: "", firstName: "", middleName: "", gender: "",
-  email: "", contactNo: "", address: "", schoolCollegeName: "", standard: "",
+  subject: "",
+  branch: "",
+  courseType: "Regular",
+  reference: "",
+  surname: "",
+  firstName: "",
+  middleName: "",
+  gender: "",
+  email: "",
+  contactNo: "",
+  address: "",
+  schoolCollegeName: "",
+  standard: "",
   guardians: [{ id: "1", name: "", email: "", contact: "", relation: "" }],
   paymentType: "full",
-  totalFees: "", discountAmount: "",
+  totalFees: "",
+  discountAmount: "",
   fullPayment: { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
   installments: [
     { amount: "", date: null, mode: "", bankName: "", paidTo: "" },
@@ -45,19 +70,18 @@ const initialFormData: StudentRegistrationData = {
   ],
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 const StudentRegistration: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const { isDark } = useTheme();
 
   const isEditMode = Boolean(id);
   const isPaymentMode = searchParams.get("tab") === "fees";
 
   const pageTitle = isEditMode
-    ? isPaymentMode ? "Update Payment" : "Edit Student"
+    ? isPaymentMode
+      ? "Update Payment"
+      : "Edit Student"
     : "Student Registration";
 
   const pageSubtitle = isEditMode
@@ -71,7 +95,7 @@ const StudentRegistration: React.FC = () => {
   const [formData, setFormData] = useState<StudentRegistrationData>(initialFormData);
   const [isLoading, setIsLoading] = useState(isEditMode);
 
-  // ── Prefill on edit ───────────────────────────────────────────────────────
+  // Prefill on edit
   useEffect(() => {
     if (!isEditMode || !id) return;
     (async () => {
@@ -84,9 +108,7 @@ const StudentRegistration: React.FC = () => {
             title: "Student not found",
             text: "The student you're trying to edit doesn't exist.",
             icon: "error",
-            background: isDark ? "#1e293b" : "#ffffff",
-            color: isDark ? "#f8fafc" : "#0f172a",
-            confirmButtonColor: "#7c3aed",
+            confirmButtonColor: "#2563eb",
           }).then(() => navigate("/Users"));
         }
       } catch {
@@ -94,30 +116,36 @@ const StudentRegistration: React.FC = () => {
           title: "Error",
           text: "Failed to load student data.",
           icon: "error",
-          background: isDark ? "#1e293b" : "#ffffff",
-          color: isDark ? "#f8fafc" : "#0f172a",
-          confirmButtonColor: "#7c3aed",
+          confirmButtonColor: "#2563eb",
         }).then(() => navigate("/Users"));
       } finally {
         setIsLoading(false);
       }
     })();
-  }, [id, isEditMode, navigate, isDark]);
+  }, [id, isEditMode, navigate]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleInputChange = useCallback((field: string, value: any) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
-      if (field === "paymentType") { setErrors({}); return updated; }
+      if (field === "paymentType") {
+        setErrors({});
+        return updated;
+      }
       setErrors((prevErr) => {
         let next = applyFieldError(prevErr, field, value);
         if (field === "totalFees" || field === "discountAmount") {
           const total = parseFloat(field === "totalFees" ? value : prev.totalFees) || 0;
-          const discount = parseFloat(field === "discountAmount" ? value : prev.discountAmount) || 0;
+          const discount =
+            parseFloat(field === "discountAmount" ? value : prev.discountAmount) || 0;
           if (discount > total) {
-            next = { ...next, discountAmount: "Discount amount cannot be greater than total fees." };
+            next = {
+              ...next,
+              discountAmount: "Discount amount cannot be greater than total fees.",
+            };
           } else {
-            const cleaned = { ...next }; delete cleaned["discountAmount"]; next = cleaned;
+            const cleaned = { ...next };
+            delete cleaned["discountAmount"];
+            next = cleaned;
           }
         }
         return next;
@@ -129,71 +157,110 @@ const StudentRegistration: React.FC = () => {
   const handleImageUpload = useCallback((file: File | null) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = () => setFormData((prev) => ({ ...prev, photo: reader.result as string }));
+    reader.onloadend = () =>
+      setFormData((prev) => ({ ...prev, photo: reader.result as string }));
     reader.readAsDataURL(file);
   }, []);
 
-  const handleGuardianChange = useCallback((id: string, field: keyof GuardianDetails, value: string) => {
-    setFormData((prev) => {
-      const guardianIndex = prev.guardians.findIndex((g) => g.id === id);
-      const updatedGuardians = prev.guardians.map((g) => g.id === id ? { ...g, [field]: value } : g);
-      if (guardianIndex === 0) {
-        setErrors((prevErr) => applyFieldError(prevErr, `guardian_0_${field}`, value));
-      } else if (guardianIndex === 1) {
-        const updatedGuardian = updatedGuardians[guardianIndex];
-        const isPartiallyFilled = updatedGuardian.name || updatedGuardian.email || updatedGuardian.contact || updatedGuardian.relation;
-        setErrors((prevErr) => {
-          const next = { ...prevErr };
-          if (isPartiallyFilled) {
-            const err = validateField(`guardian_0_${field}`, value);
-            if (err) next[`guardian_1_${field}`] = err; else delete next[`guardian_1_${field}`];
-          } else {
-            delete next["guardian_1_name"]; delete next["guardian_1_relation"];
-            delete next["guardian_1_contact"]; delete next["guardian_1_email"];
-          }
-          return next;
-        });
-      }
-      return { ...prev, guardians: updatedGuardians };
-    });
-  }, []);
+  const handleGuardianChange = useCallback(
+    (id: string, field: keyof GuardianDetails, value: string) => {
+      setFormData((prev) => {
+        const guardianIndex = prev.guardians.findIndex((g) => g.id === id);
+        const updatedGuardians = prev.guardians.map((g) =>
+          g.id === id ? { ...g, [field]: value } : g
+        );
+        if (guardianIndex === 0) {
+          setErrors((prevErr) => applyFieldError(prevErr, `guardian_0_${field}`, value));
+        } else if (guardianIndex === 1) {
+          const updatedGuardian = updatedGuardians[guardianIndex];
+          const isPartiallyFilled =
+            updatedGuardian.name ||
+            updatedGuardian.email ||
+            updatedGuardian.contact ||
+            updatedGuardian.relation;
+          setErrors((prevErr) => {
+            const next = { ...prevErr };
+            if (isPartiallyFilled) {
+              const err = validateField(`guardian_0_${field}`, value);
+              if (err) next[`guardian_1_${field}`] = err;
+              else delete next[`guardian_1_${field}`];
+            } else {
+              delete next["guardian_1_name"];
+              delete next["guardian_1_relation"];
+              delete next["guardian_1_contact"];
+              delete next["guardian_1_email"];
+            }
+            return next;
+          });
+        }
+        return { ...prev, guardians: updatedGuardians };
+      });
+    },
+    []
+  );
 
   const addGuardian = useCallback(() => {
     setFormData((prev) => {
       if (prev.guardians.length >= 2) return prev;
-      return { ...prev, guardians: [...prev.guardians, { id: Date.now().toString(), name: "", email: "", contact: "", relation: "" }] };
+      return {
+        ...prev,
+        guardians: [
+          ...prev.guardians,
+          { id: Date.now().toString(), name: "", email: "", contact: "", relation: "" },
+        ],
+      };
     });
   }, []);
 
   const removeGuardian = useCallback((id: string) => {
-    setFormData((prev) => ({ ...prev, guardians: prev.guardians.filter((g) => g.id !== id) }));
-  }, []);
-
-  const handleFullPaymentChange = useCallback((field: string, value: string | Date | null) => {
-    setFormData((prev) => ({ ...prev, fullPayment: { ...prev.fullPayment, [field]: value } }));
-    if (field !== "bankName") setErrors((prev) => applyFieldError(prev, `full_${field}`, value));
-  }, []);
-
-  const handleInstallmentChange = useCallback((index: number, field: keyof Installment, value: string | Date | null) => {
     setFormData((prev) => ({
       ...prev,
-      installments: prev.installments.map((inst, i) => i === index ? { ...inst, [field]: value } : inst),
+      guardians: prev.guardians.filter((g) => g.id !== id),
     }));
-    if (field === "bankName") return;
-    if (index === 0) { setErrors((prev) => applyFieldError(prev, `inst_0_${field}`, value)); return; }
-    setFormData((prev) => {
-      const inst = { ...prev.installments[index], [field]: value };
-      const isPartial = inst.amount || inst.date || inst.mode || inst.paidTo;
-      setErrors((prevErr) =>
-        isPartial
-          ? applyFieldError(prevErr, `inst_${index}_${field}`, value)
-          : (() => { const next = { ...prevErr }; delete next[`inst_${index}_${field}`]; return next; })()
-      );
-      return prev;
-    });
   }, []);
 
-  // ── Calculators ───────────────────────────────────────────────────────────
+  const handleFullPaymentChange = useCallback(
+    (field: string, value: string | Date | null) => {
+      setFormData((prev) => ({
+        ...prev,
+        fullPayment: { ...prev.fullPayment, [field]: value },
+      }));
+      if (field !== "bankName") setErrors((prev) => applyFieldError(prev, `full_${field}`, value));
+    },
+    []
+  );
+
+  const handleInstallmentChange = useCallback(
+    (index: number, field: keyof Installment, value: string | Date | null) => {
+      setFormData((prev) => ({
+        ...prev,
+        installments: prev.installments.map((inst, i) =>
+          i === index ? { ...inst, [field]: value } : inst
+        ),
+      }));
+      if (field === "bankName") return;
+      if (index === 0) {
+        setErrors((prev) => applyFieldError(prev, `inst_0_${field}`, value));
+        return;
+      }
+      setFormData((prev) => {
+        const inst = { ...prev.installments[index], [field]: value };
+        const isPartial = inst.amount || inst.date || inst.mode || inst.paidTo;
+        setErrors((prevErr) =>
+          isPartial
+            ? applyFieldError(prevErr, `inst_${index}_${field}`, value)
+            : (() => {
+                const next = { ...prevErr };
+                delete next[`inst_${index}_${field}`];
+                return next;
+              })()
+        );
+        return prev;
+      });
+    },
+    []
+  );
+
   const calculateDiscountPercentage = useCallback(() => {
     const total = parseFloat(formData.totalFees) || 0;
     const discount = parseFloat(formData.discountAmount) || 0;
@@ -207,14 +274,21 @@ const StudentRegistration: React.FC = () => {
     return (total - discount).toFixed(2);
   }, [formData.totalFees, formData.discountAmount]);
 
-  const calculateInstallmentTotal = useCallback(() =>
-    formData.installments.reduce((sum, inst) => sum + (parseFloat(inst.amount) || 0), 0).toFixed(2),
-    [formData.installments]);
+  const calculateInstallmentTotal = useCallback(
+    () =>
+      formData.installments
+        .reduce((sum, inst) => sum + (parseFloat(inst.amount) || 0), 0)
+        .toFixed(2),
+    [formData.installments]
+  );
 
-  // ── Navigation ────────────────────────────────────────────────────────────
   const nextStep = useCallback(() => {
     const stepErrors = validateStep(active, formData);
-    if (Object.keys(stepErrors).length > 0) { setErrors(stepErrors); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     setErrors({});
     setActive((c) => Math.min(c + 1, 3));
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -226,12 +300,13 @@ const StudentRegistration: React.FC = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
     const stepErrors = validateStep(3, formData);
-    if (Object.keys(stepErrors).length > 0) { setErrors(stepErrors); return; }
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
 
-    // ── Transform formData → API payload ──────────────────────────────────────
     const formatDate = (d: Date | string | null) => {
       if (!d) return null;
       if (typeof d === "string") return d;
@@ -264,15 +339,16 @@ const StudentRegistration: React.FC = () => {
         contact: g.contact,
         relation: g.relation,
       })),
-      full_payment: formData.paymentType === "full" && formData.fullPayment?.amount
-        ? {
-            amount: formData.fullPayment.amount,
-            date: formatDate(formData.fullPayment.date),
-            mode: formData.fullPayment.mode,
-            bank_name: formData.fullPayment.bankName,
-            paid_to: formData.fullPayment.paidTo,
-          }
-        : null,
+      full_payment:
+        formData.paymentType === "full" && formData.fullPayment?.amount
+          ? {
+              amount: formData.fullPayment.amount,
+              date: formatDate(formData.fullPayment.date),
+              mode: formData.fullPayment.mode,
+              bank_name: formData.fullPayment.bankName,
+              paid_to: formData.fullPayment.paidTo,
+            }
+          : null,
       installments: formData.installments
         .filter((i) => i.amount && Number(i.amount) > 0)
         .map((i) => ({
@@ -284,8 +360,6 @@ const StudentRegistration: React.FC = () => {
         })),
     };
 
-    console.log("Submitting student payload:", JSON.stringify(payload, null, 2));
-
     try {
       if (isEditMode && id) {
         await updateStudentApi(Number(id), payload);
@@ -293,281 +367,281 @@ const StudentRegistration: React.FC = () => {
         await createStudent(payload);
       }
 
-      const title = isPaymentMode ? "Payment Updated! ✅" : isEditMode ? "Student Updated! ✅" : "Registration Successful! 🎉";
-      const html = isPaymentMode
-        ? `<span style="color:var(--text-secondary)">Payment for <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> updated.</span>`
+      const title = isPaymentMode
+        ? "Payment Updated! ✅"
         : isEditMode
-          ? `<span style="color:var(--text-secondary)"><strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong>'s details updated.</span>`
-          : `<span style="color:var(--text-secondary)">Student <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> registered.</span>`;
+        ? "Student Updated! ✅"
+        : "Registration Successful! 🎉";
 
       Swal.fire({
-        title, html, icon: "success",
+        title,
+        text: `Student ${formData.firstName} ${formData.surname} record saved successfully.`,
+        icon: "success",
         confirmButtonText: "Go to Users",
-        background: isDark ? "#1e293b" : "#ffffff",
-        color: isDark ? "#f8fafc" : "#0f172a",
-        iconColor: "#4ade80",
-        confirmButtonColor: "#7c3aed",
-        customClass: {
-          popup: "rounded-xl border border-purple-500/30",
-          confirmButton: "rounded-lg px-6 py-2 font-medium",
-        },
+        confirmButtonColor: "#2563eb",
       }).then(() => navigate("/Users"));
     } catch (err: any) {
       console.error("Student registration error:", err?.response?.data || err.message || err);
-      const msg = err?.response?.data?.detail || err.message || "Something went wrong. Please try again.";
+      const msg =
+        err?.response?.data?.detail || err.message || "Something went wrong. Please try again.";
       Swal.fire({
         title: "Error ❌",
-        html: `<span style="color:var(--text-secondary)">${msg}</span>`,
+        text: msg,
         icon: "error",
         confirmButtonText: "OK",
-        background: isDark ? "#1e293b" : "#ffffff",
-        color: isDark ? "#f8fafc" : "#0f172a",
-        confirmButtonColor: "#7c3aed",
+        confirmButtonColor: "#2563eb",
       });
     }
-  }, [formData, navigate, isEditMode, isPaymentMode, id, isDark]);
+  }, [formData, navigate, isEditMode, isPaymentMode, id]);
 
   const handleNavigateBack = useCallback(() => navigate("/Users"), [navigate]);
-
   const errorCount = Object.keys(errors).length;
   const stepProps = { formData, handleInputChange, errors };
 
-  // ── Loading guard ─────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <Box className="flex items-center justify-center min-h-64">
-        <Text style={{ color: "var(--text-secondary)", fontSize: 18 }}>Loading student data…</Text>
+      <Box className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+        <CircularProgress color="primary" />
+        <Typography className="text-slate-600 font-medium">Loading student data…</Typography>
       </Box>
     );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <Box>
-      <div className="max-w-7xl mx-auto">
-
-        {/* ── Header ───────────────────────────────────────────────── */}
-        <div className="mb-4 sm:mb-6 md:mb-8">
-          <Group gap="sm" mb="sm">
-            <ActionIcon size="lg" variant="subtle" color="violet" onClick={handleNavigateBack} className="flex-shrink-0">
-              <IconArrowLeft size={24} />
-            </ActionIcon>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Title order={2} className="text-xl sm:text-2xl md:text-3xl" style={{ color: "var(--text-primary)" }}>
-                  {pageTitle}
-                </Title>
-                {isEditMode && (
-                  <Badge color={isPaymentMode ? "green" : "violet"} variant="light" size="sm">
-                    {isPaymentMode ? "Payment Mode" : "Edit Mode"}
-                  </Badge>
-                )}
-              </div>
-              <Text className="text-xs sm:text-sm truncate" style={{ color: "var(--text-secondary)" }}>
-                {pageSubtitle}
-              </Text>
-            </div>
-          </Group>
-
-          {/* Payment-mode info banner */}
-          {isEditMode && isPaymentMode && (
-            <Alert color="green" variant="light" mb="md" icon={<IconCurrencyRupee size={18} />} title="Payment Update Mode"
-              styles={{
-                message: { color: "var(--text-primary)" },
-              }}
-            >
-              You are updating payment details only. Steps 1–3 are locked. To change personal or enrollment info,{" "}
-              <button
-                onClick={() => navigate(`/Users/edit-student/${id}`)}
-                className="underline text-green-400 hover:text-green-300 font-medium"
-              >
-                open the full edit form
-              </button>.
-            </Alert>
-          )}
-        </div>
-
-        {/* ── Error banner ─────────────────────────────────────────── */}
-        {errorCount > 0 && (
-          <Alert
-            icon={<IconAlertCircle size={18} />}
-            title="Please fix the errors below before continuing"
-            color="red" variant="light" mb="md"
-            classNames={{ title: "font-semibold" }}
-            styles={{
-              message: { color: "var(--text-primary)" },
-            }}
-          >
-            {errorCount === 1 ? "1 required field is missing or invalid." : `${errorCount} required fields are missing or invalid.`}
-          </Alert>
-        )}
-
-        {/* ── Mobile progress bar ──────────────────────────────────── */}
-        <div className="sm:hidden mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <Text className="text-sm font-medium" style={{ color: "var(--text-accent)" }}>
-              Step {active + 1} of 4
-            </Text>
-            <Text className="text-xs" style={{ color: "var(--text-secondary)" }}>
-              {["Enrollment", "Student", "Guardian", "Fees"][active]}
-            </Text>
-          </div>
-          <div className="w-full rounded-full h-2" style={{ background: "var(--bg-tertiary)" }}>
-            <div
-              className="h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((active + 1) / 4) * 100}%`, background: "var(--accent-purple)" }}
-            />
-          </div>
-        </div>
-
-        {/* ── Desktop Stepper ──────────────────────────────────────── */}
-        <Stepper
-          active={active}
-          onStepClick={isPaymentMode ? undefined : setActive}
-          mb="xl"
-          allowNextStepsSelect={false}
-          color="violet"
-          size="sm"
-          className="hidden sm:block"
-          classNames={{
-            step: "p-2 sm:p-3",
-            stepIcon: "border-2",
-            stepDescription: "text-xs sm:text-sm",
-            stepLabel: "text-sm sm:text-base",
-          }}
-          styles={{
-            stepIcon: { backgroundColor: "var(--bg-tertiary)", color: "var(--text-primary)" },
-            stepLabel: { color: "var(--text-accent)" },
-            stepDescription: { color: "var(--text-secondary)" },
-          }}
-        >
-          <Stepper.Step label="Enrollment" description="Course details" icon={<IconClipboardList size={18} />}>
-            <div className="mt-4"><EnrollmentContent {...stepProps} /></div>
-          </Stepper.Step>
-
-          <Stepper.Step label="Student" description="Personal details" icon={<IconUser size={18} />}>
-            <div className="mt-4">
-              <StudentDetailsContent {...stepProps} handleImageUpload={handleImageUpload} setFormData={setFormData} />
-            </div>
-          </Stepper.Step>
-
-          <Stepper.Step label="Guardian" description="Parent details" icon={<IconUsers size={18} />}>
-            <div className="mt-4">
-              <GuardianContent
-                formData={formData} handleGuardianChange={handleGuardianChange}
-                addGuardian={addGuardian} removeGuardian={removeGuardian} errors={errors}
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <IconButton onClick={handleNavigateBack} color="primary">
+          <IconArrowLeft size={30} />
+        </IconButton>
+        <div>
+          <div className="flex items-center gap-2">
+            <Typography variant="h5" className="!font-bold text-slate-800">
+              {pageTitle}
+            </Typography>
+            {isEditMode && (
+              <Chip
+                label={isPaymentMode ? "Payment Mode" : "Edit Mode"}
+                color={isPaymentMode ? "success" : "primary"}
+                size="small"
               />
-            </div>
-          </Stepper.Step>
-
-          <Stepper.Step label="Fees" description="Payment details" icon={<IconCurrencyRupee size={18} />}>
-            <div className="mt-4">
-              <FeesContent
-                formData={formData} handleInputChange={handleInputChange}
-                handleFullPaymentChange={handleFullPaymentChange}
-                handleInstallmentChange={handleInstallmentChange}
-                calculateDiscountPercentage={calculateDiscountPercentage}
-                calculateFinalAmount={calculateFinalAmount}
-                calculateInstallmentTotal={calculateInstallmentTotal}
-                errors={errors}
-              />
-            </div>
-          </Stepper.Step>
-
-          <Stepper.Completed>
-            <Paper
-              className="p-6 sm:p-8 text-center mt-4"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}
-            >
-              <Title order={3} mb="md" className="text-xl sm:text-2xl" style={{ color: "var(--text-accent)" }}>
-                {isEditMode ? "Changes Ready to Save! ✅" : "Registration Complete! 🎉"}
-              </Title>
-              <Text mb="lg" style={{ color: "var(--text-secondary)", fontSize: "clamp(14px,2vw,18px)" }}>
-                {isEditMode ? "All steps reviewed. Click below to save." : "All information has been filled successfully."}
-              </Text>
-              <Button onClick={handleSubmit} size="lg" color="green" variant="filled" fullWidth className="sm:w-auto">
-                {isEditMode ? "Save Changes" : "Complete Registration"}
-              </Button>
-            </Paper>
-          </Stepper.Completed>
-        </Stepper>
-
-        {/* ── Mobile content ───────────────────────────────────────── */}
-        <div className="sm:hidden">
-          {active === 0 && <EnrollmentContent {...stepProps} />}
-          {active === 1 && <StudentDetailsContent {...stepProps} handleImageUpload={handleImageUpload} setFormData={setFormData} />}
-          {active === 2 && (
-            <GuardianContent
-              formData={formData} handleGuardianChange={handleGuardianChange}
-              addGuardian={addGuardian} removeGuardian={removeGuardian} errors={errors}
-            />
-          )}
-          {active === 3 && (
-            <FeesContent
-              formData={formData} handleInputChange={handleInputChange}
-              handleFullPaymentChange={handleFullPaymentChange}
-              handleInstallmentChange={handleInstallmentChange}
-              calculateDiscountPercentage={calculateDiscountPercentage}
-              calculateFinalAmount={calculateFinalAmount}
-              calculateInstallmentTotal={calculateInstallmentTotal}
-              errors={errors}
-            />
-          )}
-        </div>
-
-        {/* ── Navigation buttons ───────────────────────────────────── */}
-        <div className="mt-6 flex flex-col sm:flex-row sm:justify-between gap-3">
-          <Button
-            variant="default" onClick={prevStep}
-            disabled={active === 0 || isPaymentMode}
-            size="md" fullWidth className="sm:w-auto order-2 sm:order-1"
-            leftSection={<IconArrowLeft size={16} />}
-            styles={{
-              root: {
-                backgroundColor: "var(--btn-tertiary)",
-                color: "var(--text-primary)",
-                border: "1px solid var(--border-default)",
-                "&:disabled": { opacity: 0.5 },
-              },
-            }}
-          >
-            Previous
-          </Button>
-
-          <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
-            <Button
-              variant="subtle" onClick={handleNavigateBack}
-              size="md" fullWidth className="sm:w-auto"
-              leftSection={<IconX size={16} />}
-              styles={{
-                root: {
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border-default)",
-                  "&:hover": { backgroundColor: "var(--bg-tertiary)" },
-                },
-              }}
-            >
-              Cancel
-            </Button>
-
-            {isPaymentMode ? (
-              <Button onClick={handleSubmit} color="green" size="md" fullWidth className="sm:w-auto" leftSection={<IconCreditCard size={16} />}>
-                Save Payment
-              </Button>
-            ) : active < 3 ? (
-              <Button onClick={nextStep} color="orange" size="md" fullWidth className="sm:w-auto" leftSection={<IconArrowRight size={16} />}>
-                Next Step
-              </Button>
-            ) : (
-              <Button onClick={handleSubmit} color="green" size="md" fullWidth className="sm:w-auto" leftSection={<IconDeviceFloppy size={16} />}>
-                {isEditMode ? "Save Changes" : "Complete Registration"}
-              </Button>
             )}
           </div>
+          <Typography variant="body2" className="text-slate-500">
+            {pageSubtitle}
+          </Typography>
+        </div>
+      </div>
+
+      {/* Error alert */}
+      {errorCount > 0 && (
+        <Alert severity="error" icon={<IconAlertCircle size={20} />} className="rounded-xl">
+          {errorCount === 1
+            ? "1 required field is missing or invalid."
+            : `${errorCount} required fields are missing or invalid.`}
+        </Alert>
+      )}
+
+      {/* Responsive Stepper — High Contrast against Light Blue Background */}
+      <div className="py-2">
+        {/* ── Mobile Layout (< 640px) ─────────────────────────────────── */}
+        <div className="sm:hidden space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                {active + 1}
+              </span>
+              <span className="text-sm font-bold text-blue-700">
+                {stepItems[active].label}
+              </span>
+              <span className="text-xs text-slate-600 font-medium">
+                ({stepItems[active].description})
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-slate-700">
+              Step {active + 1} of {stepItems.length}
+            </span>
+          </div>
+
+          {/* 4 Icon circles connected evenly across mobile screen */}
+          <div className="flex items-center justify-between px-1">
+            {stepItems.map((step, idx) => {
+              const Icon = step.icon;
+              const isActive = active === idx;
+              const isCompleted = active > idx;
+
+              return (
+                <React.Fragment key={step.label}>
+                  <div
+                    onClick={() => !isPaymentMode && setActive(idx)}
+                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                      isPaymentMode ? "cursor-not-allowed" : "cursor-pointer"
+                    } ${
+                      isCompleted
+                        ? "bg-blue-600 text-white shadow-md"
+                        : isActive
+                        ? "border-2 border-blue-600 bg-white text-blue-600 shadow-md ring-2 ring-blue-100"
+                        : "border-2 border-slate-300 bg-white text-slate-700 shadow-sm"
+                    }`}
+                  >
+                    {isCompleted ? <IconCheck size={16} /> : <Icon size={16} />}
+                  </div>
+
+                  {idx < stepItems.length - 1 && (
+                    <div
+                      className={`flex-1 h-[2px] mx-1.5 transition-colors ${
+                        active > idx ? "bg-blue-600" : "bg-slate-400"
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
 
+        {/* ── Tablet & Desktop Layout (>= 640px) ─────────────────────── */}
+        <div className="hidden sm:flex items-center justify-between gap-2">
+          {stepItems.map((step, idx) => {
+            const Icon = step.icon;
+            const isActive = active === idx;
+            const isCompleted = active > idx;
+
+            return (
+              <React.Fragment key={step.label}>
+                <div
+                  onClick={() => !isPaymentMode && setActive(idx)}
+                  className={`flex items-center gap-2.5 shrink-0 py-1.5 px-2.5 rounded-xl transition-all ${
+                    isPaymentMode ? "cursor-not-allowed" : "cursor-pointer hover:bg-white/60"
+                  }`}
+                >
+                  {/* Circular Icon */}
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                      isCompleted
+                        ? "bg-blue-600 text-white shadow-md"
+                        : isActive
+                        ? "border-2 border-blue-600 bg-white text-blue-600 shadow-md ring-4 ring-blue-100"
+                        : "border-2 border-slate-300 bg-white text-slate-700 shadow-sm"
+                    }`}
+                  >
+                    {isCompleted ? <IconCheck size={18} /> : <Icon size={18} />}
+                  </div>
+
+                  {/* Title & Subtitle */}
+                  <div className="flex flex-col">
+                    <span
+                      className={`text-sm font-bold leading-tight ${
+                        isActive || isCompleted ? "text-blue-700" : "text-slate-800"
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                    <span
+                      className={`text-xs font-medium mt-0.5 hidden lg:block ${
+                        isActive || isCompleted ? "text-blue-600/90" : "text-slate-600"
+                      }`}
+                    >
+                      {step.description}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Connecting Line between steps */}
+                {idx < stepItems.length - 1 && (
+                  <div
+                    className={`flex-1 min-w-[20px] lg:min-w-[40px] h-[2px] mx-1.5 transition-colors ${
+                      active > idx ? "bg-blue-600" : "bg-slate-400"
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
       </div>
-    </Box>
+
+      {/* Step Content */}
+      <div className="mt-4">
+        {active === 0 && <EnrollmentContent {...stepProps} />}
+        {active === 1 && (
+          <StudentDetailsContent
+            {...stepProps}
+            handleImageUpload={handleImageUpload}
+            setFormData={setFormData}
+          />
+        )}
+        {active === 2 && (
+          <GuardianContent
+            formData={formData}
+            handleGuardianChange={handleGuardianChange}
+            addGuardian={addGuardian}
+            removeGuardian={removeGuardian}
+            errors={errors}
+          />
+        )}
+        {active === 3 && (
+          <FeesContent
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleFullPaymentChange={handleFullPaymentChange}
+            handleInstallmentChange={handleInstallmentChange}
+            calculateDiscountPercentage={calculateDiscountPercentage}
+            calculateFinalAmount={calculateFinalAmount}
+            calculateInstallmentTotal={calculateInstallmentTotal}
+            errors={errors}
+          />
+        )}
+      </div>
+
+      {/* Navigation Action Bar — Premium Custom Button UI */}
+      <div className="flex flex-col sm:flex-row justify-between gap-3 items-center pt-4 border-t border-slate-200 mt-6">
+        <button
+          onClick={prevStep}
+          disabled={active === 0 || isPaymentMode}
+          className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 hover:scale-[1.02] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-white disabled:hover:border-slate-300 w-full sm:w-auto"
+        >
+          <IconArrowLeft size={18} />
+          <span>Previous</span>
+        </button>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <button
+            onClick={handleNavigateBack}
+            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 hover:scale-[1.02] cursor-pointer w-full sm:w-auto"
+          >
+            <IconX size={18} />
+            <span>Cancel</span>
+          </button>
+
+          {isPaymentMode ? (
+            <button
+              onClick={handleSubmit}
+              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+            >
+              <IconCreditCard size={18} />
+              <span>Save Payment</span>
+            </button>
+          ) : active < 3 ? (
+            <button
+              onClick={nextStep}
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+            >
+              <span>Next Step</span>
+              <IconArrowRight size={18} />
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+            >
+              <IconDeviceFloppy size={18} />
+              <span>{isEditMode ? "Save Changes" : "Complete Registration"}</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

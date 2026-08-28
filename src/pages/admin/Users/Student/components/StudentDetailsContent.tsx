@@ -1,14 +1,23 @@
-// src\pages\admin\Users\Student\components\StudentDetailsContent.tsx
+// src/pages/admin/Users/Student/components/StudentDetailsContent.tsx
 
 import React, { useState, useEffect } from "react";
 import {
-  Stack, Paper, Title, Grid, Text, Group,
-  Radio, TextInput, Textarea, Avatar, ActionIcon, FileInput, Select,
-} from "@mantine/core";
-import { IconUpload, IconX, IconUser } from "@tabler/icons-react";
-import { getAllStandards } from "../../../Master/masterStore";
-import type { Standard } from "../../../Master/masterStore";
+  Paper,
+  Typography,
+  TextField,
+  MenuItem,
+  Avatar,
+  IconButton,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  FormHelperText,
+} from "@mui/material";
+import { IconUser, IconUpload, IconX } from "@tabler/icons-react";
 import type { StudentRegistrationData, ValidationErrors } from "../types";
+import { getAllStandards } from "../../../Master/masterStore";
 
 interface StudentDetailsProps {
   formData: StudentRegistrationData;
@@ -16,246 +25,326 @@ interface StudentDetailsProps {
   handleImageUpload: (file: File | null) => void;
   setFormData: React.Dispatch<React.SetStateAction<StudentRegistrationData>>;
   errors: ValidationErrors;
-  standards?: Standard[];
 }
 
-const inputStyles = {
-  label: { color: "var(--text-primary)", marginBottom: 6 },
-  input: {
-    backgroundColor: "var(--bg-input)",
-    color: "var(--text-primary)",
-    borderColor: "var(--border-default)",
+interface Option {
+  value: string;
+  label: string;
+}
+
+const DEFAULT_STANDARDS: Option[] = Array.from({ length: 12 }, (_, i) => {
+  const num = i + 1;
+  const suffix =
+    num === 1 ? "st" : num === 2 ? "nd" : num === 3 ? "rd" : "th";
+  return {
+    value: String(num),
+    label: `${num}${suffix} Standard`,
+  };
+});
+
+const inputSxSlate = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#f8fafc",
+    borderRadius: "8px",
   },
 };
 
-const radioLabel = { styles: { label: { color: "var(--text-primary)" } } };
+const formHelperSlotProps = { className: "!bg-transparent !m-0 !mt-1" };
 
 const StudentDetailsContent = React.memo<StudentDetailsProps>(
-  ({ formData, handleInputChange, handleImageUpload, setFormData, errors, standards: standardsProp }) => {
-    const [standards, setStandards] = useState<Standard[]>(standardsProp ?? []);
+  ({
+    formData,
+    handleInputChange,
+    handleImageUpload,
+    setFormData,
+    errors,
+  }) => {
+    const [standards, setStandards] = useState<Option[]>(DEFAULT_STANDARDS);
 
+    // Dynamic API fetch for Standards from backend masterStore
     useEffect(() => {
-      if (standardsProp && standardsProp.length > 0) {
-        setStandards(standardsProp);
-        return;
-      }
-      const loadStandards = async () => {
+      let isMounted = true;
+      const loadStandardsFromApi = async () => {
         try {
-          const data = await getAllStandards();
-          setStandards(data.filter((s) => s.is_active === 1));
-        } catch (error) {
-          console.error("Error loading standards:", error);
+          const standardsData = await getAllStandards();
+          if (isMounted && standardsData && standardsData.length > 0) {
+            setStandards(standardsData.map((st: { id: string | number; name: string }) => ({ value: String(st.id), label: st.name })));
+          }
+        } catch (err) {
+          console.error("Error fetching standards from API:", err);
         }
       };
-      loadStandards();
-    }, [standardsProp]);
-
-    const standardOptions = standards.map((s) => ({ value: String(s.id), label: s.name }));
+      loadStandardsFromApi();
+      return () => {
+        isMounted = false;
+      };
+    }, []);
 
     return (
-    <Stack gap="md">
-
-      {/* ── Personal Information ─────────────────────────────────── */}
-      <Paper
-        className="p-4 sm:p-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}
-      >
-        <Title
-          order={5} mb="md"
-          style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}
+      <div className="space-y-6">
+        {/* ── Personal Information ─────────────────────────────────── */}
+        <Paper
+          elevation={1}
+          className="p-5 sm:p-7 bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all space-y-6"
         >
-          Personal Information
-        </Title>
+          <div className="border-l-4 border-blue-600 pl-3">
+            <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg">
+              Personal Information
+            </Typography>
+            <Typography variant="caption" className="text-slate-500">
+              Provide student's full name, contact, photo and address
+            </Typography>
+          </div>
 
-        <Grid gutter="md">
-          {/* Photo Upload */}
-          <Grid.Col span={{ base: 12, md: 3 }}>
-            <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            {/* Photo Upload Container */}
+            <div className="flex flex-col items-center space-y-3 shrink-0 w-full md:w-auto">
               {formData.photo ? (
-                <>
-                  <Avatar src={formData.photo} size={100} radius="md" />
-                  <ActionIcon
-                    color="red" variant="light"
+                <div className="relative group">
+                  <Avatar src={formData.photo} className="!w-28 !h-28 rounded-2xl object-cover shadow-sm border border-slate-200" />
+                  <IconButton
+                    color="error"
                     onClick={() => setFormData((prev) => ({ ...prev, photo: null }))}
+                    className="!absolute -top-2 -right-2 !w-8 !h-8 bg-white shadow-md border border-red-200 text-red-600 hover:bg-red-50 transition-all"
+                    title="Remove Photo"
                   >
-                    <IconX size={16} />
-                  </ActionIcon>
-                </>
+                    <IconX size={18} />
+                  </IconButton>
+                </div>
               ) : (
                 <Avatar
-                  size={100} radius="md"
-                  style={{ background: "var(--bg-tertiary)" }}
+                  sx={{ bgcolor: "#eff6ff", color: "#2563eb" }}
+                  className="!w-28 !h-28 rounded-full border-2 border-blue-200 shadow-sm"
                 >
-                  <IconUser size={40} style={{ color: "var(--text-muted)" }} />
+                  <IconUser size={48} />
                 </Avatar>
               )}
 
-              <div className="w-full max-w-[160px]">
-                <FileInput
-                  label="Photo"
-                  placeholder="Upload"
+              <label className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow cursor-pointer hover:scale-105">
+                <IconUpload size={16} />
+                <span>Upload Photo</span>
+                <input
+                  type="file"
+                  hidden
                   accept="image/*"
-                  onChange={handleImageUpload}
-                  leftSection={<IconUpload size={14} style={{ color: "var(--text-muted)" }} />}
-                  size="md"
-                  styles={{
-                    label: { color: "var(--text-primary)", marginBottom: 6 },
-                    input: {
-                      backgroundColor: "var(--bg-input)",
-                      color: "var(--text-primary)",
-                      borderColor: "var(--border-default)",
-                      overflow: "hidden",
-                      whiteSpace: "nowrap",
-                      textOverflow: "ellipsis",
-                    },
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    handleImageUpload(file);
                   }}
                 />
+              </label>
+              <Typography variant="caption" className="text-slate-500 text-center">
+                Passport size photo (JPG/PNG)
+              </Typography>
+            </div>
+
+            {/* Form Fields Grid */}
+            <div className="w-full md:w-3/4 space-y-5">
+              {/* Row 1: First Name | Middle Name | Surname */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div>
+                  <TextField
+                    label="First Name *"
+                    placeholder="Enter first name"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.firstName || ""}
+                    onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    error={Boolean(errors.firstName)}
+                    helperText={errors.firstName}
+                    slotProps={{ formHelperText: formHelperSlotProps }}
+                    sx={inputSxSlate}
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Middle Name"
+                    placeholder="Enter middle name"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.middleName || ""}
+                    onChange={(e) => handleInputChange("middleName", e.target.value)}
+                    error={Boolean(errors.middleName)}
+                    helperText={errors.middleName}
+                    slotProps={{ formHelperText: formHelperSlotProps }}
+                    sx={inputSxSlate}
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Surname *"
+                    placeholder="Enter surname"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.surname || ""}
+                    onChange={(e) => handleInputChange("surname", e.target.value)}
+                    error={Boolean(errors.surname)}
+                    helperText={errors.surname}
+                    slotProps={{ formHelperText: formHelperSlotProps }}
+                    sx={inputSxSlate}
+                  />
+                </div>
               </div>
 
-              <Text size="xs" ta="center" style={{ color: "var(--text-muted)" }}>
-                Upload student passport size photo
-              </Text>
-            </div>
-          </Grid.Col>
+              {/* Row 2: Gender | Mobile No | Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
+                <div>
+                  <FormControl component="fieldset" fullWidth error={Boolean(errors.gender)}>
+                    <FormLabel className="!text-xs !font-semibold !text-slate-700 mb-1 block">
+                      Gender *
+                    </FormLabel>
+                    <RadioGroup
+                      value={formData.gender || ""}
+                      onChange={(e) => handleInputChange("gender", e.target.value)}
+                      row
+                      className="!flex !w-full !items-center !justify-between pt-1"
+                    >
+                      <FormControlLabel
+                        value="male"
+                        control={<Radio size="small" color="primary" />}
+                        label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Male</span>}
+                      />
+                      <FormControlLabel
+                        value="female"
+                        control={<Radio size="small" color="primary" />}
+                        label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Female</span>}
+                      />
+                      <FormControlLabel
+                        value="other"
+                        control={<Radio size="small" color="primary" />}
+                        label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Other</span>}
+                      />
+                    </RadioGroup>
+                    {errors.gender && <FormHelperText error className="!bg-transparent !m-0 !mt-1">{errors.gender}</FormHelperText>}
+                  </FormControl>
+                </div>
 
-          {/* Name & Contact fields */}
-          <Grid.Col span={{ base: 12, md: 9 }}>
-            <Grid gutter="md">
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="First Name" placeholder="Enter first name"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange("firstName", e.target.value)}
-                  required withAsterisk size="md"
-                  error={errors.firstName} styles={inputStyles}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="Middle Name" placeholder="Enter middle name"
-                  value={formData.middleName}
-                  onChange={(e) => handleInputChange("middleName", e.target.value)}
-                  size="md" error={errors.middleName} styles={inputStyles}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="Surname" placeholder="Enter surname"
-                  value={formData.surname}
-                  onChange={(e) => handleInputChange("surname", e.target.value)}
-                  required withAsterisk size="md"
-                  error={errors.surname} styles={inputStyles}
-                />
-              </Grid.Col>
+                <div>
+                  <TextField
+                    label="Mobile No *"
+                    placeholder="Enter mobile number"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.contactNo || ""}
+                    onChange={(e) => handleInputChange("contactNo", e.target.value.replace(/\D/g, ""))}
+                    error={Boolean(errors.contactNo)}
+                    helperText={errors.contactNo}
+                    slotProps={{
+                      htmlInput: { maxLength: 10 },
+                      formHelperText: formHelperSlotProps,
+                    }}
+                    sx={inputSxSlate}
+                  />
+                </div>
 
-              {/* Gender */}
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <label className="text-sm font-medium block mb-2" style={{ color: "var(--text-primary)" }}>
-                  Gender <span className="text-red-500">*</span>
-                </label>
-                <Radio.Group
-                  value={formData.gender}
-                  onChange={(value) => handleInputChange("gender", value)}
-                  required size="md" error={errors.gender}
-                >
-                  <Group gap="md">
-                    <Radio value="male"   label="Male"   color="violet" {...radioLabel} />
-                    <Radio value="female" label="Female" color="violet" {...radioLabel} />
-                    <Radio value="other"  label="Other"  color="violet" {...radioLabel} />
-                  </Group>
-                </Radio.Group>
-              </Grid.Col>
+                <div>
+                  <TextField
+                    label="Email *"
+                    placeholder="student@example.com"
+                    type="email"
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    value={formData.email || ""}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    error={Boolean(errors.email)}
+                    helperText={errors.email}
+                    slotProps={{ formHelperText: formHelperSlotProps }}
+                    sx={inputSxSlate}
+                  />
+                </div>
+              </div>
 
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="Mobile No" type="text" inputMode="numeric" pattern="\d*" placeholder="Enter mobile number"
-                  value={formData.contactNo} maxLength={10}
-                  onChange={(e) => handleInputChange("contactNo", e.target.value)}
-                  onKeyDown={(e) => {
-                    if (!/^\d$/.test(e.key) && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)) {
-                      e.preventDefault();
-                    }
-                  }}
-                  required withAsterisk size="md"
-                  error={errors.contactNo} styles={inputStyles}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput
-                  label="Email" type="email" placeholder="student@example.com"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  required withAsterisk size="md"
-                  error={errors.email} styles={inputStyles}
-                />
-              </Grid.Col>
-
-              <Grid.Col span={12}>
-                <Textarea
-                  label="Address" placeholder="Enter full address"
-                  value={formData.address}
+              {/* Row 3: Address */}
+              <div>
+                <TextField
+                  label="Address *"
+                  placeholder="Enter full address"
+                  multiline
+                  rows={2}
+                  size="small"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.address || ""}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  minRows={4} required withAsterisk size="md"
-                  error={errors.address}
-                  styles={{
-                    label: { color: "var(--text-primary)", marginBottom: 6 },
-                    input: {
-                      backgroundColor: "var(--bg-input)",
-                      color: "var(--text-primary)",
-                      borderColor: "var(--border-default)",
-                    },
-                  }}
+                  error={Boolean(errors.address)}
+                  helperText={errors.address}
+                  slotProps={{ formHelperText: formHelperSlotProps }}
+                  sx={inputSxSlate}
                 />
-              </Grid.Col>
-            </Grid>
-          </Grid.Col>
-        </Grid>
-      </Paper>
+              </div>
+            </div>
+          </div>
+        </Paper>
 
-      {/* ── Academic Background ──────────────────────────────────── */}
-      <Paper
-        className="p-4 sm:p-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}
-      >
-        <Title
-          order={5} mb="md"
-          style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}
+        {/* ── Academic Background ──────────────────────────────────── */}
+        <Paper
+          elevation={1}
+          className="p-5 sm:p-7 bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all space-y-5"
         >
-          Academic Background
-        </Title>
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <TextInput
-              label="School / College Name" placeholder="Enter school/college name"
-              value={formData.schoolCollegeName}
-              onChange={(e) => handleInputChange("schoolCollegeName", e.target.value)}
-              required withAsterisk size="md"
-              error={errors.schoolCollegeName} styles={inputStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Select
-              label="Standard"
-              placeholder="Select standard"
-              value={formData.standard ?? null}
-              onChange={(value) => handleInputChange("standard", value)}
-              data={standardOptions}
-              required withAsterisk size="md"
-              error={errors.standard}
-              searchable
-              clearable
-              styles={{
-                label: { color: "var(--text-primary)", marginBottom: 6 },
-                input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-                option: { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-              }}
-            />
-          </Grid.Col>
-        </Grid>
-      </Paper>
+          <div className="border-l-4 border-blue-600 pl-3">
+            <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg">
+              Academic Background
+            </Typography>
+            <Typography variant="caption" className="text-slate-500">
+              Enter school or college name and current standard
+            </Typography>
+          </div>
 
-    </Stack>
-  );
-});
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <TextField
+                label="School / College Name *"
+                placeholder="Enter school/college name"
+                size="small"
+                variant="outlined"
+                fullWidth
+                value={formData.schoolCollegeName || ""}
+                onChange={(e) => handleInputChange("schoolCollegeName", e.target.value)}
+                error={Boolean(errors.schoolCollegeName)}
+                helperText={errors.schoolCollegeName}
+                slotProps={{ formHelperText: formHelperSlotProps }}
+                sx={inputSxSlate}
+              />
+            </div>
 
-export default StudentDetailsContent; 
+            {/* Standard Dropdown Select (Dynamic API Data) */}
+            <div>
+              <TextField
+                select
+                label="Standard *"
+                size="small"
+                variant="outlined"
+                fullWidth
+                value={formData.standard || ""}
+                onChange={(e) => handleInputChange("standard", e.target.value)}
+                error={Boolean(errors.standard)}
+                helperText={errors.standard}
+                slotProps={{
+                  formHelperText: formHelperSlotProps,
+                  select: { displayEmpty: true },
+                }}
+                sx={inputSxSlate}
+              >
+                <MenuItem value="" disabled className="!text-xs">
+                  Select Standard
+                </MenuItem>
+                {standards.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value} className="!text-sm">
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </div>
+          </div>
+        </Paper>
+      </div>
+    );
+  }
+);
+
+export default StudentDetailsContent;

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   IconPlus,
   IconPencil,
@@ -9,8 +10,12 @@ import {
   IconCurrencyRupee,
   IconSchool,
   IconChalkboard,
+  IconUserOff,
+  IconUserCheck,
 } from "@tabler/icons-react";
+
 import { Loader } from "@mantine/core";
+
 import {
   Table,
   TableBody,
@@ -21,12 +26,31 @@ import {
   Pagination,
   TableSortLabel,
   Paper,
+  Card,
+  CardContent,
+  TextField,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 
+import {
+  Search as SearchIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
+
+import Swal from "sweetalert2";
+
 import { getStudents } from "../../../api/api";
-import { getAllTeachers } from "./Teacher/teacherStore";
+import {
+  getAllTeachers,
+  formatTeacherForUI,
+  updateTeacher,
+} from "./Teacher/teacherStore";
+
+import { updateStudent } from "./Student/studentStore";
 import { type Student } from "./Student/StudentColumns";
 import { DUMMY_STUDENT } from "./Student/dummyStudent";
+import { DUMMY_TEACHER } from "./Teacher/dummyTeacher";
 
 type TabType = "students" | "teachers";
 type Order = "asc" | "desc";
@@ -54,71 +78,123 @@ const getAvatarColor = (id: string) => {
 
 const formatCurrency = (val: string) => {
   const n = parseFloat(val);
-  return isNaN(n) ? "—" : `₹${n.toLocaleString("en-IN")}`;
+
+  return isNaN(n)
+    ? "—"
+    : `₹${n.toLocaleString("en-IN")}`;
 };
 
 const computeNetFees = (s: Student) =>
-  (parseFloat(s.totalFees) || 0) - (parseFloat(s.discountAmount) || 0);
+  (parseFloat(s.totalFees) || 0) -
+  (parseFloat(s.discountAmount) || 0);
 
 const computePaidAmount = (s: Student) =>
   (s.installments ?? []).reduce(
-    (acc, i) => acc + (parseFloat(i.amount) || 0),
+    (acc, i) =>
+      acc + (parseFloat(i.amount) || 0),
     parseFloat(s.fullPayment?.amount) || 0
   );
 
 const computePaymentStatus = (s: Student) => {
-  if (s.paymentType === "later")
-    return { label: "Pending", color: "text-amber-600 bg-amber-50" };
+  if (s.paymentType === "later") {
+    return {
+      label: "Pending",
+      color: "text-amber-600 bg-amber-50",
+    };
+  }
+
   const paid = computePaidAmount(s);
   const net = computeNetFees(s);
-  if (paid >= net) return { label: "Paid", color: "text-emerald-600 bg-emerald-50" };
-  if (paid > 0) return { label: "Partial", color: "text-blue-600 bg-blue-50" };
-  return { label: "Unpaid", color: "text-rose-600 bg-rose-50" };
+
+  if (paid >= net) {
+    return {
+      label: "Paid",
+      color: "text-emerald-600 bg-emerald-50",
+    };
+  }
+
+  if (paid > 0) {
+    return {
+      label: "Partial",
+      color: "text-blue-600 bg-blue-50",
+    };
+  }
+
+  return {
+    label: "Unpaid",
+    color: "text-rose-600 bg-rose-50",
+  };
 };
 
 function transformStudent(raw: any): Student {
   return {
     id: String(raw.id),
+
     photo: raw.photo ?? null,
+
     academicYear: raw.academic_year ?? "",
     registrationDate: raw.registration_date ?? "",
+
     subject: raw.subject?.name ?? raw.subject ?? "",
     branch: raw.branch?.name ?? raw.branch ?? "",
     standard: raw.standard?.name ?? raw.standard ?? "",
+
     courseType: raw.course_type ?? "",
     reference: raw.reference ?? "",
+
     surname: raw.surname ?? "",
     firstName: raw.first_name ?? "",
     middleName: raw.middle_name ?? "",
+
     gender: raw.gender ?? "",
     email: raw.email ?? "",
     contactNo: raw.contact_no ?? "",
     address: raw.address ?? "",
+
     schoolCollegeName: raw.school_college_name ?? "",
+
     paymentType: raw.payment_type ?? "full",
+
     totalFees: raw.total_fees ?? "",
     discountAmount: raw.discount_amount ?? "",
-    guardians: (raw.guardians ?? []).map((g: any, i: number) => ({
-      id: String(g.id ?? i + 1),
-      name: g.name ?? "",
-      email: g.email ?? "",
-      contact: g.contact ?? "",
-      relation: g.relation ?? "",
-    })),
+
+    guardians: (raw.guardians ?? []).map(
+      (g: any, i: number) => ({
+        id: String(g.id ?? i + 1),
+        name: g.name ?? "",
+        email: g.email ?? "",
+        contact: g.contact ?? "",
+        relation: g.relation ?? "",
+      })
+    ),
+
     fullPayment: {
       amount: raw.full_payment?.amount ?? "",
-      date: raw.full_payment?.date ? new Date(raw.full_payment.date) : null,
+      date: raw.full_payment?.date
+        ? new Date(raw.full_payment.date)
+        : null,
       mode: raw.full_payment?.mode ?? "",
       bankName: raw.full_payment?.bank_name ?? "",
       paidTo: raw.full_payment?.paid_to ?? "",
     },
-    installments: (raw.installments ?? []).map((inst: any) => ({
-      amount: inst.amount ?? "",
-      date: inst.date ? new Date(inst.date) : null,
-      mode: inst.mode ?? "",
-      bankName: inst.bank_name ?? "",
-      paidTo: inst.paid_to ?? "",
-    })),
+
+    installments: (raw.installments ?? []).map(
+      (inst: any) => ({
+        amount: inst.amount ?? "",
+        date: inst.date
+          ? new Date(inst.date)
+          : null,
+        mode: inst.mode ?? "",
+        bankName: inst.bank_name ?? "",
+        paidTo: inst.paid_to ?? "",
+      })
+    ),
+
+    isActive:
+      raw.is_active ??
+      raw.isactive ??
+      raw.isActive ??
+      true,
   };
 }
 
@@ -128,151 +204,669 @@ function transformStudent(raw: any): Student {
 
 const UsersList: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabType>("students");
-  const [students, setStudents] = useState<Student[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Pagination & Sorting state
+  const [activeTab, setActiveTab] =
+    useState<TabType>("students");
+
+  const [students, setStudents] =
+    useState<Student[]>([]);
+
+  const [teachers, setTeachers] =
+    useState<any[]>([]);
+
+  const [loadingStudents, setLoadingStudents] =
+    useState(false);
+
+  const [loadingTeachers, setLoadingTeachers] =
+    useState(false);
+
+  const loading =
+    activeTab === "students"
+      ? loadingStudents
+      : loadingTeachers;
+
+  const [studentError, setStudentError] =
+    useState<string | null>(null);
+
+  const [teacherError, setTeacherError] =
+    useState<string | null>(null);
+
+  // Pagination
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [order, setOrder] = useState<Order>("asc");
-  const [orderBy, setOrderBy] = useState<string>("firstName");
 
-  // Reset page on tab change
+  const [rowsPerPage, setRowsPerPage] =
+    useState(10);
+
+  // Sorting
+  const [order, setOrder] =
+    useState<Order>("asc");
+
+  const [orderBy, setOrderBy] =
+    useState<string>("firstName");
+
+  // Search
+  const [searchQuery, setSearchQuery] =
+    useState("");
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Reset pagination and sorting when tab changes
+  // ───────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     setPage(0);
+
     if (activeTab === "students") {
       setOrderBy("firstName");
     } else {
       setOrderBy("name");
     }
+
+    setOrder("asc");
   }, [activeTab]);
 
-  // Fetch students on mount
+  // ───────────────────────────────────────────────────────────────────────────
+  // Fetch data on mount
+  // ───────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     fetchStudents();
+    fetchTeachers();
   }, []);
 
-  // Fetch teachers when tab changes
-  useEffect(() => {
-    if (activeTab === "teachers") {
-      fetchTeachers();
-    }
-  }, [activeTab]);
+  // ───────────────────────────────────────────────────────────────────────────
+  // Fetch Students
+  // ───────────────────────────────────────────────────────────────────────────
 
   const fetchStudents = async () => {
-    setLoading(true);
-    setError(null);
+    setLoadingStudents(true);
+    setStudentError(null);
+
     try {
       const res = await getStudents();
-      setStudents(res.data.map(transformStudent));
+
+      setStudents(
+        res.data.map(transformStudent)
+      );
     } catch (err: any) {
-      console.error("Error fetching students:", err);
-      setError(err?.response?.data?.detail || err.message || "Failed to load students");
+      console.error(
+        "Error fetching students:",
+        err
+      );
+
+      setStudentError(
+        err?.response?.data?.detail ||
+          err.message ||
+          "Failed to load students"
+      );
+
       setStudents([DUMMY_STUDENT]);
     } finally {
-      setLoading(false);
+      setLoadingStudents(false);
     }
   };
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Fetch Teachers
+  // ───────────────────────────────────────────────────────────────────────────
 
   const fetchTeachers = async () => {
-    setLoading(true);
-    setError(null);
+    setLoadingTeachers(true);
+    setTeacherError(null);
+
     try {
       const data = await getAllTeachers();
+
       setTeachers(data);
     } catch (err: any) {
-      console.error("Error fetching teachers:", err);
-      setError(err.message || "Failed to load teachers");
+      console.error(
+        "Error fetching teachers:",
+        err
+      );
+
+      setTeacherError(
+        err?.response?.data?.detail ||
+          err.message ||
+          "Failed to load teachers"
+      );
+
+      setTeachers([
+        formatTeacherForUI(DUMMY_TEACHER),
+      ]);
     } finally {
-      setLoading(false);
+      setLoadingTeachers(false);
     }
   };
 
-  const handleRequestSort = (property: string) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+  // ───────────────────────────────────────────────────────────────────────────
+  // Toggle Student Status
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const handleToggleStudentStatus = async (
+    student: Student
+  ) => {
+    const isCurrentlyActive =
+      student.isActive ?? true;
+
+    const actionText =
+      isCurrentlyActive
+        ? "deactivate"
+        : "activate";
+
+    const newIsActive =
+      !isCurrentlyActive;
+
+    const fullName =
+      `${student.firstName} ${student.surname}`.trim();
+
+    const result = await Swal.fire({
+      title: `${
+        isCurrentlyActive
+          ? "Deactivate"
+          : "Activate"
+      } Student?`,
+
+      text: `Are you sure you want to ${actionText} ${fullName}?`,
+
+      icon: "warning",
+
+      showCancelButton: true,
+
+      confirmButtonColor:
+        isCurrentlyActive
+          ? "#ef4444"
+          : "#10b981",
+
+      cancelButtonColor: "#64748b",
+
+      confirmButtonText:
+        `Yes, ${actionText}!`,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      await updateStudent(student.id, {
+        ...student,
+        isActive: newIsActive,
+      });
+    } catch (err: any) {
+      console.error(
+        "API update error for student status:",
+        err
+      );
+    }
+
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.id === student.id
+          ? {
+              ...s,
+              isActive: newIsActive,
+            }
+          : s
+      )
+    );
+
+    Swal.fire(
+      "Updated!",
+      `Student ${fullName} has been ${
+        newIsActive
+          ? "activated"
+          : "deactivated"
+      }.`,
+      "success"
+    );
+  };
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Toggle Teacher Status
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const handleToggleTeacherStatus = async (
+    teacher: any
+  ) => {
+    const isCurrentlyActive =
+      teacher.status === "Active";
+
+    const actionText =
+      isCurrentlyActive
+        ? "deactivate"
+        : "activate";
+
+    const newStatus: "Active" | "Inactive" =
+      isCurrentlyActive
+        ? "Inactive"
+        : "Active";
+
+    const result = await Swal.fire({
+      title: `${
+        isCurrentlyActive
+          ? "Deactivate"
+          : "Activate"
+      } Teacher?`,
+
+      text: `Are you sure you want to ${actionText} ${teacher.name}?`,
+
+      icon: "warning",
+
+      showCancelButton: true,
+
+      confirmButtonColor:
+        isCurrentlyActive
+          ? "#ef4444"
+          : "#10b981",
+
+      cancelButtonColor: "#64748b",
+
+      confirmButtonText:
+        `Yes, ${actionText}!`,
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      await updateTeacher(
+        teacher.id,
+        {
+          firstName:
+            teacher.firstName ??
+            teacher.name?.split(" ")[0] ??
+            "",
+
+          middleName:
+            teacher.middleName ?? "",
+
+          lastName:
+            teacher.lastName ??
+            teacher.name
+              ?.split(" ")
+              .slice(1)
+              .join(" ") ??
+            "",
+
+          email:
+            teacher.email ?? "",
+
+          joiningDate:
+            teacher.joiningDate ??
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          photo:
+            teacher.photo ?? null,
+
+          status: newStatus,
+        }
+      );
+    } catch (err: any) {
+      console.error(
+        "API update error for teacher status:",
+        err
+      );
+    }
+
+    setTeachers((prev) =>
+      prev.map((t) =>
+        t.id === teacher.id
+          ? {
+              ...t,
+              status: newStatus,
+            }
+          : t
+      )
+    );
+
+    Swal.fire(
+      "Updated!",
+      `Teacher ${teacher.name} has been ${
+        newStatus === "Inactive"
+          ? "deactivated"
+          : "activated"
+      }.`,
+      "success"
+    );
+  };
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Sorting
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const handleRequestSort = (
+    property: string
+  ) => {
+    const isAsc =
+      orderBy === property &&
+      order === "asc";
+
+    setOrder(
+      isAsc ? "desc" : "asc"
+    );
+
     setOrderBy(property);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+  // ───────────────────────────────────────────────────────────────────────────
+  // Rows Per Page
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setRowsPerPage(
+      parseInt(
+        event.target.value,
+        10
+      )
+    );
+
     setPage(0);
   };
 
-  // Sort Student records
+  // ───────────────────────────────────────────────────────────────────────────
+  // Filter Students
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const filteredStudents = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return students;
+    }
+
+    const q =
+      searchQuery
+        .toLowerCase()
+        .trim();
+
+    return students.filter((s) => {
+      const fullName =
+        `${s.firstName} ${s.middleName} ${s.surname}`
+          .toLowerCase();
+
+      const email =
+        (s.email || "").toLowerCase();
+
+      const contact =
+        (s.contactNo || "").toLowerCase();
+
+      const standard =
+        (s.standard || "").toLowerCase();
+
+      const subject =
+        (s.subject || "").toLowerCase();
+
+      const branch =
+        (s.branch || "").toLowerCase();
+
+      const courseType =
+        (s.courseType || "").toLowerCase();
+
+      const paymentStatus =
+        computePaymentStatus(s)
+          .label
+          .toLowerCase();
+
+      const school =
+        (s.schoolCollegeName || "")
+          .toLowerCase();
+
+      return (
+        fullName.includes(q) ||
+        email.includes(q) ||
+        contact.includes(q) ||
+        standard.includes(q) ||
+        subject.includes(q) ||
+        branch.includes(q) ||
+        courseType.includes(q) ||
+        paymentStatus.includes(q) ||
+        school.includes(q)
+      );
+    });
+  }, [
+    students,
+    searchQuery,
+  ]);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Sort Students
+  // ───────────────────────────────────────────────────────────────────────────
+
   const sortedStudents = useMemo(() => {
-    const data = [...students];
+    const data = [
+      ...filteredStudents,
+    ];
+
     return data.sort((a, b) => {
-      let aVal: any = a[orderBy as keyof Student];
-      let bVal: any = b[orderBy as keyof Student];
+      let aVal: any =
+        a[
+          orderBy as keyof Student
+        ];
+
+      let bVal: any =
+        b[
+          orderBy as keyof Student
+        ];
 
       if (orderBy === "firstName") {
-        aVal = `${a.firstName} ${a.surname}`.toLowerCase();
-        bVal = `${b.firstName} ${b.surname}`.toLowerCase();
-      } else if (orderBy === "netFees") {
-        aVal = computeNetFees(a);
-        bVal = computeNetFees(b);
-      } else if (orderBy === "paymentStatus") {
-        aVal = computePaymentStatus(a).label;
-        bVal = computePaymentStatus(b).label;
+        aVal =
+          `${a.firstName} ${a.surname}`
+            .toLowerCase();
+
+        bVal =
+          `${b.firstName} ${b.surname}`
+            .toLowerCase();
       }
 
-      if (bVal < aVal) return order === "asc" ? 1 : -1;
-      if (bVal > aVal) return order === "asc" ? -1 : 1;
+      if (orderBy === "netFees") {
+        aVal = computeNetFees(a);
+        bVal = computeNetFees(b);
+      }
+
+      if (
+        orderBy ===
+        "paymentStatus"
+      ) {
+        aVal =
+          computePaymentStatus(a)
+            .label;
+
+        bVal =
+          computePaymentStatus(b)
+            .label;
+      }
+
+      if (bVal < aVal) {
+        return order === "asc"
+          ? 1
+          : -1;
+      }
+
+      if (bVal > aVal) {
+        return order === "asc"
+          ? -1
+          : 1;
+      }
+
       return 0;
     });
-  }, [students, order, orderBy]);
+  }, [
+    filteredStudents,
+    order,
+    orderBy,
+  ]);
 
-  // Paginated Students
-  const paginatedStudents = useMemo(() => {
-    return sortedStudents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-  }, [sortedStudents, page, rowsPerPage]);
+  // ───────────────────────────────────────────────────────────────────────────
+  // Paginate Students
+  // ───────────────────────────────────────────────────────────────────────────
 
-  // Sort Teacher records
+  const paginatedStudents =
+    useMemo(() => {
+      return sortedStudents.slice(
+        page * rowsPerPage,
+        page * rowsPerPage +
+          rowsPerPage
+      );
+    }, [
+      sortedStudents,
+      page,
+      rowsPerPage,
+    ]);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Filter Teachers
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const filteredTeachers = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return teachers;
+    }
+
+    const q =
+      searchQuery
+        .toLowerCase()
+        .trim();
+
+    return teachers.filter((t) => {
+      const name = (
+        t.name ||
+        `${t.firstName || ""} ${t.lastName || ""}`
+      ).toLowerCase();
+
+      const email =
+        (t.email || "").toLowerCase();
+
+      const status =
+        (t.status || "").toLowerCase();
+
+      const joined =
+        (
+          t.joined ||
+          t.joiningDate ||
+          ""
+        ).toLowerCase();
+
+      return (
+        name.includes(q) ||
+        email.includes(q) ||
+        status.includes(q) ||
+        joined.includes(q)
+      );
+    });
+  }, [
+    teachers,
+    searchQuery,
+  ]);
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Sort Teachers
+  // ───────────────────────────────────────────────────────────────────────────
+
   const sortedTeachers = useMemo(() => {
-    const data = [...teachers];
+    const data = [
+      ...filteredTeachers,
+    ];
+
     return data.sort((a, b) => {
-      const aVal = String(a[orderBy] ?? "").toLowerCase();
-      const bVal = String(b[orderBy] ?? "").toLowerCase();
-      if (bVal < aVal) return order === "asc" ? 1 : -1;
-      if (bVal > aVal) return order === "asc" ? -1 : 1;
+      const aVal = String(
+        a[orderBy] ?? ""
+      ).toLowerCase();
+
+      const bVal = String(
+        b[orderBy] ?? ""
+      ).toLowerCase();
+
+      if (bVal < aVal) {
+        return order === "asc"
+          ? 1
+          : -1;
+      }
+
+      if (bVal > aVal) {
+        return order === "asc"
+          ? -1
+          : 1;
+      }
+
       return 0;
     });
-  }, [teachers, order, orderBy]);
+  }, [
+    filteredTeachers,
+    order,
+    orderBy,
+  ]);
 
-  // Paginated Teachers
-  const paginatedTeachers = useMemo(() => {
-    return sortedTeachers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-  }, [sortedTeachers, page, rowsPerPage]);
+  // ───────────────────────────────────────────────────────────────────────────
+  // Paginate Teachers
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const paginatedTeachers =
+    useMemo(() => {
+      return sortedTeachers.slice(
+        page * rowsPerPage,
+        page * rowsPerPage +
+          rowsPerPage
+      );
+    }, [
+      sortedTeachers,
+      page,
+      rowsPerPage,
+    ]);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // JSX
+  // ─────────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
-      {/* ── Header ─────────────────────────────────────────────────── */}
+
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+          <h2
+            className="text-3xl font-bold mb-1"
+            style={{
+              color:
+                "var(--text-primary)",
+            }}
+          >
             Users
           </h2>
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+
+          <p
+            className="text-sm"
+            style={{
+              color:
+                "var(--text-secondary)",
+            }}
+          >
             Manage students and teachers
           </p>
         </div>
 
         {activeTab === "students" && (
           <button
-            onClick={() => navigate("/Users/add-student")}
+            onClick={() =>
+              navigate(
+                "/Users/add-student"
+              )
+            }
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
           >
             <IconPlus size={16} />
             Add Student
           </button>
         )}
+
         {activeTab === "teachers" && (
           <button
-            onClick={() => navigate("/Users/add-teacher")}
+            onClick={() =>
+              navigate(
+                "/Users/add-teacher"
+              )
+            }
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
           >
             <IconPlus size={16} />
@@ -281,445 +875,916 @@ const UsersList: React.FC = () => {
         )}
       </div>
 
-      {/* ── Modern Underline Tabs Bar ───────────────────────────────────────── */}
-      <div className="flex items-center gap-6 border-b border-slate-200/90 pb-px">
-        <button
-  onClick={() => setActiveTab("students")}
-  className={`flex items-center gap-2 py-2 px-2 font-bold text-sm sm:text-base border-b-2 transition-all duration-200 ${
-    activeTab === "students"
-      ? "border-blue-600 text-blue-600 bg-blue-200 rounded-t-lg"
-      : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-  }`}
->
-          <IconSchool size={20} className={activeTab === "students" ? "text-blue-600" : "text-slate-400"} />
-          <span>Students</span>
-          <span
-            className={`text-xs px-2.5 py-0.5 rounded-full font-bold transition-colors ${
+      {/* Main Card with Folder Tabs Sticking Out */}
+      <div className="space-y-0 relative">
+        {/* Top Folder Tabs (Sticking out of top of card) */}
+        <div className="flex items-end gap-2 px-2 -mb-px relative z-10">
+          {/* Students Tab */}
+          <button
+            onClick={() => {
+              setActiveTab("students");
+              setPage(0);
+            }}
+            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl border transition-all ${
               activeTab === "students"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-slate-100 text-slate-600"
+                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                : "bg-slate-100/90 hover:bg-slate-200 text-slate-600 border-slate-200 border-b-slate-200"
             }`}
           >
-            {students.length}
-          </span>
-        </button>
+            <IconSchool size={18} />
+            <span>Students</span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                activeTab === "students"
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-200 text-slate-700"
+              }`}
+            >
+              {filteredStudents.length}
+            </span>
+          </button>
 
-       <button
-  onClick={() => setActiveTab("teachers")}
-  className={`flex items-center gap-2 py-2 px-2 font-bold text-sm sm:text-base border-b-2 transition-all duration-200 ${
-    activeTab === "teachers"
-      ? "border-blue-600 text-blue-600 bg-blue-200 rounded-t-lg"
-      : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-  }`}
->
-          <IconChalkboard size={20} className={activeTab === "teachers" ? "text-blue-600" : "text-slate-400"} />
-          <span>Teachers</span>
-          <span
-            className={`text-xs px-2.5 py-0.5 rounded-full font-bold transition-colors ${
+          {/* Teachers Tab */}
+          <button
+            onClick={() => {
+              setActiveTab("teachers");
+              setPage(0);
+            }}
+            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl border transition-all ${
               activeTab === "teachers"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-slate-100 text-slate-600"
+                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                : "bg-slate-100/90 hover:bg-slate-200 text-slate-600 border-slate-200 border-b-slate-200"
             }`}
           >
-            {teachers.length}
-          </span>
-        </button>
-      </div>
+            <IconChalkboard size={18} />
+            <span>Teachers</span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                activeTab === "teachers"
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-200 text-slate-700"
+              }`}
+            >
+              {filteredTeachers.length}
+            </span>
+          </button>
+        </div>
 
-      {/* ── MUI Table Container ────────────────────────────────────── */}
-      <div
-        className="rounded-xl overflow-hidden shadow-sm bg-white"
-        style={{ border: "1px solid var(--border-card)" }}
-      >
-        {activeTab === "students" &&
-          (loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader color="blue" size="lg" />
+        {/* Main Card Container */}
+        <Card
+          elevation={1}
+          className="bg-white border border-slate-200/80 rounded-b-2xl rounded-tr-2xl rounded-tl-none shadow-lg relative z-0"
+        >
+          <CardContent className="!p-5 sm:!p-6">
+            {/* Card Toolbar: Directory Title & Search Box */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-5">
+              <h3 className="text-lg font-bold text-slate-800">
+                {activeTab === "students" ? "Student List" : "Teacher List"}
+              </h3>
+
+              {/* Search */}
+              <TextField
+                placeholder={
+                  activeTab === "students"
+                    ? "Search students by name, email, std, subject..."
+                    : "Search teachers by name, email, status..."
+                }
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(0);
+                }}
+                size="small"
+                className="w-full sm:w-80"
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon className="text-slate-400" fontSize="small" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: searchQuery ? (
+                      <IconButton size="small" onClick={() => setSearchQuery("")}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    ) : null,
+                  },
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "12px",
+                  },
+                }}
+              />
             </div>
-          ) : (
-            <div>
-              {error && (
-                <div className="flex items-center justify-between px-4 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm">
-                  <span>
-                    ⚠️ API connection failed ({error}). Showing 1 dummy student for offline preview.
-                  </span>
-                  <button
-                    onClick={fetchStudents}
-                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
-                  >
-                    Retry API
-                  </button>
+
+          {/* ================================================================ */}
+          {/* STUDENTS */}
+          {/* ================================================================ */}
+
+          {activeTab === "students" && (
+            <>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader
+                    color="blue"
+                    size="lg"
+                  />
                 </div>
-              )}
+              ) : (
+                <div>
 
-              <TableContainer component={Paper} elevation={0} className="bg-transparent">
-                <Table className="min-w-full">
-                  <TableHead className="bg-slate-50">
-                    <TableRow>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "firstName"}
-                          direction={orderBy === "firstName" ? order : "asc"}
-                          onClick={() => handleRequestSort("firstName")}
-                        >
-                          Student
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "courseType"}
-                          direction={orderBy === "courseType" ? order : "asc"}
-                          onClick={() => handleRequestSort("courseType")}
-                        >
-                          Course / Subject
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "standard"}
-                          direction={orderBy === "standard" ? order : "asc"}
-                          onClick={() => handleRequestSort("standard")}
-                        >
-                          Std
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        Contact
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "paymentStatus"}
-                          direction={orderBy === "paymentStatus" ? order : "asc"}
-                          onClick={() => handleRequestSort("paymentStatus")}
-                        >
-                          Payment
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "netFees"}
-                          direction={orderBy === "netFees" ? order : "asc"}
-                          onClick={() => handleRequestSort("netFees")}
-                        >
-                          Fees (Net)
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3 text-right">
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
+                  {/* Student Error */}
+                  {studentError && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm">
+                      <span>
+                        ⚠️ API connection failed (
+                        {studentError}
+                        ). Showing 1 dummy student for offline preview.
+                      </span>
 
-                  <TableBody>
-                    {paginatedStudents.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-10 text-slate-400 text-sm">
-                          No students found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      paginatedStudents.map((row) => {
-                        const fullName = `${row.firstName} ${row.middleName} ${row.surname}`.trim();
-                        const paymentStatus = computePaymentStatus(row);
-                        const netFees = computeNetFees(row);
+                      <button
+                        onClick={
+                          fetchStudents
+                        }
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                      >
+                        Retry API
+                      </button>
+                    </div>
+                  )}
 
-                        return (
-                          <TableRow
-                            key={row.id}
-                            hover
-                            onClick={() => navigate(`/Users/edit-student/${row.id}`)}
-                            className="cursor-pointer transition-colors hover:bg-slate-50/80"
-                          >
-                            {/* Student Name & Email */}
-                            <TableCell className="!py-3">
-                              <div className="flex items-center gap-3">
-                                {row.photo ? (
-                                  <img
-                                    src={row.photo}
-                                    alt={fullName}
-                                    className="w-9 h-9 rounded-full object-cover shrink-0"
-                                  />
-                                ) : (
-                                  <div
-                                    className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white font-bold text-xs ${getAvatarColor(
-                                      row.id
-                                    )}`}
-                                  >
-                                    {getInitials(row.firstName, row.surname)}
-                                  </div>
-                                )}
-                                <div className="min-w-0">
-                                  <p className="font-semibold text-sm text-slate-800">
-                                    {fullName}
-                                  </p>
-                                  <p className="text-xs text-slate-500">{row.email}</p>
-                                </div>
-                              </div>
-                            </TableCell>
+                  {/* Student Table */}
+                  <TableContainer
+                    component={Paper}
+                    elevation={0}
+                    className="bg-transparent"
+                  >
+                    <Table className="min-w-full">
 
-                            {/* Course / Subject */}
-                            <TableCell className="!py-3">
-                              <div>
-                                <p className="text-sm font-medium text-slate-800">{row.courseType}</p>
-                                <p className="text-xs text-slate-500">{row.subject}</p>
-                              </div>
-                            </TableCell>
+                      <TableHead className="bg-slate-50">
+                        <TableRow>
 
-                            {/* Standard */}
-                            <TableCell className="!py-3">
-                              <span className="text-sm font-medium text-slate-700">
-                                Std {row.standard}
-                              </span>
-                            </TableCell>
+                          {/* Student */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            <TableSortLabel
+                              active={
+                                orderBy ===
+                                "firstName"
+                              }
+                              direction={
+                                orderBy ===
+                                "firstName"
+                                  ? order
+                                  : "asc"
+                              }
+                              onClick={() =>
+                                handleRequestSort(
+                                  "firstName"
+                                )
+                              }
+                            >
+                              Student
+                            </TableSortLabel>
+                          </TableCell>
 
-                            {/* Contact */}
-                            <TableCell className="!py-3">
-                              <div>
-                                <p className="text-sm flex items-center gap-1 text-slate-800">
-                                  <IconPhone size={13} className="text-slate-400" />{" "}
-                                  {row.contactNo}
-                                </p>
-                                <p className="text-xs text-slate-500">{row.branch}</p>
-                              </div>
-                            </TableCell>
+                          {/* Course */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            <TableSortLabel
+                              active={
+                                orderBy ===
+                                "courseType"
+                              }
+                              direction={
+                                orderBy ===
+                                "courseType"
+                                  ? order
+                                  : "asc"
+                              }
+                              onClick={() =>
+                                handleRequestSort(
+                                  "courseType"
+                                )
+                              }
+                            >
+                              Course / Subject
+                            </TableSortLabel>
+                          </TableCell>
 
-                            {/* Payment Status */}
-                            <TableCell className="!py-3">
-                              <span
-                                className={`px-2.5 py-1 rounded-full text-xs font-semibold ${paymentStatus.color}`}
-                              >
-                                {paymentStatus.label}
-                              </span>
-                            </TableCell>
+                          {/* Standard */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            <TableSortLabel
+                              active={
+                                orderBy ===
+                                "standard"
+                              }
+                              direction={
+                                orderBy ===
+                                "standard"
+                                  ? order
+                                  : "asc"
+                              }
+                              onClick={() =>
+                                handleRequestSort(
+                                  "standard"
+                                )
+                              }
+                            >
+                              Std
+                            </TableSortLabel>
+                          </TableCell>
 
-                            {/* Net Fees */}
-                            <TableCell className="!py-3">
-                              <div>
-                                <p className="text-sm font-semibold text-slate-800">
-                                  {formatCurrency(String(netFees))}
-                                </p>
-                                {parseFloat(row.discountAmount) > 0 && (
-                                  <p className="text-emerald-600 text-xs font-medium">
-                                    -{formatCurrency(row.discountAmount)} off
-                                  </p>
-                                )}
-                              </div>
-                            </TableCell>
+                          {/* Contact */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            Contact
+                          </TableCell>
 
-                            {/* Actions */}
-                            <TableCell className="!py-3" align="right">
-                              <div
-                                className="flex items-center justify-end gap-1"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <button
-                                  onClick={() => navigate(`/Users/edit-student/${row.id}`)}
-                                  className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                                  title="Edit student"
-                                >
-                                  <IconPencil size={15} />
-                                </button>
-                                <button
-                                  onClick={() => navigate(`/Users/edit-student/${row.id}?tab=fees`)}
-                                  className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                                  title="Update payment"
-                                >
-                                  <IconCurrencyRupee size={15} />
-                                </button>
-                              </div>
+                          {/* Payment */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            <TableSortLabel
+                              active={
+                                orderBy ===
+                                "paymentStatus"
+                              }
+                              direction={
+                                orderBy ===
+                                "paymentStatus"
+                                  ? order
+                                  : "asc"
+                              }
+                              onClick={() =>
+                                handleRequestSort(
+                                  "paymentStatus"
+                                )
+                              }
+                            >
+                              Payment
+                            </TableSortLabel>
+                          </TableCell>
+
+                          {/* Fees */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            <TableSortLabel
+                              active={
+                                orderBy ===
+                                "netFees"
+                              }
+                              direction={
+                                orderBy ===
+                                "netFees"
+                                  ? order
+                                  : "asc"
+                              }
+                              onClick={() =>
+                                handleRequestSort(
+                                  "netFees"
+                                )
+                              }
+                            >
+                              Fees (Net)
+                            </TableSortLabel>
+                          </TableCell>
+
+                          {/* Actions */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3 text-right">
+                            Actions
+                          </TableCell>
+
+                        </TableRow>
+                      </TableHead>
+
+                      <TableBody>
+
+                        {paginatedStudents.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={7}
+                              className="text-center py-10 text-slate-400 text-sm"
+                            >
+                              No students found
                             </TableCell>
                           </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                        ) : (
+                          paginatedStudents.map(
+                            (row) => {
+                              const fullName =
+                                `${row.firstName} ${row.middleName} ${row.surname}`.trim();
 
-              {/* Numbered MUI Pagination */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                  <span>Rows per page:</span>
-                  <select
-                    value={rowsPerPage}
-                    onChange={handleChangeRowsPerPage}
-                    className="px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                  </select>
-                  <span className="ml-2 text-slate-500">
-                    Showing {students.length === 0 ? 0 : page * rowsPerPage + 1}–
-                    {Math.min((page + 1) * rowsPerPage, students.length)} of {students.length}
-                  </span>
+                              const paymentStatus =
+                                computePaymentStatus(
+                                  row
+                                );
+
+                              const netFees =
+                                computeNetFees(
+                                  row
+                                );
+
+                              const isActive =
+                                row.isActive ??
+                                true;
+
+                              return (
+                                <TableRow
+                                  key={row.id}
+                                  hover
+                                  onClick={() =>
+                                    navigate(
+                                      `/Users/edit-student/${row.id}`
+                                    )
+                                  }
+                                  className="cursor-pointer transition-colors hover:bg-slate-50/80"
+                                >
+
+                                  {/* Student */}
+                                  <TableCell className="!py-3">
+                                    <div className="flex items-center gap-3">
+
+                                      {row.photo ? (
+                                        <img
+                                          src={row.photo}
+                                          alt={fullName}
+                                          className="w-9 h-9 rounded-full object-cover shrink-0"
+                                        />
+                                      ) : (
+                                        <div
+                                          className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white font-bold text-xs ${getAvatarColor(
+                                            row.id
+                                          )}`}
+                                        >
+                                          {getInitials(
+                                            row.firstName,
+                                            row.surname
+                                          )}
+                                        </div>
+                                      )}
+
+                                      <div className="min-w-0">
+                                        <p className="font-semibold text-sm text-slate-800">
+                                          {fullName}
+                                        </p>
+
+                                        <p className="text-xs text-slate-500">
+                                          {row.email}
+                                        </p>
+                                      </div>
+
+                                    </div>
+                                  </TableCell>
+
+                                  {/* Course / Subject */}
+                                  <TableCell className="!py-3">
+                                    <div>
+                                      <p className="text-sm font-medium text-slate-800">
+                                        {row.courseType}
+                                      </p>
+
+                                      <p className="text-xs text-slate-500">
+                                        {row.subject}
+                                      </p>
+                                    </div>
+                                  </TableCell>
+
+                                  {/* Standard */}
+                                  <TableCell className="!py-3">
+                                    <span className="text-sm font-medium text-slate-700">
+                                      Std {row.standard}
+                                    </span>
+                                  </TableCell>
+
+                                  {/* Contact */}
+                                  <TableCell className="!py-3">
+                                    <div>
+                                      <p className="text-sm flex items-center gap-1 text-slate-800">
+                                        <IconPhone
+                                          size={13}
+                                          className="text-slate-400"
+                                        />
+
+                                        {row.contactNo}
+                                      </p>
+
+                                      <p className="text-xs text-slate-500">
+                                        {row.branch}
+                                      </p>
+                                    </div>
+                                  </TableCell>
+
+                                  {/* Payment */}
+                                  <TableCell className="!py-3">
+                                    <span
+                                      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${paymentStatus.color}`}
+                                    >
+                                      {
+                                        paymentStatus.label
+                                      }
+                                    </span>
+                                  </TableCell>
+
+                                  {/* Fees */}
+                                  <TableCell className="!py-3">
+                                    <div>
+                                      <p className="text-sm font-semibold text-slate-800">
+                                        {formatCurrency(
+                                          String(
+                                            netFees
+                                          )
+                                        )}
+                                      </p>
+
+                                      {parseFloat(
+                                        row.discountAmount
+                                      ) > 0 && (
+                                        <p className="text-emerald-600 text-xs font-medium">
+                                          -
+                                          {formatCurrency(
+                                            row.discountAmount
+                                          )}{" "}
+                                          off
+                                        </p>
+                                      )}
+                                    </div>
+                                  </TableCell>
+
+                                  {/* Actions */}
+                                  <TableCell
+                                    className="!py-3"
+                                    align="right"
+                                  >
+                                    <div
+                                      className="flex items-center justify-end gap-1"
+                                      onClick={(e) =>
+                                        e.stopPropagation()
+                                      }
+                                    >
+
+                                      {/* Edit */}
+                                      <button
+                                        onClick={() =>
+                                          navigate(
+                                            `/Users/edit-student/${row.id}`
+                                          )
+                                        }
+                                        className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                        title="Edit student"
+                                      >
+                                        <IconPencil
+                                          size={15}
+                                        />
+                                      </button>
+
+                                      {/* Payment */}
+                                      <button
+                                        onClick={() =>
+                                          navigate(
+                                            `/Users/edit-student/${row.id}?tab=fees`
+                                          )
+                                        }
+                                        className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                        title="Update payment"
+                                      >
+                                        <IconCurrencyRupee
+                                          size={15}
+                                        />
+                                      </button>
+
+                                      {/* Activate / Deactivate */}
+                                      <button
+                                        onClick={() =>
+                                          handleToggleStudentStatus(
+                                            row
+                                          )
+                                        }
+                                        className={`p-2 rounded-lg transition-colors ${
+                                          isActive
+                                            ? "bg-rose-50 hover:bg-rose-100 text-rose-600"
+                                            : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
+                                        }`}
+                                        title={
+                                          isActive
+                                            ? "Deactivate student"
+                                            : "Activate student"
+                                        }
+                                      >
+                                        {isActive ? (
+                                          <IconUserOff
+                                            size={15}
+                                          />
+                                        ) : (
+                                          <IconUserCheck
+                                            size={15}
+                                          />
+                                        )}
+                                      </button>
+
+                                    </div>
+                                  </TableCell>
+
+                                </TableRow>
+                              );
+                            }
+                          )
+                        )}
+
+                      </TableBody>
+
+                    </Table>
+                  </TableContainer>
+
+                  {/* Student Pagination */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-slate-200 bg-slate-50/50">
+
+                    <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+
+                      <span>
+                        Rows per page:
+                      </span>
+
+                      <select
+                        value={rowsPerPage}
+                        onChange={
+                          handleChangeRowsPerPage
+                        }
+                        className="px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                      >
+                        <option value={10}>
+                          10
+                        </option>
+
+                        <option value={25}>
+                          25
+                        </option>
+
+                        <option value={50}>
+                          50
+                        </option>
+                      </select>
+
+                      <span className="ml-2 text-slate-500">
+                        Showing{" "}
+                        {filteredStudents.length ===
+                        0
+                          ? 0
+                          : page *
+                              rowsPerPage +
+                            1}
+                        –
+                        {Math.min(
+                          (page + 1) *
+                            rowsPerPage,
+                          filteredStudents.length
+                        )}{" "}
+                        of{" "}
+                        {
+                          filteredStudents.length
+                        }
+                      </span>
+
+                    </div>
+
+                    <Pagination
+                      count={Math.max(
+                        1,
+                        Math.ceil(
+                          filteredStudents.length /
+                            rowsPerPage
+                        )
+                      )}
+                      page={page + 1}
+                      onChange={(
+                        _e,
+                        value
+                      ) =>
+                        setPage(value - 1)
+                      }
+                      color="primary"
+                      shape="rounded"
+                      showFirstButton
+                      showLastButton
+                      size="small"
+                    />
+
+                  </div>
+
                 </div>
+              )}
+            </>
+          )}
 
-                <Pagination
-                  count={Math.max(1, Math.ceil(students.length / rowsPerPage))}
-                  page={page + 1}
-                  onChange={(_e, value) => setPage(value - 1)}
-                  color="primary"
-                  shape="rounded"
-                  showFirstButton
-                  showLastButton
-                  size="small"
-                />
-              </div>
-            </div>
-          ))}
+          {/* ================================================================ */}
+          {/* TEACHERS */}
+          {/* ================================================================ */}
 
-        {activeTab === "teachers" &&
-          (loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader color="blue" size="lg" />
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <p className="text-red-500">Error: {error}</p>
-              <button
-                onClick={fetchTeachers}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
-              >
-                Retry
-              </button>
-            </div>
-          ) : (
-            <div>
-              <TableContainer component={Paper} elevation={0} className="bg-transparent">
-                <Table className="min-w-full">
-                  <TableHead className="bg-slate-50">
-                    <TableRow>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "name"}
-                          direction={orderBy === "name" ? order : "asc"}
-                          onClick={() => handleRequestSort("name")}
-                        >
-                          Teacher
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "status"}
-                          direction={orderBy === "status" ? order : "asc"}
-                          onClick={() => handleRequestSort("status")}
-                        >
-                          Status
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
-                        <TableSortLabel
-                          active={orderBy === "joined"}
-                          direction={orderBy === "joined" ? order : "asc"}
-                          onClick={() => handleRequestSort("joined")}
-                        >
-                          Joined
-                        </TableSortLabel>
-                      </TableCell>
-                      <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3 text-right">
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
+          {activeTab === "teachers" && (
+            <>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader
+                    color="blue"
+                    size="lg"
+                  />
+                </div>
+              ) : (
+                <div>
 
-                  <TableBody>
-                    {paginatedTeachers.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-10 text-slate-400 text-sm">
-                          No teachers found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      paginatedTeachers.map((row) => (
-                        <TableRow key={row.id} hover className="transition-colors hover:bg-slate-50/80">
-                          <TableCell className="!py-3">
-                            <div className="flex items-center gap-3">
-                              {row.photo ? (
-                                <img
-                                  src={row.photo}
-                                  alt={row.name}
-                                  className="w-9 h-9 rounded-full object-cover shrink-0"
-                                />
-                              ) : (
-                                <img
-                                  src={row.avatar}
-                                  alt={row.name}
-                                  className="w-9 h-9 rounded-full bg-slate-100 shrink-0"
-                                />
-                              )}
-                              <div className="min-w-0">
-                                <p className="font-semibold text-sm text-slate-800">{row.name}</p>
-                                <p className="text-xs text-slate-500">{row.email}</p>
-                              </div>
-                            </div>
-                          </TableCell>
+                  {/* Teacher Error */}
+                  {teacherError && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm">
 
-                          <TableCell className="!py-3">
-                            <span
-                              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                row.status === "Active"
-                                  ? "text-emerald-600 bg-emerald-50"
-                                  : "text-slate-500 bg-slate-100"
-                              }`}
+                      <span>
+                        ⚠️ API connection failed (
+                        {teacherError}
+                        ). Showing 1 dummy teacher for offline preview.
+                      </span>
+
+                      <button
+                        onClick={
+                          fetchTeachers
+                        }
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                      >
+                        Retry API
+                      </button>
+
+                    </div>
+                  )}
+
+                  {/* Teacher Table */}
+                  <TableContainer
+                    component={Paper}
+                    elevation={0}
+                    className="bg-transparent"
+                  >
+                    <Table className="min-w-full">
+
+                      <TableHead className="bg-slate-50">
+                        <TableRow>
+
+                          {/* Teacher */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            <TableSortLabel
+                              active={
+                                orderBy ===
+                                "name"
+                              }
+                              direction={
+                                orderBy === "name"
+                                  ? order
+                                  : "asc"
+                              }
+                              onClick={() =>
+                                handleRequestSort(
+                                  "name"
+                                )
+                              }
                             >
-                              {row.status}
-                            </span>
+                              Teacher
+                            </TableSortLabel>
                           </TableCell>
 
-                          <TableCell className="!py-3">
-                            <span className="text-sm text-slate-700">{row.joined}</span>
-                          </TableCell>
-
-                          <TableCell className="!py-3" align="right">
-                            <button
-                              onClick={() => navigate(`/Users/edit-teacher/${row.id}`)}
-                              className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                              title="Edit teacher"
+                          {/* Joined */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3">
+                            <TableSortLabel
+                              active={
+                                orderBy ===
+                                "joined"
+                              }
+                              direction={
+                                orderBy ===
+                                "joined"
+                                  ? order
+                                  : "asc"
+                              }
+                              onClick={() =>
+                                handleRequestSort(
+                                  "joined"
+                                )
+                              }
                             >
-                              <IconPencil size={15} />
-                            </button>
+                              Joined
+                            </TableSortLabel>
                           </TableCell>
+
+                          {/* Actions */}
+                          <TableCell className="!font-semibold !text-xs !text-slate-600 !py-3 text-right">
+                            Actions
+                          </TableCell>
+
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                      </TableHead>
 
-              {/* Numbered MUI Pagination */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-slate-200 bg-slate-50/50">
-                <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                  <span>Rows per page:</span>
-                  <select
-                    value={rowsPerPage}
-                    onChange={handleChangeRowsPerPage}
-                    className="px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                  </select>
-                  <span className="ml-2 text-slate-500">
-                    Showing {teachers.length === 0 ? 0 : page * rowsPerPage + 1}–
-                    {Math.min((page + 1) * rowsPerPage, teachers.length)} of {teachers.length}
-                  </span>
+                      <TableBody>
+
+                        {paginatedTeachers.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={3}
+                              className="text-center py-10 text-slate-400 text-sm"
+                            >
+                              No teachers found
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          paginatedTeachers.map(
+                            (row) => (
+                              <TableRow
+                                key={row.id}
+                                hover
+                                className="transition-colors hover:bg-slate-50/80"
+                              >
+
+                                {/* Teacher */}
+                                <TableCell className="!py-3">
+                                  <div className="flex items-center gap-3">
+
+                                    {row.photo ? (
+                                      <img
+                                        src={row.photo}
+                                        alt={row.name}
+                                        className="w-9 h-9 rounded-full object-cover shrink-0"
+                                      />
+                                    ) : (
+                                      <img
+                                        src={row.avatar}
+                                        alt={row.name}
+                                        className="w-9 h-9 rounded-full bg-slate-100 shrink-0"
+                                      />
+                                    )}
+
+                                    <div className="min-w-0">
+
+                                      <p className="font-semibold text-sm text-slate-800">
+                                        {row.name}
+                                      </p>
+
+                                      <p className="text-xs text-slate-500">
+                                        {row.email}
+                                      </p>
+
+                                    </div>
+
+                                  </div>
+                                </TableCell>
+
+                                {/* Joined */}
+                                <TableCell className="!py-3">
+                                  <span className="text-sm text-slate-700">
+                                    {row.joined}
+                                  </span>
+                                </TableCell>
+
+                                {/* Actions */}
+                                <TableCell
+                                  className="!py-3"
+                                  align="right"
+                                >
+                                  <div className="flex items-center justify-end gap-1">
+
+                                    {/* Edit */}
+                                    <button
+                                      onClick={() =>
+                                        navigate(
+                                          `/Users/edit-teacher/${row.id}`
+                                        )
+                                      }
+                                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                      title="Edit teacher"
+                                    >
+                                      <IconPencil
+                                        size={15}
+                                      />
+                                    </button>
+
+                                    {/* Activate / Deactivate */}
+                                    <button
+                                      onClick={() =>
+                                        handleToggleTeacherStatus(
+                                          row
+                                        )
+                                      }
+                                      className={`p-2 rounded-lg transition-colors ${
+                                        row.status ===
+                                        "Active"
+                                          ? "bg-rose-50 hover:bg-rose-100 text-rose-600"
+                                          : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
+                                      }`}
+                                      title={
+                                        row.status ===
+                                        "Active"
+                                          ? "Deactivate teacher"
+                                          : "Activate teacher"
+                                      }
+                                    >
+                                      {row.status ===
+                                      "Active" ? (
+                                        <IconUserOff
+                                          size={15}
+                                        />
+                                      ) : (
+                                        <IconUserCheck
+                                          size={15}
+                                        />
+                                      )}
+                                    </button>
+
+                                  </div>
+                                </TableCell>
+
+                              </TableRow>
+                            )
+                          )
+                        )}
+
+                      </TableBody>
+
+                    </Table>
+                  </TableContainer>
+
+                  {/* Teacher Pagination */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-slate-200 bg-slate-50/50">
+
+                    <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+
+                      <span>
+                        Rows per page:
+                      </span>
+
+                      <select
+                        value={rowsPerPage}
+                        onChange={
+                          handleChangeRowsPerPage
+                        }
+                        className="px-2 py-1 rounded border border-slate-300 bg-white text-slate-700 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                      >
+                        <option value={10}>
+                          10
+                        </option>
+
+                        <option value={25}>
+                          25
+                        </option>
+
+                        <option value={50}>
+                          50
+                        </option>
+                      </select>
+
+                      <span className="ml-2 text-slate-500">
+                        Showing{" "}
+                        {filteredTeachers.length ===
+                        0
+                          ? 0
+                          : page *
+                              rowsPerPage +
+                            1}
+                        –
+                        {Math.min(
+                          (page + 1) *
+                            rowsPerPage,
+                          filteredTeachers.length
+                        )}{" "}
+                        of{" "}
+                        {
+                          filteredTeachers.length
+                        }
+                      </span>
+
+                    </div>
+
+                    <Pagination
+                      count={Math.max(
+                        1,
+                        Math.ceil(
+                          filteredTeachers.length /
+                            rowsPerPage
+                        )
+                      )}
+                      page={page + 1}
+                      onChange={(
+                        _e,
+                        value
+                      ) =>
+                        setPage(value - 1)
+                      }
+                      color="primary"
+                      shape="rounded"
+                      showFirstButton
+                      showLastButton
+                      size="small"
+                    />
+
+                  </div>
+
                 </div>
+              )}
+            </>
+          )}
 
-                <Pagination
-                  count={Math.max(1, Math.ceil(teachers.length / rowsPerPage))}
-                  page={page + 1}
-                  onChange={(_e, value) => setPage(value - 1)}
-                  color="primary"
-                  shape="rounded"
-                  showFirstButton
-                  showLastButton
-                  size="small"
-                />
-              </div>
-            </div>
-          ))}
-      </div>
+        </CardContent>
+      </Card>
+    </div>
+
     </div>
   );
 };

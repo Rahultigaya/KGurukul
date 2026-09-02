@@ -5,7 +5,6 @@ import {
   Paper,
   Typography,
   TextField,
-  MenuItem,
   Avatar,
   IconButton,
   RadioGroup,
@@ -14,6 +13,7 @@ import {
   FormControl,
   FormLabel,
   FormHelperText,
+  Autocomplete,
 } from "@mui/material";
 import { IconUser, IconUpload, IconX } from "@tabler/icons-react";
 import type { StudentRegistrationData, ValidationErrors } from "../types";
@@ -200,22 +200,25 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
                       value={formData.gender || ""}
                       onChange={(e) => handleInputChange("gender", e.target.value)}
                       row
-                      className="!flex !w-full !items-center !justify-between pt-1"
+                      className="!flex !items-center !justify-start gap-4 pt-1"
                     >
                       <FormControlLabel
                         value="male"
                         control={<Radio size="small" color="primary" />}
                         label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Male</span>}
+                        className="!mr-0"
                       />
                       <FormControlLabel
                         value="female"
                         control={<Radio size="small" color="primary" />}
                         label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Female</span>}
+                        className="!mr-0"
                       />
                       <FormControlLabel
                         value="other"
                         control={<Radio size="small" color="primary" />}
                         label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Other</span>}
+                        className="!mr-0"
                       />
                     </RadioGroup>
                     {errors.gender && <FormHelperText error className="!bg-transparent !m-0 !mt-1">{errors.gender}</FormHelperText>}
@@ -312,33 +315,27 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
               />
             </div>
 
-            {/* Standard Dropdown Select (Dynamic API Data) */}
+            {/* Standard Autocomplete Select (Dynamic API Data) */}
             <div>
-              <TextField
-                select
-                label="Standard *"
+              <Autocomplete
+                options={standards}
+                getOptionLabel={(option) => option.label}
+                value={standards.find((s) => String(s.value) === String(formData.standard)) || null}
+                onChange={(_e, newValue) =>
+                  handleInputChange("standard", newValue ? newValue.value : "")
+                }
+                isOptionEqualToValue={(option, value) => String(option.value) === String(value.value)}
                 size="small"
-                variant="outlined"
-                fullWidth
-                value={formData.standard || ""}
-                onChange={(e) => handleInputChange("standard", e.target.value)}
-                error={Boolean(errors.standard)}
-                helperText={errors.standard}
-                slotProps={{
-                  formHelperText: formHelperSlotProps,
-                  select: { displayEmpty: true },
-                }}
-                sx={inputSxSlate}
-              >
-                <MenuItem value="" disabled className="!text-xs">
-                  Select Standard
-                </MenuItem>
-                {standards.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value} className="!text-sm">
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </TextField>
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Standard *"
+                    error={Boolean(errors.standard)}
+                    helperText={errors.standard}
+                    sx={inputSxSlate}
+                  />
+                )}
+              />
             </div>
           </div>
         </Paper>

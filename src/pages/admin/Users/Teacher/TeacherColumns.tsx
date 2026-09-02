@@ -44,21 +44,6 @@ export function useTeacherColumns(): TableColumn<FormattedTeacher>[] {
       ),
     },
     {
-      name: "Status",
-      width: "110px",
-      cell: (row) => (
-        <span
-          className="px-2.5 py-1 rounded-full text-xs font-semibold"
-          style={{
-            background: row.status === "Active" ? "rgba(34,197,94,0.12)" : "rgba(100,116,139,0.15)",
-            color:      row.status === "Active" ? "#22c55e"               : "var(--text-muted)",
-          }}
-        >
-          {row.status}
-        </span>
-      ),
-    },
-    {
       name: "Joined",
       selector: (row) => row.joined,
       sortable: true,

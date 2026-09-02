@@ -2,7 +2,7 @@
 :root,
 [data-theme="dark"],
 [data-theme="light"] {
-  --bg-primary: #f0f4f9;
+  --bg-primary: #e2e8f0;
   --bg-secondary: #ffffff;
   --bg-tertiary: #e8f0fe;
   --bg-card: #ffffff;

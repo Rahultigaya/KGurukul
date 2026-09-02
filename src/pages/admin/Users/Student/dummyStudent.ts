@@ -19,7 +19,7 @@ export const DUMMY_STUDENT: Student = {
   email: "dummy.student@example.com",
   contactNo: "9876543210",
   address: "123, Sample Street, Main City",
-  schoolCollegeName: "St. Xavier's High School",
+  schoolCollegeName: "St Xavier High School",
   paymentType: "installment",
   totalFees: "25000",
   discountAmount: "2000",
@@ -55,4 +55,5 @@ export const DUMMY_STUDENT: Student = {
       paidTo: "",
     },
   ],
+  isActive: true,
 };

@@ -1551,7 +1551,8 @@ const StudentRegistration: React.FC = () => {
     const total = parseFloat(formData.totalFees) || 0;
     const discount = parseFloat(formData.discountAmount) || 0;
     if (total === 0) return 0;
-    return ((discount / total) * 100).toFixed(2);
+    const pct = (discount / total) * 100;
+    return parseFloat(pct.toFixed(2));
   }, [formData.totalFees, formData.discountAmount]);
 
   const calculateFinalAmount = useCallback(() => {
@@ -1593,7 +1594,7 @@ const StudentRegistration: React.FC = () => {
 
     console.log("Registration Data:", formData);
     Swal.fire({
-      title: "Registration Successful! 🎉",
+      title: "Registration Successful! ",
       html: `<span style="color:#cbd5e1">Student <strong style="color:#a78bfa">${formData.firstName} ${formData.surname}</strong> has been registered successfully.</span>`,
       icon: "success",
       confirmButtonText: "Go to Users",
@@ -1759,7 +1760,7 @@ const StudentRegistration: React.FC = () => {
                 mb="md"
                 className="text-purple-400 text-xl sm:text-2xl"
               >
-                Registration Complete! 🎉
+                Registration Complete! 
               </Title>
               <Text className="text-slate-400 mb-6 sm:mb-8 text-base sm:text-lg">
                 All information has been submitted successfully.

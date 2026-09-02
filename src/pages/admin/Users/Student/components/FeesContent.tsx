@@ -5,9 +5,9 @@ import {
   Paper,
   Typography,
   TextField,
-  MenuItem,
   Chip,
   InputAdornment,
+  Autocomplete,
 } from "@mui/material";
 import { IconCurrencyRupee, IconCreditCard, IconCalendar, IconClock } from "@tabler/icons-react";
 import type { Installment, StudentRegistrationData, ValidationErrors } from "../types";
@@ -122,7 +122,7 @@ const FeesContent = React.memo<FeesProps>(
                 <span className="text-xs font-semibold text-slate-700">Discount Amount</span>
                 {Number(calculateDiscountPercentage()) > 0 && (
                   <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200 shadow-sm">
-                    {calculateDiscountPercentage()}% OFF
+                    {parseFloat(Number(calculateDiscountPercentage()).toFixed(2))}% OFF
                   </span>
                 )}
               </div>
@@ -349,33 +349,27 @@ const FeesContent = React.memo<FeesProps>(
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                {/* Payment Mode Dropdown Select */}
+                {/* Payment Mode Autocomplete Dropdown */}
                 <div>
-                  <TextField
-                    select
-                    label="Payment Mode *"
+                  <Autocomplete
+                    options={PAYMENT_MODE_OPTIONS}
+                    getOptionLabel={(option) => option.label}
+                    value={PAYMENT_MODE_OPTIONS.find((opt) => opt.value === formData.fullPayment.mode) || null}
+                    onChange={(_e, newValue) =>
+                      handleFullPaymentChange("mode", newValue ? newValue.value : "")
+                    }
+                    isOptionEqualToValue={(option, value) => option.value === value.value}
                     size="small"
-                    variant="outlined"
-                    fullWidth
-                    value={formData.fullPayment.mode || ""}
-                    onChange={(e) => handleFullPaymentChange("mode", e.target.value)}
-                    error={Boolean(errors["full_mode"])}
-                    helperText={errors["full_mode"]}
-                    slotProps={{
-                      formHelperText: formHelperSlotProps,
-                      select: { displayEmpty: true },
-                    }}
-                    sx={inputSxSlate}
-                  >
-                    <MenuItem value="" disabled className="!text-xs">
-                      Select Mode
-                    </MenuItem>
-                    {PAYMENT_MODE_OPTIONS.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value} className="!text-sm">
-                        {opt.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Payment Mode *"
+                        error={Boolean(errors["full_mode"])}
+                        helperText={errors["full_mode"]}
+                        sx={inputSxSlate}
+                      />
+                    )}
+                  />
                 </div>
 
                 <div>
@@ -391,33 +385,27 @@ const FeesContent = React.memo<FeesProps>(
                   />
                 </div>
 
-                {/* Paid To Dropdown Select */}
+                {/* Paid To Autocomplete Dropdown */}
                 <div>
-                  <TextField
-                    select
-                    label="Paid To *"
+                  <Autocomplete
+                    options={PAID_TO_OPTIONS}
+                    getOptionLabel={(option) => option.label}
+                    value={PAID_TO_OPTIONS.find((opt) => opt.value === formData.fullPayment.paidTo) || null}
+                    onChange={(_e, newValue) =>
+                      handleFullPaymentChange("paidTo", newValue ? newValue.value : "")
+                    }
+                    isOptionEqualToValue={(option, value) => option.value === value.value}
                     size="small"
-                    variant="outlined"
-                    fullWidth
-                    value={formData.fullPayment.paidTo || ""}
-                    onChange={(e) => handleFullPaymentChange("paidTo", e.target.value)}
-                    error={Boolean(errors["full_paidTo"])}
-                    helperText={errors["full_paidTo"]}
-                    slotProps={{
-                      formHelperText: formHelperSlotProps,
-                      select: { displayEmpty: true },
-                    }}
-                    sx={inputSxSlate}
-                  >
-                    <MenuItem value="" disabled className="!text-xs">
-                      Select Account
-                    </MenuItem>
-                    {PAID_TO_OPTIONS.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value} className="!text-sm">
-                        {opt.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Paid To *"
+                        error={Boolean(errors["full_paidTo"])}
+                        helperText={errors["full_paidTo"]}
+                        sx={inputSxSlate}
+                      />
+                    )}
+                  />
                 </div>
               </div>
             </div>
@@ -526,33 +514,27 @@ const FeesContent = React.memo<FeesProps>(
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {/* Payment Mode Dropdown Select */}
+                      {/* Payment Mode Autocomplete Dropdown */}
                       <div>
-                        <TextField
-                          select
-                          label={`Payment Mode ${index === 0 ? "*" : ""}`}
+                        <Autocomplete
+                          options={PAYMENT_MODE_OPTIONS}
+                          getOptionLabel={(option) => option.label}
+                          value={PAYMENT_MODE_OPTIONS.find((opt) => opt.value === installment.mode) || null}
+                          onChange={(_e, newValue) =>
+                            handleInstallmentChange(index, "mode", newValue ? newValue.value : "")
+                          }
+                          isOptionEqualToValue={(option, value) => option.value === value.value}
                           size="small"
-                          variant="outlined"
-                          fullWidth
-                          value={installment.mode || ""}
-                          onChange={(e) => handleInstallmentChange(index, "mode", e.target.value)}
-                          error={Boolean(errors[`inst_${index}_mode`])}
-                          helperText={errors[`inst_${index}_mode`]}
-                          slotProps={{
-                            formHelperText: formHelperSlotProps,
-                            select: { displayEmpty: true },
-                          }}
-                          sx={inputSxWhite}
-                        >
-                          <MenuItem value="" disabled className="!text-xs">
-                            Select Mode
-                          </MenuItem>
-                          {PAYMENT_MODE_OPTIONS.map((opt) => (
-                            <MenuItem key={opt.value} value={opt.value} className="!text-sm">
-                              {opt.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={`Payment Mode ${index === 0 ? "*" : ""}`}
+                              error={Boolean(errors[`inst_${index}_mode`])}
+                              helperText={errors[`inst_${index}_mode`]}
+                              sx={inputSxWhite}
+                            />
+                          )}
+                        />
                       </div>
 
                       <div>
@@ -568,33 +550,27 @@ const FeesContent = React.memo<FeesProps>(
                         />
                       </div>
 
-                      {/* Paid To Dropdown Select */}
+                      {/* Paid To Autocomplete Dropdown */}
                       <div>
-                        <TextField
-                          select
-                          label={`Paid To ${index === 0 ? "*" : ""}`}
+                        <Autocomplete
+                          options={PAID_TO_OPTIONS}
+                          getOptionLabel={(option) => option.label}
+                          value={PAID_TO_OPTIONS.find((opt) => opt.value === installment.paidTo) || null}
+                          onChange={(_e, newValue) =>
+                            handleInstallmentChange(index, "paidTo", newValue ? newValue.value : "")
+                          }
+                          isOptionEqualToValue={(option, value) => option.value === value.value}
                           size="small"
-                          variant="outlined"
-                          fullWidth
-                          value={installment.paidTo || ""}
-                          onChange={(e) => handleInstallmentChange(index, "paidTo", e.target.value)}
-                          error={Boolean(errors[`inst_${index}_paidTo`])}
-                          helperText={errors[`inst_${index}_paidTo`]}
-                          slotProps={{
-                            formHelperText: formHelperSlotProps,
-                            select: { displayEmpty: true },
-                          }}
-                          sx={inputSxWhite}
-                        >
-                          <MenuItem value="" disabled className="!text-xs">
-                            Select Account
-                          </MenuItem>
-                          {PAID_TO_OPTIONS.map((opt) => (
-                            <MenuItem key={opt.value} value={opt.value} className="!text-sm">
-                              {opt.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={`Paid To ${index === 0 ? "*" : ""}`}
+                              error={Boolean(errors[`inst_${index}_paidTo`])}
+                              helperText={errors[`inst_${index}_paidTo`]}
+                              sx={inputSxWhite}
+                            />
+                          )}
+                        />
                       </div>
                     </div>
                   </div>

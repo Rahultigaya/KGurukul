@@ -64,9 +64,11 @@ export function transformApiToFormData(raw: any): StudentRegistrationData {
     photo: raw.photo ?? null,
     academicYear: raw.academic_year ?? "",
     registrationDate: raw.registration_date ?? "",
-    subject: String(raw.subject_id ?? raw.subject?.id ?? ""),
-    branch: String(raw.branch_id ?? raw.branch?.id ?? ""),
-    standard: String(raw.standard_id ?? raw.standard?.id ?? ""),
+    subject: String(raw.subject_id ?? raw.subject?.id ?? raw.subject ?? ""),
+    subjectName: raw.subject?.name ?? raw.subject_name ?? (typeof raw.subject === "string" ? raw.subject : undefined),
+    branch: String(raw.branch_id ?? raw.branch?.id ?? raw.branch ?? ""),
+    standard: String(raw.standard_id ?? raw.standard?.id ?? raw.standard ?? ""),
+    standardName: raw.standard?.name ?? raw.standard_name ?? (typeof raw.standard === "string" ? raw.standard : undefined),
     courseType: raw.course_type ?? "",
     reference: raw.reference ?? "",
     surname: raw.surname ?? "",
@@ -103,11 +105,13 @@ export function transformApiToFormData(raw: any): StudentRegistrationData {
       bankName: inst.bank_name ?? "",
       paidTo: inst.paid_to ?? "",
     })),
+    isActive: raw.is_active ?? raw.isactive ?? raw.isActive ?? true,
   };
 }
 
 function transformFormDataToPayload(data: StudentRegistrationData) {
   return {
+    is_active: data.isActive ?? true,
     photo: data.photo,
     academic_year: data.academicYear,
     registration_date: formatDate(data.registrationDate),

@@ -22,6 +22,8 @@ import {
   IconUser,
   IconUsers,
   IconCheck,
+  IconUserOff,
+  IconUserCheck,
 } from "@tabler/icons-react";
 
 const stepItems = [
@@ -265,7 +267,8 @@ const StudentRegistration: React.FC = () => {
     const total = parseFloat(formData.totalFees) || 0;
     const discount = parseFloat(formData.discountAmount) || 0;
     if (total === 0) return 0;
-    return ((discount / total) * 100).toFixed(2);
+    const pct = (discount / total) * 100;
+    return parseFloat(pct.toFixed(2));
   }, [formData.totalFees, formData.discountAmount]);
 
   const calculateFinalAmount = useCallback(() => {
@@ -368,10 +371,10 @@ const StudentRegistration: React.FC = () => {
       }
 
       const title = isPaymentMode
-        ? "Payment Updated! ✅"
+        ? "Payment Updated!"
         : isEditMode
-        ? "Student Updated! ✅"
-        : "Registration Successful! 🎉";
+        ? "Student Updated!"
+        : "Registration Successful! ";
 
       Swal.fire({
         title,
@@ -394,6 +397,40 @@ const StudentRegistration: React.FC = () => {
     }
   }, [formData, navigate, isEditMode, isPaymentMode, id]);
 
+  const handleToggleStatus = useCallback(async () => {
+    const isCurrentlyActive = formData.isActive ?? true;
+    const newIsActive = !isCurrentlyActive;
+    const actionText = isCurrentlyActive ? "deactivate" : "activate";
+    const fullName = `${formData.firstName} ${formData.surname}`.trim();
+
+    const result = await Swal.fire({
+      title: `${isCurrentlyActive ? "Deactivate" : "Activate"} Student?`,
+      text: `Are you sure you want to ${actionText} ${fullName || "this student"}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: isCurrentlyActive ? "#ef4444" : "#10b981",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: `Yes, ${actionText}!`,
+    });
+
+    if (result.isConfirmed) {
+      setFormData((prev) => ({ ...prev, isActive: newIsActive }));
+      if (isEditMode && id) {
+        try {
+          await updateStudentApi(Number(id), { ...formData, is_active: newIsActive } as any);
+        } catch (err: any) {
+          console.error("Error toggling student status:", err);
+        }
+        Swal.fire({
+          title: "Status Updated!",
+          text: `Student has been ${newIsActive ? "activated" : "deactivated"}.`,
+          icon: "success",
+          confirmButtonColor: "#2563eb",
+        });
+      }
+    }
+  }, [formData, isEditMode, id]);
+
   const handleNavigateBack = useCallback(() => navigate("/Users"), [navigate]);
   const errorCount = Object.keys(errors).length;
   const stepProps = { formData, handleInputChange, errors };
@@ -410,27 +447,53 @@ const StudentRegistration: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <IconButton onClick={handleNavigateBack} color="primary">
-          <IconArrowLeft size={30} />
-        </IconButton>
-        <div>
-          <div className="flex items-center gap-2">
-            <Typography variant="h5" className="!font-bold text-slate-800">
-              {pageTitle}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <IconButton onClick={handleNavigateBack} color="primary">
+            <IconArrowLeft size={30} />
+          </IconButton>
+          <div>
+            <div className="flex items-center gap-2">
+              <Typography variant="h5" className="!font-bold text-slate-800">
+                {pageTitle}
+              </Typography>
+              {isEditMode && (
+                <Chip
+                  label={isPaymentMode ? "Payment Mode" : "Edit Mode"}
+                  color={isPaymentMode ? "success" : "primary"}
+                  size="small"
+                />
+              )}
+            </div>
+            <Typography variant="body2" className="text-slate-500">
+              {pageSubtitle}
             </Typography>
-            {isEditMode && (
-              <Chip
-                label={isPaymentMode ? "Payment Mode" : "Edit Mode"}
-                color={isPaymentMode ? "success" : "primary"}
-                size="small"
-              />
-            )}
           </div>
-          <Typography variant="body2" className="text-slate-500">
-            {pageSubtitle}
-          </Typography>
         </div>
+
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={handleToggleStatus}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
+              (formData.isActive ?? true)
+                ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200"
+                : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200"
+            }`}
+          >
+            {(formData.isActive ?? true) ? (
+              <>
+                <IconUserOff size={16} />
+                <span>Deactivate Student</span>
+              </>
+            ) : (
+              <>
+                <IconUserCheck size={16} />
+                <span>Activate Student</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Error alert */}

@@ -209,17 +209,19 @@ value={findOption(ACADEMIC_YEARS, String(formData.academicYear ?? "").trim())}
                 value={formData.courseType || "Regular"}
                 onChange={(e) => handleInputChange("courseType", e.target.value)}
                 row
-                className="!flex !w-full !items-center !justify-between pt-1"
+                className="!flex !items-center !justify-start gap-5 pt-1"
               >
                 <FormControlLabel
                   value="Regular"
                   control={<Radio size="small" color="primary" />}
                   label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Regular</span>}
+                  className="!mr-0"
                 />
                 <FormControlLabel
                   value="Crash (Backlog)"
                   control={<Radio size="small" color="primary" />}
                   label={<span className="text-xs sm:text-sm text-slate-700 font-medium">Crash</span>}
+                  className="!mr-0"
                 />
               </RadioGroup>
               {errors.courseType && <FormHelperText error className="!bg-transparent !m-0 !mt-1">{errors.courseType}</FormHelperText>}

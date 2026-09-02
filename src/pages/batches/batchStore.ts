@@ -441,7 +441,7 @@ export const getAllBatchesAPI = async (): Promise<Batch[]> => {
     const data = await batchesResponse.json();
 
     // Transform API response to Batch format with names
-    return data.map((batch: any) => {
+    const transformed = data.map((batch: any) => {
       const area = areas.find((a) => a.id === batch.area_id);
       const branch = branches.find((b) => b.id === batch.branch_id);
       const subject = subjects.find((s) => s.id === batch.subject_id);
@@ -467,13 +467,25 @@ export const getAllBatchesAPI = async (): Promise<Batch[]> => {
         completedAt: batch.completed_at,
       };
     });
+
+    transformed.forEach((b: Batch) => {
+      batchStore[b.id] = b;
+    });
+
+    return transformed;
   } catch (error) {
     console.error("Error fetching batches:", error);
     throw error;
   }
 };
 
+import { DUMMY_BATCH } from "./dummyBatch";
+
 export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
+  if (id === DUMMY_BATCH.id || id === "dummy-batch-1") {
+    batchStore[DUMMY_BATCH.id] = DUMMY_BATCH;
+    return DUMMY_BATCH;
+  }
   try {
     const [batchResponse, areas, branches, standards, subjects, teachers] = await Promise.all([
       fetchWithAuth(`${API_BASE_URL}/batch/${id}`, {
@@ -500,7 +512,7 @@ export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
     const standard = standards.find((s) => s.id === batch.standard_id);
     const teacher = teachers.find((t) => t.id === batch.teacher_id);
 
-    return {
+    const transformed: Batch = {
       id: String(batch.id),
       name: batch.name || `${area?.name || ""} – ${branch?.name || ""} – ${batch.day || ""} – ${batch.time_slot || ""}`,
       type: batch.type as BatchType,
@@ -518,13 +530,23 @@ export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
       createdAt: batch.created_at || "",
       completedAt: batch.completed_at,
     };
+
+    batchStore[transformed.id] = transformed;
+    return transformed;
   } catch (error) {
     console.error("Error fetching batch:", error);
+    if (id === DUMMY_BATCH.id || id === "dummy-batch-1") {
+      batchStore[DUMMY_BATCH.id] = DUMMY_BATCH;
+      return DUMMY_BATCH;
+    }
     throw error;
   }
 };
 
 export const updateBatchAPI = async (id: string, payload: CreateBatchPayload): Promise<any> => {
+  if (id === DUMMY_BATCH.id || id === "dummy-batch-1") {
+    return { message: "Dummy batch updated successfully" };
+  }
   try {
     const response = await fetchWithAuth(`${API_BASE_URL}/batch/${id}`, {
       method: "PUT",

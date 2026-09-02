@@ -12,8 +12,6 @@ import {
   IconUsersGroup,
   IconCalendarCheck,
 } from "@tabler/icons-react";
-import { useTheme } from "../../../context/ThemeContext";
-
 interface SidebarProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -25,7 +23,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDark } = useTheme();
 
   const menuItems = [
     { path: "/adminDashboard", icon: IconLayoutDashboard, label: "Dashboard" },
@@ -82,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar */}
       <div
         className={`fixed md:static inset-y-0 left-0 z-[70]
-          w-32 flex flex-col font-sans shadow-2xl
+          w-32 flex flex-col font-sans shadow-lg bg-white
           transition-transform duration-300 ease-in-out h-screen
           ${
             isMobileMenuOpen
@@ -90,19 +87,19 @@ const Sidebar: React.FC<SidebarProps> = ({
               : "-translate-x-full md:translate-x-0"
           }`}
         style={{
-          background: "var(--bg-sidebar)",
-          borderRight: "1px solid var(--border-default)",
+          background: "#ffffff",
+          borderRight: "1px solid #e2e8f0",
         }}
       >
         {/* Close Button */}
         {isMobileMenuOpen && (
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="md:hidden absolute top-4 -right-5 z-10 p-2.5 rounded-lg shadow-xl transition-all"
+            className="md:hidden absolute top-4 -right-5 z-10 p-2.5 rounded-lg shadow-xl transition-all bg-white text-slate-800"
             style={{
-              backgroundColor: isDark ? "#1e293b" : "#2d2a6e",
-              color: "#ffffff",
-              border: "1px solid var(--border-default)",
+              backgroundColor: "#ffffff",
+              color: "#0f172a",
+              border: "1px solid #e2e8f0",
             }}
           >
             <IconX size={22} />
@@ -111,13 +108,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Logo */}
         <div
-          className="flex flex-col items-center px-2 py-2"
+          className="flex flex-col items-center px-2 py-2 bg-white"
           style={{
-            borderBottom: `1px solid ${
-              isDark
-                ? "rgba(71,85,105,0.5)"
-                : "rgba(255,255,255,0.15)"
-            }`,
+            borderBottom: "1px solid #e2e8f0",
           }}
         >
           <div className="w-15 h-14 mb-2 transition-transform hover:scale-105">

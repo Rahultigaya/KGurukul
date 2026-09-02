@@ -47,6 +47,9 @@ export interface StudentRegistrationData {
     paidTo: string;
   };
   installments: Installment[];
+  isActive?: boolean;
+  subjectName?: string;
+  standardName?: string;
 }
 
 export type ValidationErrors = Record<string, string>;

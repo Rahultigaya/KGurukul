@@ -3,15 +3,30 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Stack, Paper, Title, Grid, Select, NumberInput,
-  Button, ActionIcon, Alert, Group, Tooltip, Badge, Text,
+  Typography,
+  IconButton,
+  Card,
+  CardContent,
+  Autocomplete,
+  TextField,
+  Button,
+} from "@mui/material";
+import {
+  Alert, Badge, Text,
 } from "@mantine/core";
 import {
-  IconArrowLeft, IconDeviceFloppy, IconMapPin,
-  IconCalendar, IconClock, IconBook, IconUser,
-  IconUsers, IconSparkles, IconAlertCircle, IconCheck, IconX,
-  IconLoader,
-} from "@tabler/icons-react";
+  ArrowBack as ArrowBackIcon,
+  Save as SaveIcon,
+  LocationOn as LocationOnIcon,
+  CalendarMonth as CalendarMonthIcon,
+  AccessTime as AccessTimeIcon,
+  Person as PersonIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  ErrorOutlined as ErrorOutlineIcon,
+  Close as CloseIcon,
+  InfoOutlined as InfoOutlinedIcon,
+} from "@mui/icons-material";
+import CircularProgress from "@mui/material/CircularProgress";
 import Swal from "sweetalert2";
 import {
   DAYS, BATCH_TYPES, BATCH_STATUSES, BATCH_TYPE_META,
@@ -32,55 +47,29 @@ import {
   type Subject as MasterSubject,
   type Teacher as MasterTeacher,
 } from "../admin/Master/masterStore";
+import { IconCheck } from "@tabler/icons-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Time slots for batch scheduling
+// Styling helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const generateTimeSlots = () => {
-  const slots = [];
-  for (let hour = 6; hour <= 23; hour++) {
-    for (let min = 0; min < 60; min += 30) {
-      const h = hour % 24;
-      const period = h >= 12 ? "PM" : "AM";
-      const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-      const time = `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-      slots.push({ value: time, label: `${displayHour}:${String(min).padStart(2, "0")} ${period}` });
-    }
-  }
-  return slots;
-};
-
-const TIME_SLOTS = generateTimeSlots();
-
-const selectStyles = {
-  styles: {
-    label:       { color: "var(--text-primary)", marginBottom: 6 },
-    input:       { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-    section:     { color: "var(--text-muted)" },
-    option:      { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-    placeholder: { color: "var(--text-muted)" },
-    error:       { color: "#f87171" },
-  },
-  comboboxProps: {
-    styles: {
-      dropdown: {
-        background: "var(--bg-secondary)",
-        border: "1px solid var(--border-accent)",
-        color: "var(--text-primary)",
-      },
-    },
+const inputSxSlate = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#f8fafc",
+    borderRadius: "10px",
   },
 };
 
-const numberInputStyles = {
-  styles: {
-    label:   { color: "var(--text-primary)", marginBottom: 6 },
-    input:   { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-    control: { borderColor: "var(--border-default)", color: "var(--text-muted)" },
-    error:   { color: "#f87171" },
-  },
-};
+interface OptionItem {
+  value: string;
+  label: string;
+}
+
+function findOption(options: OptionItem[], value: string | number | null | undefined): OptionItem | null {
+  if (value === null || value === undefined || value === "") return null;
+  const strVal = String(value).trim();
+  return options.find((o) => o.value === strVal) || null;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Time helpers
@@ -122,17 +111,17 @@ function parseTimeSlot(slot: string): { startTime: string; endTime: string } {
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface FormData {
-  area_id:    number | null;
-  branch_id:  number | null;
-  day:        string | null;
-  startTime:  string;
-  endTime:    string;
+  area_id: number | null;
+  branch_id: number | null;
+  day: string | null;
+  startTime: string;
+  endTime: string;
   subject_id: number | null;
   standard_id: number | null;
   teacher_id: number | null;
-  capacity:   number | string;
-  type:       BatchType;
-  status:     BatchStatus;
+  capacity: number | string;
+  type: BatchType;
+  status: BatchStatus;
 }
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
@@ -151,18 +140,18 @@ const BatchNamePreview: React.FC<{
   area: string | null; branch: string | null; day: string | null;
   startTime: string; endTime: string;
 }> = ({ area, branch, day, startTime, endTime }) => {
-  const hasAny     = !!(area || branch || day || startTime || endTime);
+  const hasAny = !!(area || branch || day || startTime || endTime);
   const isComplete = !!(area && branch && day && startTime && endTime);
 
   const tokens = [
-    { label: "Area",   value: area,   filled: !!area   },
+    { label: "Area", value: area, filled: !!area },
     { label: "Branch", value: branch, filled: !!branch },
-    { label: "Day",    value: day,    filled: !!day    },
+    { label: "Day", value: day, filled: !!day },
     {
       label: "Time",
       value: startTime && endTime ? buildTimeSlot(startTime, endTime)
         : startTime ? `${to12h(startTime)} – ?`
-        : endTime   ? `? – ${to12h(endTime)}` : null,
+          : endTime ? `? – ${to12h(endTime)}` : null,
       filled: !!(startTime && endTime),
     },
   ];
@@ -198,11 +187,11 @@ const BatchNamePreview: React.FC<{
       {hasAny && !isComplete && (
         <div className="flex items-center gap-2 mt-2">
           {[
-            { label: "Area",   filled: !!area      },
-            { label: "Branch", filled: !!branch    },
-            { label: "Day",    filled: !!day       },
-            { label: "Start",  filled: !!startTime },
-            { label: "End",    filled: !!endTime   },
+            { label: "Area", filled: !!area },
+            { label: "Branch", filled: !!branch },
+            { label: "Day", filled: !!day },
+            { label: "Start", filled: !!startTime },
+            { label: "End", filled: !!endTime },
           ].map((s) => (
             <div key={s.label} className="flex items-center gap-1">
               <div className={`w-1.5 h-1.5 rounded-full transition-all`}
@@ -229,9 +218,9 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
   const navigate = useNavigate();
   const { id: batchId } = useParams<{ id: string }>();
 
-  const [form, setForm]       = useState<FormData>(emptyForm);
-  const [errors, setErrors]   = useState<FormErrors>({});
-  const [saving, setSaving]   = useState(false);
+  const [form, setForm] = useState<FormData>(emptyForm);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [saving, setSaving] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
   // Master data state
@@ -305,15 +294,13 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
     loadMasterData();
   }, []);
 
-  const timeSlot    = buildTimeSlot(form.startTime, form.endTime);
-  const hasAny      = !!(form.area_id || form.branch_id || form.day || form.startTime || form.endTime);
-  const isComplete  = !!(form.area_id && form.branch_id && form.day && form.startTime && form.endTime);
+  const timeSlot = buildTimeSlot(form.startTime, form.endTime);
 
   // Filter branches based on selected area (only active branches)
-  const branchOpts  = form.area_id
+  const branchOpts = form.area_id
     ? branches
-        .filter(b => b.area_id === form.area_id && b.is_active === 1)
-        .map(b => ({ value: String(b.id), label: b.name }))
+      .filter(b => b.area_id === form.area_id && b.is_active === 1)
+      .map(b => ({ value: String(b.id), label: b.name }))
     : [];
 
   const set = (field: keyof FormData, value: unknown) => {
@@ -323,16 +310,16 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
 
   const validate = (): boolean => {
     const e: FormErrors = {};
-    if (!form.area_id)    e.area_id    = "Required";
-    if (!form.branch_id)  e.branch_id  = "Required";
-    if (!form.day)        e.day        = "Required";
-    if (!form.startTime)  e.startTime  = "Required";
-    if (!form.endTime)    e.endTime    = "Required";
+    if (!form.area_id) e.area_id = "Required";
+    if (!form.branch_id) e.branch_id = "Required";
+    if (!form.day) e.day = "Required";
+    if (!form.startTime) e.startTime = "Required";
+    if (!form.endTime) e.endTime = "Required";
     if (form.startTime && form.endTime && form.startTime >= form.endTime)
       e.endTime = "End time must be after start time";
     if (!form.subject_id) e.subject_id = "Required";
     if (!form.standard_id) e.standard_id = "Required";
-    if (!form.teacher_id)  e.teacher_id  = "Required";
+    if (!form.teacher_id) e.teacher_id = "Required";
     if (!form.capacity || Number(form.capacity) < 1) e.capacity = "Minimum 1";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -391,17 +378,17 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
       Swal.fire({
         title: mode === "create" ? "Batch Created!" : "Batch Updated!",
         html: `
-          <div style="color:#94a3b8; font-size:14px; line-height:1.8">
-            <div style="color:#f97316; font-weight:700; font-size:16px; margin-bottom:8px">${name}</div>
-            <div>📍 ${branchName} · ${areaName}</div>
-            <div>📅 ${form.day} &nbsp;·&nbsp; 🕐 ${slot}</div>
-            <div>📚 ${subjectName} – ${standardName}</div>
-            <div>👤 ${teacherName} &nbsp;·&nbsp; 👥 Capacity: ${form.capacity}</div>
+          <div style="color:#475569; font-size:14px; line-height:1.8">
+            <div style="color:#2563eb; font-weight:700; font-size:16px; margin-bottom:12px">${name}</div>
+            <div style="margin-bottom:4px"><strong>Branch & Area:</strong> ${branchName} · ${areaName}</div>
+            <div style="margin-bottom:4px"><strong>Schedule:</strong> ${form.day} · ${slot}</div>
+            <div style="margin-bottom:4px"><strong>Subject & Standard:</strong> ${subjectName} – ${standardName}</div>
+            <div><strong>Teacher & Capacity:</strong> ${teacherName} · Capacity: ${form.capacity}</div>
           </div>`,
-        icon: "success", confirmButtonText: "Go to Batches",
-        background: "#1e293b", color: "#f8fafc", iconColor: "#4ade80",
-        confirmButtonColor: "#7c3aed",
-        customClass: { popup: "rounded-xl border border-purple-500/30", confirmButton: "rounded-lg px-6 py-2 font-medium" },
+        icon: "success",
+        confirmButtonText: "Go to Batches",
+        confirmButtonColor: "#2563eb",
+        customClass: { confirmButton: "rounded-xl px-6 py-2.5 font-medium text-sm shadow-md" },
       }).then(() => navigate("/batches"));
     } catch (error: any) {
       setSaving(false);
@@ -409,8 +396,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         title: "Error",
         text: error.message || "Failed to create batch",
         icon: "error",
-        background: "#1e293b",
-        color: "#f8fafc",
+        confirmButtonColor: "#2563eb",
       });
     }
   };
@@ -419,7 +405,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <Text style={{ color: "var(--text-secondary)" }}>Batch not found.</Text>
-        <Button variant="subtle" color="orange" leftSection={<IconArrowLeft size={15} />} onClick={() => navigate("/batches")}>
+        <Button variant="contained" color="primary" startIcon={<ArrowBackIcon fontSize="small" />} onClick={() => navigate("/batches")}>
           Back to Batches
         </Button>
       </div>
@@ -427,308 +413,389 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
 
   const errorCount = Object.keys(errors).length;
 
+  const areaOptions: OptionItem[] = areas
+    .filter((a) => a.is_active === 1)
+    .map((a) => ({ value: String(a.id), label: a.name }));
+
+  const dayOptions: OptionItem[] = DAYS.map((d) => ({ value: d, label: d }));
+
+  const subjectOptions: OptionItem[] = subjects
+    .filter((s) => s.is_active === 1)
+    .map((s) => ({ value: String(s.id), label: s.name }));
+
+  const standardOptions: OptionItem[] = standards
+    .filter((s) => s.is_active === 1)
+    .map((s) => ({ value: String(s.id), label: s.name }));
+
+  const teacherOptions: OptionItem[] = teachers
+    .filter((t) => t.status === "Active")
+    .map((t) => ({ value: String(t.id), label: getTeacherFullName(t) }));
+
+  const batchTypeOptions: OptionItem[] = BATCH_TYPES.map((t) => ({ value: t, label: t }));
+
+  const statusOptions: OptionItem[] = BATCH_STATUSES.map((s) => ({ value: s, label: s }));
+
   return (
-    <Stack gap="md" maw={1100} mx="auto" pb="xl">
+    <div className="max-w-7xl mx-auto space-y-6">
 
       {/* Loading indicator for master data */}
       {loadingMasterData && (
-        <Alert icon={<IconLoader size={18} />} title="Loading data" color="blue">
+        <Alert icon={<CircularProgress size={18} />} title="Loading data" color="blue" className="rounded-xl">
           Loading areas, branches, standards, subjects, and teachers from server...
         </Alert>
       )}
 
       {/* ── Header ────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
-        <Tooltip label="Back to Batches" position="right" withArrow>
-          <ActionIcon variant="subtle" size="lg" radius="lg" onClick={() => navigate("/batches")}
-            styles={{ root: { color: "var(--text-secondary)" } }}>
-            <IconArrowLeft size={20} />
-          </ActionIcon>
-        </Tooltip>
+        <IconButton onClick={() => navigate("/batches")} color="primary">
+          <ArrowBackIcon />
+        </IconButton>
         <div>
-          <Title order={3} style={{ color: "var(--text-primary)" }}>
+          <Typography variant="h5" className="!font-bold text-slate-800">
             {mode === "edit" ? "Edit Batch" : "Create Batch"}
-          </Title>
-          <Text size="sm" style={{ color: "var(--text-secondary)" }}>
+          </Typography>
+          <Typography variant="body2" className="text-slate-500">
             {mode === "edit" ? "Update the batch details below" : "Fill in the details to create a new batch"}
-          </Text>
+          </Typography>
         </div>
       </div>
 
       {/* ── Batch name preview banner ──────────────────────────────────── */}
-      <Paper
-        className="p-4"
-        style={{
-          background: isComplete
-            ? "rgba(249,115,22,0.06)"
-            : hasAny
-              ? "rgba(249,115,22,0.03)"
-              : "var(--bg-card)",
-          border: `1px solid ${isComplete ? "rgba(249,115,22,0.35)" : hasAny ? "rgba(249,115,22,0.15)" : "var(--border-card)"}`,
-        }}
+      <Card
+        elevation={1}
+        className="bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all"
       >
-        <Text size="xs" fw={600} mb={6} style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
-          Auto-generated Batch Name
-        </Text>
-        <div className="flex items-start gap-2">
-          <IconSparkles size={16} style={{ color: isComplete ? "var(--accent-orange)" : "var(--text-muted)", marginTop: 2, flexShrink: 0 }} />
-          <BatchNamePreview
-            area={areas.find(a => a.id === form.area_id)?.name ?? null}
-            branch={branches.find(b => b.id === form.branch_id)?.name ?? null}
-            day={form.day}
-            startTime={form.startTime}
-            endTime={form.endTime}
-          />
-        </div>
-      </Paper>
+        <CardContent className="!p-5 sm:!p-6 space-y-3">
+          <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg flex items-center gap-2">
+            <AutoAwesomeIcon className="text-blue-600" fontSize="small" />
+            Auto-Generated Batch Name
+          </Typography>
+          <div className="pt-1">
+            <BatchNamePreview
+              area={areas.find(a => a.id === form.area_id)?.name ?? null}
+              branch={branches.find(b => b.id === form.branch_id)?.name ?? null}
+              day={form.day}
+              startTime={form.startTime}
+              endTime={form.endTime}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── Error alert ───────────────────────────────────────────────── */}
       {errorCount > 0 && (
-        <Alert icon={<IconAlertCircle size={18} />}
-          title="Please fix the errors below before continuing"
-          color="red" variant="light"
-          classNames={{ title: "font-semibold" }}
-          styles={{
-            root:    { backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)" },
-            icon:    { color: "#f87171" },
-            title:   { color: "var(--text-primary)" },
-            message: { color: "var(--text-primary)" },
-          }}
-        >
+        <Alert icon={<ErrorOutlineIcon fontSize="small" />} title="Error" color="red" variant="light" className="rounded-xl">
           {errorCount === 1 ? "1 required field is missing or invalid." : `${errorCount} required fields are missing or invalid.`}
         </Alert>
       )}
 
-      {/* ── Section 1: Location ───────────────────────────────────────── */}
-      <Paper className="p-4 sm:p-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
-        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
-          <span className="flex items-center gap-2">
-            <IconMapPin size={16} style={{ color: "var(--text-accent)" }} />
-            Location
-          </span>
-        </Title>
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Select
-              label="Area" placeholder="Select area"
-              value={form.area_id ? String(form.area_id) : null}
-              onChange={(v) => { set("area_id", v ? Number(v) : null); set("branch_id", null); }}
-              data={areas
-                .filter(a => a.is_active === 1) // Only active areas
-                .map(a => ({ value: String(a.id), label: a.name }))}
-              required withAsterisk error={errors.area_id}
-              {...selectStyles}
-              disabled={loadingMasterData || mode === "edit"}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Select
-              label="Branch"
-              placeholder={form.area_id ? "Select branch" : "Select area first"}
-              value={form.branch_id ? String(form.branch_id) : null}
-              onChange={(v) => set("branch_id", v ? Number(v) : null)}
-              data={branchOpts}
-              disabled={!form.area_id || mode === "edit"}
-              required withAsterisk error={errors.branch_id}
-              {...selectStyles}
-            />
-          </Grid.Col>
-        </Grid>
-      </Paper>
+      {/* ── 3 Section Cards in 1 Horizontal Row ──────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Card 1: Location & Academic */}
+        <Card
+          elevation={1}
+          className="bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all flex flex-col justify-between"
+        >
+          <CardContent className="!p-5 sm:!p-6 space-y-4 flex flex-col justify-between h-full">
+            <div className="space-y-4">
+              <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg flex items-center gap-2 pb-2 border-b border-slate-100">
+                <LocationOnIcon className="text-blue-600" fontSize="small" />
+                Location & Academic
+              </Typography>
 
-      {/* ── Section 2: Schedule ───────────────────────────────────────── */}
-      <Paper className="p-4 sm:p-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
-        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
-          <span className="flex items-center gap-2">
-            <IconCalendar size={16} style={{ color: "var(--text-accent)" }} />
-            Schedule
-          </span>
-        </Title>
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Select
-              label="Day" placeholder="Select day"
-              value={form.day} onChange={(v) => set("day", v)}
-              data={DAYS.map((d) => ({ value: d, label: d }))}
-              required withAsterisk error={errors.day}
-              {...selectStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Select
-              label="Start Time"
-              placeholder="Select start time"
-              value={form.startTime}
-              onChange={(value) => set("startTime", value)}
-              data={TIME_SLOTS}
-              leftSection={<IconClock size={15} style={{ color: "var(--text-accent)" }} />}
-              required withAsterisk error={errors.startTime}
-              searchable
-              clearable
-              {...selectStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Select
-              label="End Time"
-              placeholder="Select end time"
-              value={form.endTime}
-              onChange={(value) => set("endTime", value)}
-              data={TIME_SLOTS}
-              leftSection={<IconClock size={15} style={{ color: "var(--text-accent)" }} />}
-              required withAsterisk error={errors.endTime}
-              searchable
-              clearable
-              {...selectStyles}
-            />
-          </Grid.Col>
+              <div className="space-y-3.5 pt-1">
+                <Autocomplete
+                  options={areaOptions}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(option, value) => option.value === value.value}
+                  value={findOption(areaOptions, form.area_id)}
+                  onChange={(_e, newValue) => {
+                    set("area_id", newValue ? Number(newValue.value) : null);
+                    set("branch_id", null);
+                  }}
+                  size="small"
+                  disabled={loadingMasterData || mode === "edit"}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Area *"
+                      placeholder="Select area"
+                      error={Boolean(errors.area_id)}
+                      helperText={errors.area_id}
+                      sx={inputSxSlate}
+                    />
+                  )}
+                />
 
-          {/* Time preview pill */}
-          {form.startTime && form.endTime && (
-            <Grid.Col span={12}>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
-                style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-accent)" }}>
-                <IconClock size={13} style={{ color: "var(--text-accent)" }} className="shrink-0" />
-                <Text size="sm" fw={500} style={{ color: "var(--text-accent)" }}>{timeSlot}</Text>
+                <Autocomplete
+                  options={branchOpts}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(option, value) => option.value === value.value}
+                  value={findOption(branchOpts, form.branch_id)}
+                  onChange={(_e, newValue) => set("branch_id", newValue ? Number(newValue.value) : null)}
+                  size="small"
+                  disabled={!form.area_id || mode === "edit"}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Branch *"
+                      placeholder={form.area_id ? "Select branch" : "Select area first"}
+                      error={Boolean(errors.branch_id)}
+                      helperText={errors.branch_id}
+                      sx={inputSxSlate}
+                    />
+                  )}
+                />
+
+                <Autocomplete
+                  options={subjectOptions}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(option, value) => option.value === value.value}
+                  value={findOption(subjectOptions, form.subject_id)}
+                  onChange={(_e, newValue) => set("subject_id", newValue ? Number(newValue.value) : null)}
+                  size="small"
+                  disabled={loadingMasterData}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Subject *"
+                      placeholder="Select subject"
+                      error={Boolean(errors.subject_id)}
+                      helperText={errors.subject_id}
+                      sx={inputSxSlate}
+                    />
+                  )}
+                />
+
+                <Autocomplete
+                  options={standardOptions}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(option, value) => option.value === value.value}
+                  value={findOption(standardOptions, form.standard_id)}
+                  onChange={(_e, newValue) => set("standard_id", newValue ? Number(newValue.value) : null)}
+                  size="small"
+                  disabled={loadingMasterData}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Standard *"
+                      placeholder="Select standard"
+                      error={Boolean(errors.standard_id)}
+                      helperText={errors.standard_id}
+                      sx={inputSxSlate}
+                    />
+                  )}
+                />
               </div>
-            </Grid.Col>
-          )}
-        </Grid>
-      </Paper>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* ── Section 3: Academic Details ───────────────────────────────── */}
-      <Paper className="p-4 sm:p-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
-        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
-          <span className="flex items-center gap-2">
-            <IconBook size={16} style={{ color: "var(--text-accent)" }} />
-            Academic Details
-          </span>
-        </Title>
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Select
-              label="Subject" placeholder="Select subject"
-              value={form.subject_id ? String(form.subject_id) : null}
-              onChange={(v) => set("subject_id", v ? Number(v) : null)}
-              data={subjects
-                .filter(s => s.is_active === 1)
-                .map(s => ({ value: String(s.id), label: s.name }))}
-              required withAsterisk error={errors.subject_id}
-              {...selectStyles}
-              disabled={loadingMasterData}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Select
-              label="Standard" placeholder="Select standard"
-              value={form.standard_id ? String(form.standard_id) : null}
-              onChange={(v) => set("standard_id", v ? Number(v) : null)}
-              data={standards
-                .filter(s => s.is_active === 1) // Only active standards
-                .map(s => ({ value: String(s.id), label: s.name }))}
-              required withAsterisk error={errors.standard_id}
-              {...selectStyles}
-              disabled={loadingMasterData}
-            />
-          </Grid.Col>
-        </Grid>
-      </Paper>
+        {/* Card 2: Schedule & Timing */}
+        <Card
+          elevation={1}
+          className="bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all flex flex-col justify-between"
+        >
+          <CardContent className="!p-5 sm:!p-6 space-y-4 flex flex-col justify-between h-full">
+            <div className="space-y-4">
+              <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg flex items-center gap-2 pb-2 border-b border-slate-100">
+                <CalendarMonthIcon className="text-blue-600" fontSize="small" />
+                Schedule & Timing
+              </Typography>
 
-      {/* ── Section 4: Teacher, Capacity & Type ───────────────────────── */}
-      <Paper className="p-4 sm:p-6"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
-        <Title order={5} mb="md" style={{ color: "var(--text-accent)", fontSize: "clamp(14px,2vw,18px)" }}>
-          <span className="flex items-center gap-2">
-            <IconUser size={16} style={{ color: "var(--text-accent)" }} />
-            Teacher, Capacity & Type
-          </span>
-        </Title>
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Select
-              label="Teacher" placeholder="Select teacher"
-              value={form.teacher_id ? String(form.teacher_id) : null}
-              onChange={(v) => set("teacher_id", v ? Number(v) : null)}
-              data={teachers
-                .filter(t => t.status === "Active")
-                .map(t => ({ value: String(t.id), label: getTeacherFullName(t) }))}
-              required withAsterisk error={errors.teacher_id}
-              {...selectStyles}
-              disabled={loadingMasterData}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <NumberInput
-              label="Capacity" placeholder="Max students"
-              value={form.capacity} onChange={(v) => set("capacity", v)}
-              min={1} max={100}
-              required withAsterisk error={errors.capacity}
-              leftSection={<IconUsers size={15} style={{ color: "var(--text-accent)" }} />}
-              {...numberInputStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Select
-              label="Batch Type"
-              value={form.type} onChange={(v) => set("type", v as BatchType)}
-              data={BATCH_TYPES.map((t) => ({ value: t, label: t }))}
-              required withAsterisk
-              {...selectStyles}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Select
-              label="Status"
-              value={form.status} onChange={(v) => set("status", v as BatchStatus)}
-              data={BATCH_STATUSES.map((s) => ({ value: s, label: s }))}
-              required withAsterisk
-              {...selectStyles}
-            />
-          </Grid.Col>
+              <div className="space-y-3.5 pt-1">
+                <Autocomplete
+                  options={dayOptions}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(option, value) => option.value === value.value}
+                  value={findOption(dayOptions, form.day)}
+                  onChange={(_e, newValue) => set("day", newValue ? newValue.value : null)}
+                  size="small"
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Day *"
+                      placeholder="Select day"
+                      error={Boolean(errors.day)}
+                      helperText={errors.day}
+                      sx={inputSxSlate}
+                    />
+                  )}
+                />
 
-          {/* Type description hint */}
-          <Grid.Col span={12}>
-            <div className="px-3 py-2 rounded-lg"
-              style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-default)" }}>
-              <Text size="xs" style={{ color: "var(--text-secondary)" }}>
-                <span style={{ color: "var(--accent-orange)", fontWeight: 600 }}>{form.type}: </span>
+                <TextField
+                  label="Start Time *"
+                  type="time"
+                  size="small"
+                  fullWidth
+                  value={form.startTime}
+                  onChange={(e) => set("startTime", e.target.value)}
+                  error={Boolean(errors.startTime)}
+                  helperText={errors.startTime}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    htmlInput: { step: 1800 }
+                  }}
+                  sx={inputSxSlate}
+                />
+
+                <TextField
+                  label="End Time *"
+                  type="time"
+                  size="small"
+                  fullWidth
+                  value={form.endTime}
+                  onChange={(e) => set("endTime", e.target.value)}
+                  error={Boolean(errors.endTime)}
+                  helperText={errors.endTime}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    htmlInput: { step: 1800 }
+                  }}
+                  sx={inputSxSlate}
+                />
+              </div>
+            </div>
+
+            {/* Time preview pill */}
+            {form.startTime && form.endTime && (
+              <div className="mt-2 flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200">
+                <AccessTimeIcon className="text-blue-600 shrink-0" fontSize="small" />
+                <Text size="sm" fw={600} className="text-blue-700">{timeSlot}</Text>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Card 3: Faculty & Settings */}
+        <Card
+          elevation={1}
+          className="bg-white border border-slate-200/60 rounded-2xl shadow-lg hover:shadow-xl transition-all flex flex-col justify-between"
+        >
+          <CardContent className="!p-5 sm:!p-6 space-y-4 flex flex-col justify-between h-full">
+            <div className="space-y-4">
+              <Typography variant="h6" className="!font-bold !text-slate-800 !text-base sm:!text-lg flex items-center gap-2 pb-2 border-b border-slate-100">
+                <PersonIcon className="text-blue-600" fontSize="small" />
+                Faculty & Settings
+              </Typography>
+
+              <div className="space-y-3.5 pt-1">
+                <Autocomplete
+                  options={teacherOptions}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(option, value) => option.value === value.value}
+                  value={findOption(teacherOptions, form.teacher_id)}
+                  onChange={(_e, newValue) => set("teacher_id", newValue ? Number(newValue.value) : null)}
+                  size="small"
+                  disabled={loadingMasterData}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Teacher *"
+                      placeholder="Select teacher"
+                      error={Boolean(errors.teacher_id)}
+                      helperText={errors.teacher_id}
+                      sx={inputSxSlate}
+                    />
+                  )}
+                />
+
+                <TextField
+                  label="Capacity *"
+                  placeholder="Max students"
+                  type="number"
+                  size="small"
+                  fullWidth
+                  value={form.capacity}
+                  onChange={(e) => set("capacity", e.target.value)}
+                  error={Boolean(errors.capacity)}
+                  helperText={errors.capacity}
+                  slotProps={{
+                    htmlInput: { min: 1, max: 100 }
+                  }}
+                  sx={inputSxSlate}
+                />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Autocomplete
+                    options={batchTypeOptions}
+                    getOptionLabel={(option) => option.label}
+                    isOptionEqualToValue={(option, value) => option.value === value.value}
+                    value={findOption(batchTypeOptions, form.type)}
+                    onChange={(_e, newValue) => set("type", (newValue ? newValue.value : "Regular") as BatchType)}
+                    size="small"
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Type *"
+                        placeholder="Batch type"
+                        error={Boolean(errors.type)}
+                        helperText={errors.type}
+                        sx={inputSxSlate}
+                      />
+                    )}
+                  />
+
+                  <Autocomplete
+                    options={statusOptions}
+                    getOptionLabel={(option) => option.label}
+                    isOptionEqualToValue={(option, value) => option.value === value.value}
+                    value={findOption(statusOptions, form.status)}
+                    onChange={(_e, newValue) => set("status", (newValue ? newValue.value : "Active") as BatchStatus)}
+                    size="small"
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Status *"
+                        placeholder="Status"
+                        error={Boolean(errors.status)}
+                        helperText={errors.status}
+                        sx={inputSxSlate}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Type description hint */}
+            <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
+              <InfoOutlinedIcon className="text-blue-600 shrink-0" fontSize="small" />
+              <Text size="xs" className="text-blue-900 font-medium">
+                <span className="font-bold text-blue-700">{form.type}: </span>
                 {BATCH_TYPE_META[form.type]?.description}
               </Text>
             </div>
-          </Grid.Col>
-        </Grid>
-      </Paper>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* ── Actions ───────────────────────────────────────────────────── */}
-      <Group justify="flex-end" gap="sm">
-        <Button
-          variant="default" size="md"
+      <div className="flex items-center justify-end gap-3 pt-2 pb-6">
+        <button
+          type="button"
           onClick={() => navigate("/batches")}
-          leftSection={<IconX size={16} />}
-          styles={{
-            root: {
-              backgroundColor: "var(--bg-tertiary)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
-            },
-          }}
+          className="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all flex items-center gap-2 shadow-sm"
         >
-          Cancel
-        </Button>
-        <Button
-          size="md" color="orange"
-          loading={saving} disabled={saving}
-          leftSection={<IconDeviceFloppy size={16} />}
+          <CloseIcon fontSize="small" />
+          <span>Cancel</span>
+        </button>
+        <button
+          type="button"
+          disabled={saving}
           onClick={handleSubmit}
+          className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {mode === "edit" ? "Save Changes" : "Create Batch"}
-        </Button>
-      </Group>
+          {saving ? (
+            <CircularProgress size={18} color="inherit" />
+          ) : (
+            <SaveIcon fontSize="small" />
+          )}
+          <span>{mode === "edit" ? "Save Changes" : "Create Batch"}</span>
+        </button>
+      </div>
 
-    </Stack>
+    </div>
   );
 };
 

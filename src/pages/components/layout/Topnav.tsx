@@ -90,19 +90,18 @@ const TopNav: React.FC<TopNavProps> = ({
     navigate("/auth/login");
   };
 
-  // ── style helpers (use CSS vars so both themes work) ──────────────────────
+  // ── style helpers ──────────────────────────────────────────────────────────
   
-  const navBorder = "var(--border-default)";
-  const dropBg   = isDark ? "#1e293b" : "#ffffff";
-  const dropBorder = "var(--border-default)";
-  const dropHeaderBg = isDark ? "rgba(15,23,42,0.6)" : "rgba(241,245,249,0.8)";
+  const dropBg   = "#ffffff";
+  const dropBorder = "#e2e8f0";
+  const dropHeaderBg = "#f8fafc";
 
   return (
     <nav
-      className="sticky top-0 z-[60] shadow-md backdrop-blur-sm"
+      className="sticky top-0 z-[60] bg-white border-b border-slate-200 shadow-sm"
       style={{
-        background: "var(--bg-topnav)",
-        borderBottom: `1px solid ${navBorder}`,
+        background: "#ffffff",
+        borderBottom: "1px solid #e2e8f0",
         color: "var(--text-primary)",
         transition: "background 0.3s, border-color 0.3s",
       }}

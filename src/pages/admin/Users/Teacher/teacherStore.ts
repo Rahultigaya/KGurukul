@@ -1,6 +1,7 @@
 // src/pages/admin/Users/Teacher/teacherStore.ts
 
 import { createTeacher, getTeachers, updateTeacher as updateTeacherAPI, type TeacherResponse } from "../../../../api/api";
+import { DUMMY_TEACHER } from "./dummyTeacher";
 
 // ✅ Strict status type
 export type Status = "Active" | "Inactive";
@@ -74,41 +75,45 @@ export function formatTeacherForUI(data: TeacherData) {
 }
 
 // 🗄️ In-memory cache (updated from API)
-export const teacherStore: Record<string, TeacherData> = {};
+export const teacherStore: Record<string, TeacherData> = {
+  [String(DUMMY_TEACHER.id)]: DUMMY_TEACHER,
+};
 
 // 📥 Get all teachers from API
-export async function getAllTeachers(): Promise<TeacherData[]> {
+export async function getAllTeachers(): Promise<any[]> {
   try {
     const response = await getTeachers();
     const teachers = response.data;
     console.log("Teachers from API:", teachers);
 
     // Update cache
-    teachers.forEach((teacher) => {
+    teachers.forEach((teacher: any) => {
       teacherStore[String(teacher.id)] = mapTeacher(teacher);
       console.log("Stored teacher:", String(teacher.id), mapTeacher(teacher));
     });
 
     // Return formatted teachers
-    return teachers.map((t) => formatTeacherForUI(mapTeacher(t)));
+    return teachers.map((t: any) => formatTeacherForUI(mapTeacher(t)));
   } catch (error: any) {
-    console.error("Error fetching teachers:", error);
+    console.error("Error fetching teachers from API:", error);
 
-    // Extract error message
+    // Extract error message for caller
     if (error.response?.data?.detail) {
-      if (typeof error.response.data.detail === 'string') {
+      if (typeof error.response.data.detail === "string") {
         throw new Error(error.response.data.detail);
       } else if (Array.isArray(error.response.data.detail)) {
-        throw new Error(error.response.data.detail.map((e: any) => e.msg || e.message).join(', '));
+        throw new Error(error.response.data.detail.map((e: any) => e.msg || e.message).join(", "));
       }
     }
-
     throw error;
   }
 }
 
 // 📥 Get one teacher (from cache or API)
 export async function getTeacherById(id: string) {
+  if (id === String(DUMMY_TEACHER.id) || id === "dummy-teacher-1") {
+    return formatTeacherForUI(DUMMY_TEACHER);
+  }
   try {
     console.log("getTeacherById called with id:", id);
     console.log("teacherStore keys:", Object.keys(teacherStore));
@@ -133,6 +138,9 @@ export async function getTeacherById(id: string) {
     return null;
   } catch (error) {
     console.error("Error fetching teacher:", error);
+    if (id === String(DUMMY_TEACHER.id) || id === "dummy-teacher-1") {
+      return formatTeacherForUI(DUMMY_TEACHER);
+    }
     return null;
   }
 }
@@ -185,6 +193,13 @@ export async function addTeacher(data: TeacherFormData): Promise<string> {
 
 // ✏️ Update teacher (API-based)
 export async function updateTeacher(id: string, data: TeacherFormData): Promise<void> {
+  if (id === String(DUMMY_TEACHER.id) || id === "dummy-teacher-1") {
+    teacherStore[id] = {
+      id,
+      ...data,
+    };
+    return;
+  }
   try {
     const payload = {
       email: data.email,

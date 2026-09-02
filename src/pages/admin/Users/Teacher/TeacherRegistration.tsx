@@ -13,6 +13,7 @@ import { DateInput } from "@mantine/dates";
 import {
   IconArrowLeft, IconUpload, IconX, IconUser,
   IconDeviceFloppy, IconAlertCircle, IconCircleCheck,
+  IconUserOff, IconUserCheck,
 } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../../context/ThemeContext";
@@ -229,6 +230,43 @@ const TeacherRegistration: React.FC = () => {
     }
   };
 
+  const handleToggleStatus = async () => {
+    const isCurrentlyActive = form.status === "Active";
+    const newStatus: "Active" | "Inactive" = isCurrentlyActive ? "Inactive" : "Active";
+    const actionText = isCurrentlyActive ? "deactivate" : "activate";
+
+    const result = await Swal.fire({
+      title: `${isCurrentlyActive ? "Deactivate" : "Activate"} Teacher?`,
+      text: `Are you sure you want to ${actionText} ${form.firstName} ${form.lastName}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: isCurrentlyActive ? "#ef4444" : "#10b981",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: `Yes, ${actionText}!`,
+      background: isDark ? "#1e293b" : "#ffffff",
+      color: isDark ? "#f8fafc" : "#0f172a",
+    });
+
+    if (result.isConfirmed) {
+      set("status", newStatus);
+      if (isEdit && id) {
+        try {
+          await updateTeacher(id, { ...form, status: newStatus });
+          Swal.fire({
+            title: "Status Updated!",
+            text: `Teacher has been ${newStatus === "Inactive" ? "deactivated" : "activated"}.`,
+            icon: "success",
+            background: isDark ? "#1e293b" : "#ffffff",
+            color: isDark ? "#f8fafc" : "#0f172a",
+            confirmButtonColor: "#7c3aed",
+          });
+        } catch (err: any) {
+          console.error("Error toggling teacher status:", err);
+        }
+      }
+    }
+  };
+
   const errorCount = Object.keys(errors).length;
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -247,23 +285,49 @@ const TeacherRegistration: React.FC = () => {
       )}
 
       {/* ── Header ────────────────────────────────────────────────────── */}
-      <Group gap="sm">
-        <Tooltip label="Back to Users" position="right" withArrow>
-          <ActionIcon variant="subtle" size="lg" radius="lg"
-            onClick={() => navigate("/Users")}
-            styles={{ root: { color: "var(--text-secondary)" } }}>
-            <IconArrowLeft size={20} />
-          </ActionIcon>
-        </Tooltip>
-        <div>
-          <Title order={3} style={{ color: "var(--text-primary)" }}>
-            {isEdit ? "Edit Teacher" : "Teacher Registration"}
-          </Title>
-          <Text size="sm" style={{ color: "var(--text-muted)" }}>
-            {isEdit ? "Update teacher information" : "Register a new teacher"}
-          </Text>
-        </div>
-      </Group>
+      <div className="flex items-center justify-between">
+        <Group gap="sm">
+          <Tooltip label="Back to Users" position="right" withArrow>
+            <ActionIcon variant="subtle" size="lg" radius="lg"
+              onClick={() => navigate("/Users")}
+              styles={{ root: { color: "var(--text-secondary)" } }}>
+              <IconArrowLeft size={20} />
+            </ActionIcon>
+          </Tooltip>
+          <div>
+            <Title order={3} style={{ color: "var(--text-primary)" }}>
+              {isEdit ? "Edit Teacher" : "Teacher Registration"}
+            </Title>
+            <Text size="sm" style={{ color: "var(--text-muted)" }}>
+              {isEdit ? "Update teacher information" : "Register a new teacher"}
+            </Text>
+          </div>
+        </Group>
+
+        {isEdit && (
+          <button
+            type="button"
+            onClick={handleToggleStatus}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
+              form.status === "Active"
+                ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200"
+                : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200"
+            }`}
+          >
+            {form.status === "Active" ? (
+              <>
+                <IconUserOff size={16} />
+                <span>Deactivate Teacher</span>
+              </>
+            ) : (
+              <>
+                <IconUserCheck size={16} />
+                <span>Activate Teacher</span>
+              </>
+            )}
+          </button>
+        )}
+      </div>
 
       {/* ── Error banner ──────────────────────────────────────────────── */}
       {errorCount > 0 && (

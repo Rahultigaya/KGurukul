@@ -67,6 +67,18 @@ export const BATCH_STATUS_META: Record<BatchStatus, { color: string }> = {
   Completed: { color: "gray" },
 };
 
+export interface AssignedStudent {
+  id: string;
+  name: string;
+  firstName?: string;
+  surname?: string;
+  email?: string;
+  contactNo?: string;
+  rollNo?: string;
+  standard?: string;
+  photo?: string | null;
+}
+
 export interface Batch {
   id: string;
   name: string;
@@ -82,8 +94,16 @@ export interface Batch {
   teacherName: string;
   capacity: number;
   studentIds: string[];
+  students?: AssignedStudent[];
   createdAt: string;
   completedAt?: string;
+  area_id?: number;
+  branch_id?: number;
+  subject_id?: number;
+  standard_id?: number;
+  teacher_id?: number;
+  start_time?: string;
+  end_time?: string;
 }
 
 // ── Assignment rules ──────────────────────────────────────────────────────────
@@ -479,68 +499,197 @@ export const getAllBatchesAPI = async (): Promise<Batch[]> => {
   }
 };
 
+/**
+ * Fetch ONLY batches from /batches without calling areas, branches, standards, subjects, or teachers APIs.
+ */
+export const getBatchesOnlyAPI = async (): Promise<Batch[]> => {
+  try {
+    const batchesResponse = await fetchWithAuth(`${API_BASE_URL}/batches`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!batchesResponse.ok) {
+      throw new Error(`HTTP error! status: ${batchesResponse.status}`);
+    }
+
+    const data = await batchesResponse.json();
+
+    const transformed: Batch[] = data.map((batch: any) => {
+      const parts = [
+        batch.area_name || batch.area,
+        batch.branch_name || batch.branch,
+        batch.day,
+        batch.time_slot || batch.timeSlot,
+      ].filter((p) => Boolean(p) && String(p).trim() !== "" && String(p).trim() !== "–" && String(p).trim() !== "-");
+
+      const hasValidName = batch.name && !batch.name.trim().startsWith("–") && !batch.name.trim().startsWith("-");
+      const computedName = hasValidName
+        ? batch.name
+        : parts.length > 0
+        ? parts.join(" – ")
+        : `Batch #${batch.id} (${batch.day || ""})`;
+
+      return {
+        id: String(batch.id),
+        name: computedName,
+        type: (batch.type as BatchType) || "Regular",
+        status: (batch.status as BatchStatus) || "Active",
+        area: (batch.area_name || batch.area || "Thane") as Area,
+        branch: batch.branch_name || batch.branch || "",
+        day: batch.day || "",
+        timeSlot: batch.time_slot || batch.timeSlot || "",
+        subject: batch.subject_name || batch.subject || "",
+        standard: batch.standard_name || batch.standard || "",
+        teacherId: String(batch.teacher_id || ""),
+        teacherName: batch.teacher_name || "",
+        capacity: batch.capacity || 0,
+        studentIds: (batch.student_ids || batch.studentIds || []).map((s: any) => String(s?.id ?? s)),
+        createdAt: batch.created_at || "",
+        completedAt: batch.completed_at,
+        area_id: batch.area_id != null ? Number(batch.area_id) : undefined,
+        branch_id: batch.branch_id != null ? Number(batch.branch_id) : undefined,
+        subject_id: batch.subject_id != null ? Number(batch.subject_id) : undefined,
+        standard_id: batch.standard_id != null ? Number(batch.standard_id) : undefined,
+        teacher_id: batch.teacher_id != null ? Number(batch.teacher_id) : undefined,
+      };
+    });
+
+    transformed.forEach((b: Batch) => {
+      if (!batchStore[b.id]) {
+        batchStore[b.id] = b;
+      } else {
+        Object.assign(batchStore[b.id], b);
+      }
+    });
+
+    return transformed;
+  } catch (error) {
+    console.error("Error fetching batches:", error);
+    throw error;
+  }
+};
+
 import { DUMMY_BATCH } from "./dummyBatch";
+
+// In-flight request deduplication map and short-term cache to prevent duplicate calls
+const inFlightBatchRequests = new Map<string, Promise<Batch | null>>();
+const batchFetchCache = new Map<string, { data: Batch | null; timestamp: number }>();
 
 export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
   if (id === DUMMY_BATCH.id || id === "dummy-batch-1") {
     batchStore[DUMMY_BATCH.id] = DUMMY_BATCH;
     return DUMMY_BATCH;
   }
-  try {
-    const [batchResponse, areas, branches, standards, subjects, teachers] = await Promise.all([
-      fetchWithAuth(`${API_BASE_URL}/batch/${id}`, {
+
+  // 1. Return recent cached result (within 3 seconds) to prevent multiple rapid calls
+  const cached = batchFetchCache.get(id);
+  if (cached && Date.now() - cached.timestamp < 3000) {
+    return cached.data;
+  }
+
+  // 2. If a request for this ID is already in progress, return the existing promise
+  if (inFlightBatchRequests.has(id)) {
+    return inFlightBatchRequests.get(id)!;
+  }
+
+  const fetchPromise = (async () => {
+    try {
+      const batchResponse = await fetchWithAuth(`${API_BASE_URL}/batch/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-      }),
-      getAllAreas(),
-      getAllBranches(),
-      getAllStandards(),
-      getAllSubjects(),
-      getAllTeachers(),
-    ]);
+      });
 
-    if (!batchResponse.ok) {
-      if (batchResponse.status === 404) return null;
-      throw new Error(`HTTP error! status: ${batchResponse.status}`);
+      if (!batchResponse.ok) {
+        if (batchResponse.status === 404) {
+          batchFetchCache.set(id, { data: null, timestamp: Date.now() });
+          return null;
+        }
+        throw new Error(`HTTP error! status: ${batchResponse.status}`);
+      }
+
+      const batch = await batchResponse.json();
+
+      const rawStudents: any[] = Array.isArray(batch.students)
+        ? batch.students
+        : Array.isArray(batch.assigned_students)
+          ? batch.assigned_students
+          : [];
+
+      const parsedStudents: AssignedStudent[] = rawStudents.map((s: any) => {
+        const sId = String(s.id);
+        const sName = `${s.first_name || ""} ${s.surname || ""}`.trim() || `Student #${sId}`;
+        const stdName = s.standard?.name || s.standard || "";
+
+        return {
+          id: sId,
+          name: sName,
+          firstName: s.first_name || "",
+          surname: s.surname || "",
+          email: s.email || "",
+          contactNo: s.contact_no || "",
+          rollNo: s.roll_no || "",
+          standard: stdName,
+          photo: s.photo || null,
+        };
+      });
+
+      const studentIds: string[] =
+        parsedStudents.length > 0
+          ? parsedStudents.map((s) => s.id)
+          : (batch.student_ids || batch.studentIds || []).map((s: any) => String(s?.id ?? s));
+
+      const transformed: Batch = {
+        id: String(batch.id),
+        name:
+          batch.name ||
+          `${batch.area_name || batch.area || ""} – ${batch.branch_name || batch.branch || ""} – ${batch.day || ""} – ${batch.time_slot || batch.timeSlot || ""}`,
+        type: (batch.type as BatchType) || "Regular",
+        status: (batch.status as BatchStatus) || "Active",
+        area: (batch.area_name || batch.area || "Thane") as Area,
+        branch: batch.branch_name || batch.branch || "",
+        day: batch.day || "",
+        timeSlot: batch.time_slot || batch.timeSlot || "",
+        subject: batch.subject_name || batch.subject || "",
+        standard: batch.standard_name || batch.standard || "",
+        teacherId: String(batch.teacher_id || batch.teacherId || ""),
+        teacherName:
+          batch.teacher_name ||
+          batch.teacherName ||
+          (batch.teacher
+            ? `${batch.teacher.first_name || ""} ${batch.teacher.last_name || ""}`.trim()
+            : ""),
+        capacity: Number(batch.capacity) || 0,
+        studentIds,
+        students: parsedStudents.length > 0 ? parsedStudents : undefined,
+        createdAt: batch.created_at || batch.createdAt || "",
+        completedAt: batch.completed_at || batch.completedAt,
+        area_id: batch.area_id != null ? Number(batch.area_id) : undefined,
+        branch_id: batch.branch_id != null ? Number(batch.branch_id) : undefined,
+        subject_id: batch.subject_id != null ? Number(batch.subject_id) : undefined,
+        standard_id: batch.standard_id != null ? Number(batch.standard_id) : undefined,
+        teacher_id: batch.teacher_id != null ? Number(batch.teacher_id) : undefined,
+        start_time: batch.start_time || undefined,
+        end_time: batch.end_time || undefined,
+      };
+
+      batchStore[transformed.id] = transformed;
+      batchFetchCache.set(id, { data: transformed, timestamp: Date.now() });
+      return transformed;
+    } catch (error) {
+      console.error("Error fetching batch:", error);
+      if (id === DUMMY_BATCH.id || id === "dummy-batch-1") {
+        batchStore[DUMMY_BATCH.id] = DUMMY_BATCH;
+        return DUMMY_BATCH;
+      }
+      throw error;
+    } finally {
+      inFlightBatchRequests.delete(id);
     }
+  })();
 
-    const batch = await batchResponse.json();
-
-    const area = areas.find((a) => a.id === batch.area_id);
-    const branch = branches.find((b) => b.id === batch.branch_id);
-    const subject = subjects.find((s) => s.id === batch.subject_id);
-    const standard = standards.find((s) => s.id === batch.standard_id);
-    const teacher = teachers.find((t) => t.id === batch.teacher_id);
-
-    const transformed: Batch = {
-      id: String(batch.id),
-      name: batch.name || `${area?.name || ""} – ${branch?.name || ""} – ${batch.day || ""} – ${batch.time_slot || ""}`,
-      type: batch.type as BatchType,
-      status: batch.status as BatchStatus,
-      area: (area?.name as Area) || ("Thane" as Area),
-      branch: branch?.name || "",
-      day: batch.day || "",
-      timeSlot: batch.time_slot || "",
-      subject: subject?.name || "",
-      standard: standard?.name || "",
-      teacherId: String(batch.teacher_id || ""),
-      teacherName: teacher ? getTeacherFullName(teacher) : "",
-      capacity: batch.capacity || 0,
-      studentIds: batch.student_ids || [],
-      createdAt: batch.created_at || "",
-      completedAt: batch.completed_at,
-    };
-
-    batchStore[transformed.id] = transformed;
-    return transformed;
-  } catch (error) {
-    console.error("Error fetching batch:", error);
-    if (id === DUMMY_BATCH.id || id === "dummy-batch-1") {
-      batchStore[DUMMY_BATCH.id] = DUMMY_BATCH;
-      return DUMMY_BATCH;
-    }
-    throw error;
-  }
+  inFlightBatchRequests.set(id, fetchPromise);
+  return fetchPromise;
 };
 
 export const updateBatchAPI = async (id: string, payload: CreateBatchPayload): Promise<any> => {
@@ -567,3 +716,105 @@ export const updateBatchAPI = async (id: string, payload: CreateBatchPayload): P
     throw error;
   }
 };
+
+export interface AssignStudentsPayload {
+  batch_id: number;
+  student_ids: number[];
+}
+
+let isAssigningInProgress = false;
+
+export const assignStudentsToBatchAPI = async (
+  batchId: string | number,
+  studentIds: (string | number)[],
+): Promise<any> => {
+  if (isAssigningInProgress) {
+    console.warn("Assignment request already in progress, skipping duplicate call.");
+    return { success: true };
+  }
+  isAssigningInProgress = true;
+
+  const numericBatchId = Number(batchId);
+  const numericStudentIds = studentIds
+    .map((id) => Number(id))
+    .filter((n) => !isNaN(n));
+
+  const payload: AssignStudentsPayload = {
+    batch_id: numericBatchId,
+    student_ids: numericStudentIds,
+  };
+
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/assign-students`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || `Failed to save assignments (Status: ${response.status})`);
+    }
+
+    const data = await response.json().catch(() => ({ success: true }));
+
+    // Invalidate batch cache so subsequent views fetch updated students
+    batchFetchCache.delete(String(batchId));
+
+    return data;
+  } catch (error) {
+    console.error("Error assigning students to batch:", error);
+    throw error;
+  } finally {
+    isAssigningInProgress = false;
+  }
+};
+
+let isTogglingInProgress = false;
+
+export const toggleBatchStatusAPI = async (
+  id: string | number,
+  currentStatus?: BatchStatus,
+): Promise<any> => {
+  if (isTogglingInProgress) {
+    console.warn("Toggle request already in progress, skipping duplicate call.");
+    return { success: true };
+  }
+  isTogglingInProgress = true;
+
+  const numericId = Number(id);
+  const nextStatus: BatchStatus = currentStatus === "Active" ? "Inactive" : "Active";
+
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/batch/${numericId}/toggle-status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || `Failed to update batch status (Status: ${response.status})`);
+    }
+
+    const data = await response.json().catch(() => ({ success: true, status: nextStatus }));
+
+    // Update in-memory store and clear cache
+    if (batchStore[String(id)]) {
+      batchStore[String(id)].status = nextStatus;
+    }
+    batchFetchCache.delete(String(id));
+
+    return data;
+  } catch (error) {
+    console.error("Error toggling batch status:", error);
+    throw error;
+  } finally {
+    isTogglingInProgress = false;
+  }
+};
+
+export const deleteBatchAPI = toggleBatchStatusAPI;
+
+

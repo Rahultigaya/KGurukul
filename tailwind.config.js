@@ -3,6 +3,12 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      colors: {
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+        muted: "var(--text-muted)",
+        accent: "var(--text-accent)",
+      },
       animation: {
         fadeIn: "fadeIn 0.8s ease forwards",
         slideUp: "slideUp 0.8s ease forwards",

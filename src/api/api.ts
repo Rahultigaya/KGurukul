@@ -195,8 +195,14 @@ export interface StudentCreatePayload {
 export const createStudent = (data: StudentCreatePayload) =>
   API.post("/students", data);
 
-export const getStudents = (params?: { skip?: number; limit?: number; academic_year?: string }) =>
-  API.get("/students", { params });
+export const getStudents = (params?: {
+  skip?: number;
+  limit?: number;
+  academic_year?: string;
+  standard_id?: number | string;
+  subject_id?: number | string;
+  batch_id?: number | string;
+}) => API.get("/students", { params });
 
 export const getStudentById = (id: number) =>
   API.get(`/students/${id}`);
@@ -209,5 +215,11 @@ export const deleteStudent = (id: number) =>
 
 export const updateStudentPayment = (id: number, data: Partial<StudentCreatePayload>) =>
   API.patch(`/students/${id}/payment`, data);
+
+export const toggleStudentStatus = (id: number) =>
+  API.patch(`/students/${id}/toggle-status`);
+
+export const toggleTeacherStatus = (id: string | number) =>
+  API.patch(`/teachers/${id}/toggle-status`);
 
 export default API;

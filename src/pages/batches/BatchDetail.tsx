@@ -2,22 +2,37 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Stack, Paper, Title, Grid, Text, ActionIcon, Tooltip, Loader } from "@mantine/core";
+import { Stack, Paper, Title, Grid, Text, Loader } from "@mantine/core";
 import {
   IconArrowLeft, IconMapPin, IconBuilding,
   IconCalendar, IconClock, IconBook, IconUser, IconUsers,
   IconCircleCheck, IconCircleOff, IconCircleX,
 } from "@tabler/icons-react";
-import { getBatchByIdAPI, BATCH_TYPE_META, type Area, type Batch } from "./batchStore";
+import { PageHeader } from "../../components/PageHeader";
+import { getBatchByIdAPI, BATCH_TYPE_META, type Batch } from "./batchStore";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const areaColor: Record<Area, { badge: string; dot: string }> = {
-  Thane:  { badge: "bg-orange-500/15 text-orange-400 border border-orange-500/25", dot: "bg-orange-400" },
-  Mulund: { badge: "bg-violet-500/15 text-violet-400 border border-violet-500/25", dot: "bg-violet-400" },
-};
+const AREA_PALETTES = [
+  { badge: "bg-orange-500/15 text-orange-400 border border-orange-500/25", dot: "bg-orange-400" },
+  { badge: "bg-violet-500/15 text-violet-400 border border-violet-500/25", dot: "bg-violet-400" },
+  { badge: "bg-blue-500/15 text-blue-400 border border-blue-500/25", dot: "bg-blue-400" },
+  { badge: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25", dot: "bg-emerald-400" },
+  { badge: "bg-amber-500/15 text-amber-400 border border-amber-500/25", dot: "bg-amber-400" },
+  { badge: "bg-rose-500/15 text-rose-400 border border-rose-500/25", dot: "bg-rose-400" },
+];
+
+function getAreaColor(areaName: string): { badge: string; dot: string } {
+  if (!areaName) return AREA_PALETTES[0];
+  let hash = 0;
+  for (let i = 0; i < areaName.length; i++) {
+    hash = areaName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AREA_PALETTES.length;
+  return AREA_PALETTES[index];
+}
 
 const TODAY_DAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
 
@@ -31,8 +46,8 @@ const InfoRow: React.FC<{
   <div className="flex items-center gap-3 py-2.5"
     style={{ borderBottom: "1px solid var(--border-default)" }}>
     <span className={`shrink-0 ${iconColor}`}>{icon}</span>
-    <Text size="sm" w={64} style={{ color: "var(--text-muted)", flexShrink: 0 }}>{label}</Text>
-    <Text size="sm" fw={500} style={{ color: "var(--text-primary)" }}>{value}</Text>
+    <Text size="sm" w={64} className="text-muted shrink-0">{label}</Text>
+    <Text size="sm" fw={500} className="text-primary">{value}</Text>
   </div>
 );
 
@@ -47,24 +62,35 @@ const BatchDetail: React.FC = () => {
   const [batch, setBatch] = useState<Batch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchBatch = async () => {
       if (!id) return;
       try {
         setLoading(true);
         setError(null);
         const data = await getBatchByIdAPI(id);
-        setBatch(data);
+        if (!isCancelled) {
+          setBatch(data);
+        }
       } catch (err: any) {
-        console.error("Error fetching batch:", err);
-        setError(err.message || "Failed to load batch");
+        if (!isCancelled) {
+          console.error("Error fetching batch:", err);
+          setError(err.message || "Failed to load batch");
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchBatch();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [id]);
 
   if (loading)
@@ -86,7 +112,7 @@ const BatchDetail: React.FC = () => {
       </div>
     );
 
-  const area     = areaColor[batch.area];
+  const area     = getAreaColor(batch.area);
   const isToday  = batch.day === TODAY_DAY && batch.status === "Active";
   const fillPct  = Math.min((batch.studentIds.length / batch.capacity) * 100, 100);
   const fillColor = batch.studentIds.length >= batch.capacity ? "#ef4444"
@@ -103,24 +129,12 @@ const BatchDetail: React.FC = () => {
   return (
     <Stack gap="md" maw={1000} mx="auto" pb="xl">
 
-      {/* ── Header ────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <Tooltip label="Back to Batches" position="right" withArrow>
-            <ActionIcon variant="subtle" size="lg" radius="lg"
-              onClick={() => navigate("/batches")}
-              styles={{ root: { color: "var(--text-secondary)" } }}>
-              <IconArrowLeft size={20} />
-            </ActionIcon>
-          </Tooltip>
-          <div>
-            <Title order={3} style={{ color: "var(--text-primary)" }}>Batch Details</Title>
-            <Text size="sm" style={{ color: "var(--text-muted)" }}>
-              ID: {batch.id} · Created {batch.createdAt}
-            </Text>
-          </div>
-        </div>
-      </div>
+      {/* ── Page Header ────────────────────────────────────────────────── */}
+      <PageHeader
+        title="View Batch Details"
+        subtitle="View complete batch information, schedule, and assigned students"
+        onBack={() => navigate("/batches")}
+      />
 
       {/* ── Banner ────────────────────────────────────────────────────── */}
       <Paper className="p-4"
@@ -163,19 +177,19 @@ const BatchDetail: React.FC = () => {
                 </span>
               )}
             </div>
-            <Text fw={700} size="lg" style={{ color: "var(--text-primary)" }}>{batch.name}</Text>
-            <Text size="xs" mt={2} style={{ color: "var(--text-muted)" }}>
+            <Text fw={700} size="lg" className="text-primary">{batch.name}</Text>
+            <Text size="xs" mt={2} className="text-muted">
               {typeMeta.description}
             </Text>
           </div>
 
           {/* Capacity */}
           <div className="shrink-0 text-right">
-            <Text fw={700} size="xl" style={{ color: "var(--text-primary)" }}>
+            <Text fw={700} size="xl" className="text-primary">
               {batch.studentIds.length}
-              <Text span size="sm" fw={400} style={{ color: "var(--text-muted)" }}> / {batch.capacity}</Text>
+              <Text span size="sm" fw={400} className="text-muted"> / {batch.capacity}</Text>
             </Text>
-            <Text size="xs" mb={6} style={{ color: "var(--text-muted)" }}>students</Text>
+            <Text size="xs" mb={6} className="text-muted">students</Text>
             <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--bg-tertiary)" }}>
               <div className="h-full rounded-full transition-all" style={{ width: `${fillPct}%`, background: fillColor }} />
             </div>
@@ -234,57 +248,81 @@ const BatchDetail: React.FC = () => {
       <Paper className="p-4 sm:p-5"
         style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
         <div className="flex items-center justify-between mb-4">
-          <Title order={5} style={{ color: "var(--text-accent)", fontSize: "clamp(13px,2vw,16px)" }}>
-            <span className="flex items-center gap-2">
-              <IconUsers size={15} style={{ color: "var(--text-accent)" }} />
-              Assigned Students
-            </span>
-          </Title>
-          <Text size="xs" style={{ color: "var(--text-muted)" }}>
+            <Title order={5} style={{ fontSize: "clamp(13px,2vw,16px)" }} className="text-accent">
+              <span className="flex items-center gap-2">
+                <IconUsers size={15} className="text-accent" />
+                Assigned Students
+              </span>
+            </Title>
+            <Text size="xs" className="text-muted">
             {batch.studentIds.length} of {batch.capacity} seats filled
           </Text>
         </div>
 
-        {batch.studentIds.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-default)" }}>
-              <IconUsers size={20} style={{ color: "var(--text-muted)" }} />
-            </div>
-            <Text size="sm" style={{ color: "var(--text-muted)" }}>No students assigned yet</Text>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {batch.studentIds.map((sid, idx) => (
-              <button
-                key={sid}
-                onClick={() => navigate(`/profile/student/${sid}`)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group"
-                style={{
-                  background: "var(--bg-tertiary)",
-                  border: "1px solid var(--border-default)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(249,115,22,0.4)";
-                  e.currentTarget.style.background  = "rgba(249,115,22,0.05)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border-default)";
-                  e.currentTarget.style.background  = "var(--bg-tertiary)";
-                }}
-              >
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors"
-                  style={{ background: "var(--border-default)", color: "var(--text-muted)" }}>
-                  {idx + 1}
+        {(() => {
+          const studentsList = batch.students && batch.students.length > 0
+            ? batch.students
+            : batch.studentIds.map((sid) => ({
+                id: sid,
+                name: `Student #${sid}`,
+              }));
+
+          if (studentsList.length === 0) {
+            return (
+              <div className="flex flex-col items-center justify-center py-10 gap-3">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-default)" }}>
+                  <IconUsers size={20} className="text-muted" />
                 </div>
-                <Text size="sm" fw={500} style={{ color: "var(--text-primary)", flex: 1 }}>
-                  Student #{sid}
-                </Text>
-                <IconUser size={13} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
-              </button>
-            ))}
-          </div>
-        )}
+                <Text size="sm" className="text-muted">No students assigned yet</Text>
+              </div>
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {studentsList.map((st, idx) => (
+                <button
+                  key={st.id}
+                  onClick={() => navigate(`/Users/edit-student/${st.id}?mode=view`)}
+                  className="flex items-center gap-3 px-3.5 py-3 rounded-xl text-left transition-all group"
+                  style={{
+                    background: "var(--bg-tertiary)",
+                    border: "1px solid var(--border-default)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(249,115,22,0.4)";
+                    e.currentTarget.style.background  = "rgba(249,115,22,0.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-default)";
+                    e.currentTarget.style.background  = "var(--bg-tertiary)";
+                  }}
+                >
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition-colors text-muted"
+                    style={{ background: "var(--border-default)" }}>
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Text size="sm" fw={600} className="text-primary truncate">
+                      {st.name}
+                    </Text>
+                    {((st as any).rollNo || (st as any).contactNo || (st as any).standard) && (
+                      <Text size="xs" className="text-muted truncate">
+                        {(st as any).rollNo ? `Roll: ${(st as any).rollNo}` : ""}
+                        {(st as any).rollNo && ((st as any).contactNo || (st as any).standard) ? " · " : ""}
+                        {typeof (st as any).standard === "object"
+                          ? (st as any).standard?.name || ""
+                          : (st as any).standard || (st as any).contactNo || ""}
+                      </Text>
+                    )}
+                  </div>
+                  <IconUser size={15} className="text-muted shrink-0 group-hover:text-orange-400 transition-colors" />
+                </button>
+              ))}
+            </div>
+          );
+        })()}
       </Paper>
 
     </Stack>

@@ -1,7 +1,6 @@
-// src/pages/batches/BatchList.tsx
-
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../../components/PageHeader";
 import { Loader } from "@mantine/core";
 import { Autocomplete, TextField } from "@mui/material";
 import {
@@ -11,7 +10,7 @@ import {
   IconCircleCheck, IconCalendar, IconTrash,
 } from "@tabler/icons-react";
 import {
-  getAllBatchesAPI, deleteBatch, AREAS, BRANCHES, DAYS, BATCH_TYPES,
+  getAllBatchesAPI, toggleBatchStatusAPI, AREAS, BRANCHES, DAYS, BATCH_TYPES,
   type Batch, type Area, type BatchType,
 } from "./batchStore";
 import { DUMMY_BATCH } from "./dummyBatch";
@@ -23,10 +22,26 @@ import Swal from "sweetalert2";
 
 const TODAY_DAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][new Date().getDay()];
 
-const areaColor: Record<Area, { badge: string; dot: string }> = {
-  Thane: { badge: "bg-blue-50 text-blue-700 border border-blue-200/80 font-bold", dot: "bg-blue-600" },
-  Mulund: { badge: "bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold", dot: "bg-indigo-600" },
-};
+const AREA_PALETTES = [
+  { badge: "bg-blue-50 text-blue-700 border border-blue-200/80 font-bold", dot: "bg-blue-600" },
+  { badge: "bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold", dot: "bg-indigo-600" },
+  { badge: "bg-purple-50 text-purple-700 border border-purple-200/80 font-bold", dot: "bg-purple-600" },
+  { badge: "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold", dot: "bg-emerald-600" },
+  { badge: "bg-amber-50 text-amber-700 border border-amber-200/80 font-bold", dot: "bg-amber-600" },
+  { badge: "bg-rose-50 text-rose-700 border border-rose-200/80 font-bold", dot: "bg-rose-600" },
+  { badge: "bg-cyan-50 text-cyan-700 border border-cyan-200/80 font-bold", dot: "bg-cyan-600" },
+  { badge: "bg-teal-50 text-teal-700 border border-teal-200/80 font-bold", dot: "bg-teal-600" },
+];
+
+function getAreaColor(areaName: string): { badge: string; dot: string } {
+  if (!areaName) return AREA_PALETTES[0];
+  let hash = 0;
+  for (let i = 0; i < areaName.length; i++) {
+    hash = areaName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AREA_PALETTES.length;
+  return AREA_PALETTES[index];
+}
 
 const dayColor: Record<string, string> = {
   Monday: "text-blue-600 font-semibold", Tuesday: "text-emerald-600 font-semibold", Wednesday: "text-amber-600 font-semibold",
@@ -83,66 +98,66 @@ const BatchCard: React.FC<{
         isToday ? "border-blue-300 ring-1 ring-blue-200" : "border-slate-200/80"
       } ${batch.status !== "Active" ? "opacity-60" : ""}`}
     >
-      {/* Top row */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap mb-1">
-            <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider ${typeColor[batch.type]}`}>
-              {batch.type}
+      {/* Top row: Tags on left, Actions on right */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider ${typeColor[batch.type]}`}>
+            {batch.type}
+          </span>
+          {batch.status !== "Active" && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-semibold uppercase">
+              {batch.status}
             </span>
-            {batch.status !== "Active" && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-semibold uppercase">
-                {batch.status}
-              </span>
-            )}
-            {isToday && (
-              <span className="px-2 py-0.5 rounded-full bg-blue-100 border border-blue-300 text-blue-700 text-[10px] font-bold uppercase animate-pulse">
-                Today
-              </span>
-            )}
-          </div>
-          <p className="text-sm font-bold text-slate-800 leading-snug">
-            {batch.name}
-          </p>
+          )}
+          {isToday && (
+            <span className="px-2 py-0.5 rounded-full bg-blue-100 border border-blue-300 text-blue-700 text-[10px] font-bold uppercase animate-pulse">
+              Today
+            </span>
+          )}
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          <button onClick={onView} title="View" className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors"><IconEye size={15} /></button>
-          <button onClick={onAssign} title="Assign" className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-slate-100 transition-colors"><IconUserPlus size={15} /></button>
-          <button onClick={onEdit} title="Edit" className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors"><IconEdit size={15} /></button>
-          <button onClick={onDelete} title="Delete" className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"><IconTrash size={15} /></button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={onView} title="View Details" className="p-1.5 rounded-lg text-sky-600 bg-sky-50 hover:bg-sky-100 transition-colors"><IconEye size={15} /></button>
+          <button onClick={onAssign} title="Assign Students" className="p-1.5 rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors"><IconUserPlus size={15} /></button>
+          <button onClick={onEdit} title="Edit Batch" className="p-1.5 rounded-lg text-amber-600 bg-amber-50 hover:bg-amber-100 transition-colors"><IconEdit size={15} /></button>
+          <button onClick={onDelete} title="Delete Batch" className="p-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"><IconTrash size={15} /></button>
         </div>
       </div>
 
+      {/* Batch Name: Full width in row 2 */}
+      <p className="text-sm font-bold text-slate-800 leading-snug mb-3 truncate" title={batch.name}>
+        {batch.name}
+      </p>
+
       {/* Info */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mb-3 text-xs">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3.5 text-xs">
         <div className="flex items-center gap-1.5">
-          <IconCalendar size={13} className="text-slate-400 shrink-0" />
-          <span className={dayColor[batch.day] ?? "text-slate-700"}>{batch.day}</span>
+          <IconCalendar size={14} className="text-amber-500 shrink-0" />
+          <span className={dayColor[batch.day] ?? "text-slate-700 font-medium"}>{batch.day}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <IconClock size={13} className="text-slate-400 shrink-0" />
+          <IconClock size={14} className="text-blue-500 shrink-0" />
           <span className="text-slate-600 font-medium">{batch.timeSlot}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <IconBook size={13} className="text-slate-400 shrink-0" />
-          <span className="text-slate-700 font-medium truncate">{batch.subject}</span>
+          <IconBook size={14} className="text-violet-500 shrink-0" />
+          <span className="text-slate-700 font-semibold truncate">{batch.subject}</span>
           <span className="text-slate-400 font-semibold">· {batch.standard}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <IconUser size={13} className="text-slate-400 shrink-0" />
+          <IconUser size={14} className="text-emerald-500 shrink-0" />
           <span className="text-slate-600 font-medium truncate">{batch.teacherName}</span>
         </div>
       </div>
 
       {/* Capacity bar */}
-      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-        <IconUsers size={13} className="text-slate-400 shrink-0" />
+      <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100">
+        <IconUsers size={14} className="text-indigo-500 shrink-0" />
         <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
           <div className={`h-full rounded-full transition-all ${fillColor}`} style={{ width: `${fillPct}%` }} />
         </div>
-        <span className="text-[11px] font-semibold text-slate-600 shrink-0">
+        <span className="text-[11px] font-bold text-slate-600 shrink-0">
           {batch.studentIds.length}/{batch.capacity}
         </span>
       </div>
@@ -166,6 +181,7 @@ const BatchList: React.FC = () => {
   const [filterDay, setFilterDay] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string | null>(null);
+  const isTogglingRef = useRef<boolean>(false);
 
   // Fetch batches from API
   const fetchBatches = async () => {
@@ -188,39 +204,63 @@ const BatchList: React.FC = () => {
   }, []);
 
   const handleDelete = (batch: Batch) => {
+    const isCurrentlyActive = batch.status === "Active";
+    const actionVerb = isCurrentlyActive ? "deactivate" : "activate";
+    const actionTitle = isCurrentlyActive ? "Deactivate Batch?" : "Activate Batch?";
+    const confirmBtnText = isCurrentlyActive ? "Yes, Deactivate" : "Yes, Activate";
+    const confirmBtnColor = isCurrentlyActive ? "#dc2626" : "#16a34a";
+
     Swal.fire({
-      title: "Delete Batch?",
+      title: actionTitle,
       html: `
         <div style="font-size: 14px; color: #475569; margin-bottom: 8px;">
-          You are about to delete <strong>${batch.name}</strong>.
+          Are you sure you want to ${actionVerb} <strong>${batch.name}</strong>?
         </div>
         <div style="font-size: 12px; color: #64748b;">
-          This will remove ${batch.studentIds.length} student assignment${batch.studentIds.length !== 1 ? "s" : ""}. This action cannot be undone.
+          ${isCurrentlyActive ? "The batch status will be toggled to Inactive." : "The batch status will be toggled to Active."}
         </div>
       `,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Delete",
+      confirmButtonText: confirmBtnText,
       cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
+      confirmButtonColor: confirmBtnColor,
       cancelButtonColor: "#94a3b8",
       customClass: {
         confirmButton: "rounded-xl px-5 py-2.5 font-bold text-sm shadow-md",
         cancelButton: "rounded-xl px-5 py-2.5 font-semibold text-sm shadow-sm",
       },
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setBatches((prev) => prev.filter((b) => b.id !== batch.id));
-        deleteBatch(batch.id);
-        Swal.fire({
-          title: "Deleted!",
-          text: `Batch "${batch.name}" has been deleted.`,
-          icon: "success",
-          confirmButtonColor: "#2563eb",
-          customClass: {
-            confirmButton: "rounded-xl px-5 py-2.5 font-bold text-sm shadow-md",
-          },
-        });
+        if (isTogglingRef.current) return;
+        isTogglingRef.current = true;
+        try {
+          const res = await toggleBatchStatusAPI(batch.id, batch.status);
+          const nextStatus = res?.status || (isCurrentlyActive ? "Inactive" : "Active");
+
+          setBatches((prev) =>
+            prev.map((b) => (b.id === batch.id ? { ...b, status: nextStatus } : b))
+          );
+
+          Swal.fire({
+            title: isCurrentlyActive ? "Deactivated!" : "Activated!",
+            text: `Batch "${batch.name}" has been ${isCurrentlyActive ? "deactivated" : "activated"}.`,
+            icon: "success",
+            confirmButtonColor: "#2563eb",
+            customClass: {
+              confirmButton: "rounded-xl px-5 py-2.5 font-bold text-sm shadow-md",
+            },
+          });
+        } catch (err: any) {
+          Swal.fire({
+            title: "Error",
+            text: err.message || "Failed to update batch status",
+            icon: "error",
+            confirmButtonColor: "#2563eb",
+          });
+        } finally {
+          isTogglingRef.current = false;
+        }
       }
     });
   };
@@ -281,27 +321,22 @@ const BatchList: React.FC = () => {
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
 
       {/* ── Header (Matches Student / Teacher List UI) ───────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
-            Batches
-          </h2>
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-            Manage all batches across areas and branches
-          </p>
-        </div>
-
-        <button
-          onClick={() => navigate("/batches/create")}
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
-        >
-          <IconPlus size={16} />
-          Create Batch
-        </button>
-      </div>
+      <PageHeader
+        title="Batches"
+        subtitle="Manage all batches across areas and branches"
+        action={
+          <button
+            onClick={() => navigate("/batches/create")}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
+          >
+            <IconPlus size={16} />
+            Create Batch
+          </button>
+        }
+      />
 
       {/* Loading state */}
       {loading && (
@@ -335,20 +370,20 @@ const BatchList: React.FC = () => {
           </div>
 
           {/* ── Single Always-Visible Filter Card ─────────────────────────────── */}
-          <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+          <div className="p-4 rounded-xl bg-white border border-slate-300 shadow-sm space-y-3">
             {/* Search Input */}
             <div className="relative">
-              <IconSearch size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <IconSearch size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
                 placeholder="Search batch, subject, teacher, branch…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full text-sm rounded-lg pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="w-full text-sm rounded-lg pl-10 pr-8 py-2.5 bg-white border border-slate-400 text-slate-900 font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm transition-all"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  <IconX size={14} />
+                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800">
+                  <IconX size={15} />
                 </button>
               )}
             </div>
@@ -363,84 +398,28 @@ const BatchList: React.FC = () => {
                   setFilterBranch(null);
                 }}
                 size="small"
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="All Areas" sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      paddingTop: "2px",
-                      paddingBottom: "2px",
-                      "& fieldset": { borderColor: "#cbd5e1" },
-                      "&:hover fieldset": { borderColor: "#94a3b8" },
-                      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
-                    },
-                    "& .MuiInputBase-input": { fontSize: "13px", color: "#0f172a" },
-                  }} />
-                )}
+                renderInput={(params) => <TextField {...params} placeholder="All Areas" />}
               />
               <Autocomplete
                 options={availableBranches}
                 value={filterBranch}
                 onChange={(_e, newValue) => setFilterBranch(newValue)}
                 size="small"
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="All Branches" sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      paddingTop: "2px",
-                      paddingBottom: "2px",
-                      "& fieldset": { borderColor: "#cbd5e1" },
-                      "&:hover fieldset": { borderColor: "#94a3b8" },
-                      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
-                    },
-                    "& .MuiInputBase-input": { fontSize: "13px", color: "#0f172a" },
-                  }} />
-                )}
+                renderInput={(params) => <TextField {...params} placeholder="All Branches" />}
               />
               <Autocomplete
                 options={DAYS}
                 value={filterDay}
                 onChange={(_e, newValue) => setFilterDay(newValue)}
                 size="small"
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="All Days" sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      paddingTop: "2px",
-                      paddingBottom: "2px",
-                      "& fieldset": { borderColor: "#cbd5e1" },
-                      "&:hover fieldset": { borderColor: "#94a3b8" },
-                      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
-                    },
-                    "& .MuiInputBase-input": { fontSize: "13px", color: "#0f172a" },
-                  }} />
-                )}
+                renderInput={(params) => <TextField {...params} placeholder="All Days" />}
               />
               <Autocomplete
                 options={BATCH_TYPES}
                 value={filterType}
                 onChange={(_e, newValue) => setFilterType(newValue)}
                 size="small"
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="All Types" sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      paddingTop: "2px",
-                      paddingBottom: "2px",
-                      "& fieldset": { borderColor: "#cbd5e1" },
-                      "&:hover fieldset": { borderColor: "#94a3b8" },
-                      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
-                    },
-                    "& .MuiInputBase-input": { fontSize: "13px", color: "#0f172a" },
-                  }} />
-                )}
+                renderInput={(params) => <TextField {...params} placeholder="All Types" />}
               />
               <Autocomplete
                 options={["Active", "Inactive", "Completed", "today"]}
@@ -448,21 +427,7 @@ const BatchList: React.FC = () => {
                 onChange={(_e, newValue) => setFilterStatus(newValue)}
                 size="small"
                 getOptionLabel={(option) => option === "today" ? "Today" : option}
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="All Status" sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      paddingTop: "2px",
-                      paddingBottom: "2px",
-                      "& fieldset": { borderColor: "#cbd5e1" },
-                      "&:hover fieldset": { borderColor: "#94a3b8" },
-                      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
-                    },
-                    "& .MuiInputBase-input": { fontSize: "13px", color: "#0f172a" },
-                  }} />
-                )}
+                renderInput={(params) => <TextField {...params} placeholder="All Status" />}
               />
               
               <button
@@ -499,7 +464,7 @@ const BatchList: React.FC = () => {
             )}
           </div>
 
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-sm sm:text-base font-bold text-slate-800">
             {filtered.length === batches.length
               ? `${batches.length} batches total`
               : `${filtered.length} of ${batches.length} batches`}
@@ -517,25 +482,25 @@ const BatchList: React.FC = () => {
             <div className="space-y-6">
               {Object.entries(grouped).map(([area, branches]) => (
                 <div key={area}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-2.5 h-2.5 rounded-full ${areaColor[area as Area].dot}`} />
-                    <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${areaColor[area as Area].badge}`}>
+                  <div className="flex items-center gap-3 mb-3.5">
+                    <div className={`w-3 h-3 rounded-full ${getAreaColor(area).dot}`} />
+                    <span className={`text-sm font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm ${getAreaColor(area).badge}`}>
                       {area}
                     </span>
-                    <span className="text-xs text-slate-500 font-medium">
+                    <span className="text-sm font-bold text-slate-700">
                       {Object.values(branches).flat().length} batches · {Object.keys(branches).length} branches
                     </span>
-                    <div className="flex-1 h-px bg-slate-200" />
+                    <div className="flex-1 h-0.5 bg-slate-200/80" />
                   </div>
 
                   <div className="space-y-4">
                     {Object.entries(branches).map(([branch, batchList]) => (
                       <div key={branch}>
-                        <div className="flex items-center gap-2 mb-2 px-1">
-                          <IconMapPin size={14} className="text-slate-400" />
-                          <span className="text-xs font-bold text-slate-700">{branch}</span>
-                          <span className="text-xs text-slate-400">
-                            ({batchList.length} batch{batchList.length !== 1 ? "es" : ""})
+                        <div className="flex items-center gap-2 mb-2.5 px-1">
+                          <IconMapPin size={18} className="text-rose-500 shrink-0" />
+                          <span className="text-sm sm:text-base font-extrabold text-slate-800">{branch}</span>
+                          <span className="text-xs sm:text-sm font-semibold text-slate-600 bg-slate-100 border border-slate-200/60 px-2.5 py-0.5 rounded-full">
+                            {batchList.length} batch{batchList.length !== 1 ? "es" : ""}
                           </span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

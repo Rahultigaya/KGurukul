@@ -1,12 +1,9 @@
-// src/pages/admin/Users/Student/StudentRegistration.tsx
-
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { PageHeader } from "../../../../components/PageHeader";
 import {
   Typography,
-  IconButton,
   Alert,
-  Chip,
   Box,
   CircularProgress,
 } from "@mui/material";
@@ -22,8 +19,7 @@ import {
   IconUser,
   IconUsers,
   IconCheck,
-  IconUserOff,
-  IconUserCheck,
+  IconPencil,
 } from "@tabler/icons-react";
 
 const stepItems = [
@@ -78,18 +74,23 @@ const StudentRegistration: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   const isEditMode = Boolean(id);
+  const isViewMode = searchParams.get("mode") === "view" || window.location.pathname.includes("view-student");
   const isPaymentMode = searchParams.get("tab") === "fees";
 
-  const pageTitle = isEditMode
-    ? isPaymentMode
-      ? "Update Payment"
-      : "Edit Student"
+  const pageTitle = isViewMode
+    ? "View Student"
+    : isPaymentMode
+    ? "Update Payment"
+    : isEditMode
+    ? "Edit Student"
     : "Student Registration";
 
-  const pageSubtitle = isEditMode
-    ? isPaymentMode
-      ? "Update payment details for this student"
-      : "Edit student information — all steps available"
+  const pageSubtitle = isViewMode
+    ? "View student registration details"
+    : isPaymentMode
+    ? "Update payment details for this student"
+    : isEditMode
+    ? "Edit student information — all steps available"
     : "Complete all steps to register a new student";
 
   const [active, setActive] = useState(isPaymentMode ? 3 : 0);
@@ -97,9 +98,12 @@ const StudentRegistration: React.FC = () => {
   const [formData, setFormData] = useState<StudentRegistrationData>(initialFormData);
   const [isLoading, setIsLoading] = useState(isEditMode);
 
-  // Prefill on edit
+  const hasFetched = useRef(false);
+
+  // Prefill on edit / view
   useEffect(() => {
-    if (!isEditMode || !id) return;
+    if (!isEditMode || !id || hasFetched.current) return;
+    hasFetched.current = true;
     (async () => {
       try {
         const data = await getStudentById(id);
@@ -108,23 +112,23 @@ const StudentRegistration: React.FC = () => {
         } else {
           Swal.fire({
             title: "Student not found",
-            text: "The student you're trying to edit doesn't exist.",
+            text: "The student record could not be found on the server.",
             icon: "error",
             confirmButtonColor: "#2563eb",
-          }).then(() => navigate("/Users"));
+          });
         }
       } catch {
         Swal.fire({
           title: "Error",
-          text: "Failed to load student data.",
+          text: "Failed to load student data from server.",
           icon: "error",
           confirmButtonColor: "#2563eb",
-        }).then(() => navigate("/Users"));
+        });
       } finally {
         setIsLoading(false);
       }
     })();
-  }, [id, isEditMode, navigate]);
+  }, [id, isEditMode]);
 
   const handleInputChange = useCallback((field: string, value: any) => {
     setFormData((prev) => {
@@ -286,6 +290,11 @@ const StudentRegistration: React.FC = () => {
   );
 
   const nextStep = useCallback(() => {
+    if (isViewMode) {
+      setActive((c) => Math.min(c + 1, 3));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     const stepErrors = validateStep(active, formData);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -295,7 +304,7 @@ const StudentRegistration: React.FC = () => {
     setErrors({});
     setActive((c) => Math.min(c + 1, 3));
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [active, formData]);
+  }, [active, formData, isViewMode]);
 
   const prevStep = useCallback(() => {
     setErrors({});
@@ -388,7 +397,7 @@ const StudentRegistration: React.FC = () => {
       const msg =
         err?.response?.data?.detail || err.message || "Something went wrong. Please try again.";
       Swal.fire({
-        title: "Error ❌",
+        title: "Error",
         text: msg,
         icon: "error",
         confirmButtonText: "OK",
@@ -396,40 +405,6 @@ const StudentRegistration: React.FC = () => {
       });
     }
   }, [formData, navigate, isEditMode, isPaymentMode, id]);
-
-  const handleToggleStatus = useCallback(async () => {
-    const isCurrentlyActive = formData.isActive ?? true;
-    const newIsActive = !isCurrentlyActive;
-    const actionText = isCurrentlyActive ? "deactivate" : "activate";
-    const fullName = `${formData.firstName} ${formData.surname}`.trim();
-
-    const result = await Swal.fire({
-      title: `${isCurrentlyActive ? "Deactivate" : "Activate"} Student?`,
-      text: `Are you sure you want to ${actionText} ${fullName || "this student"}?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: isCurrentlyActive ? "#ef4444" : "#10b981",
-      cancelButtonColor: "#64748b",
-      confirmButtonText: `Yes, ${actionText}!`,
-    });
-
-    if (result.isConfirmed) {
-      setFormData((prev) => ({ ...prev, isActive: newIsActive }));
-      if (isEditMode && id) {
-        try {
-          await updateStudentApi(Number(id), { ...formData, is_active: newIsActive } as any);
-        } catch (err: any) {
-          console.error("Error toggling student status:", err);
-        }
-        Swal.fire({
-          title: "Status Updated!",
-          text: `Student has been ${newIsActive ? "activated" : "deactivated"}.`,
-          icon: "success",
-          confirmButtonColor: "#2563eb",
-        });
-      }
-    }
-  }, [formData, isEditMode, id]);
 
   const handleNavigateBack = useCallback(() => navigate("/Users"), [navigate]);
   const errorCount = Object.keys(errors).length;
@@ -447,57 +422,20 @@ const StudentRegistration: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <IconButton onClick={handleNavigateBack} color="primary">
-            <IconArrowLeft size={30} />
-          </IconButton>
-          <div>
-            <div className="flex items-center gap-2">
-              <Typography variant="h5" className="!font-bold text-slate-800">
-                {pageTitle}
-              </Typography>
-              {isEditMode && (
-                <Chip
-                  label={isPaymentMode ? "Payment Mode" : "Edit Mode"}
-                  color={isPaymentMode ? "success" : "primary"}
-                  size="small"
-                />
-              )}
-            </div>
-            <Typography variant="body2" className="text-slate-500">
-              {pageSubtitle}
-            </Typography>
-          </div>
-        </div>
+      <PageHeader
+        title={pageTitle}
+        subtitle={pageSubtitle}
+      />
 
-        {isEditMode && (
-          <button
-            type="button"
-            onClick={handleToggleStatus}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
-              (formData.isActive ?? true)
-                ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200"
-                : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200"
-            }`}
-          >
-            {(formData.isActive ?? true) ? (
-              <>
-                <IconUserOff size={16} />
-                <span>Deactivate Student</span>
-              </>
-            ) : (
-              <>
-                <IconUserCheck size={16} />
-                <span>Activate Student</span>
-              </>
-            )}
-          </button>
-        )}
-      </div>
+      {/* View Mode Banner */}
+      {isViewMode && (
+        <Alert severity="info" className="rounded-xl border border-blue-200 bg-blue-50/80 text-blue-900 font-medium shadow-sm">
+          You are viewing this student record in <strong>View Mode (Read-Only)</strong>. All form inputs are disabled. Click <strong>Edit Student</strong> to modify.
+        </Alert>
+      )}
 
       {/* Error alert */}
-      {errorCount > 0 && (
+      {errorCount > 0 && !isViewMode && (
         <Alert severity="error" icon={<IconAlertCircle size={20} />} className="rounded-xl">
           {errorCount === 1
             ? "1 required field is missing or invalid."
@@ -624,8 +562,15 @@ const StudentRegistration: React.FC = () => {
         </div>
       </div>
 
-      {/* Step Content */}
-      <div className="mt-4">
+      {/* Step Content — Disabled in View Mode */}
+      <fieldset
+        disabled={isViewMode}
+        className={`mt-4 border-0 p-0 m-0 ${
+          isViewMode
+            ? "pointer-events-none opacity-85 select-text [&_input]:!cursor-not-allowed [&_button]:!cursor-not-allowed [&_.MuiInputBase-root]:!bg-slate-100/90 [&_.MuiInputBase-input]:!text-slate-600 [&_.MuiOutlinedInput-notchedOutline]:!border-slate-300"
+            : ""
+        }`}
+      >
         {active === 0 && <EnrollmentContent {...stepProps} />}
         {active === 1 && (
           <StudentDetailsContent
@@ -655,7 +600,7 @@ const StudentRegistration: React.FC = () => {
             errors={errors}
           />
         )}
-      </div>
+      </fieldset>
 
       {/* Navigation Action Bar — Premium Custom Button UI */}
       <div className="flex flex-col sm:flex-row justify-between gap-3 items-center pt-4 border-t border-slate-200 mt-6">
@@ -677,7 +622,28 @@ const StudentRegistration: React.FC = () => {
             <span>Cancel</span>
           </button>
 
-          {isPaymentMode ? (
+          {isViewMode ? (
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {active < 3 && (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+                >
+                  <span>Next Step</span>
+                  <IconArrowRight size={18} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => navigate(`/Users/edit-student/${id}`)}
+                className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+              >
+                <IconPencil size={18} />
+                <span>Edit Student</span>
+              </button>
+            </div>
+          ) : isPaymentMode ? (
             <button
               onClick={handleSubmit}
               className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"

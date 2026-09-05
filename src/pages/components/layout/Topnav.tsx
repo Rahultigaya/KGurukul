@@ -126,13 +126,10 @@ const TopNav: React.FC<TopNavProps> = ({
             </button>
 
             <div className="hidden md:block">
-              <h2
-                className="text-xl font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
+              <h2 className="text-xl font-semibold text-primary">
                 Welcome back, {user.name.split(" ")[0]} !!!
               </h2>
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              <p className="text-sm text-secondary">
                 {new Date().toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
@@ -153,8 +150,7 @@ const TopNav: React.FC<TopNavProps> = ({
                   setShowNotifications(!showNotifications);
                   setShowUserMenu(false);
                 }}
-                className="relative p-2 rounded-lg transition-all"
-                style={{ color: "var(--text-secondary)" }}
+                className="relative p-2 rounded-lg transition-all text-secondary"
               >
                 <IconBell size={24} />
                 {unreadCount > 0 && (
@@ -180,7 +176,7 @@ const TopNav: React.FC<TopNavProps> = ({
                       background: dropHeaderBg,
                     }}
                   >
-                    <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                    <h3 className="font-semibold text-primary">
                       Notifications
                     </h3>
                   </div>
@@ -201,10 +197,10 @@ const TopNav: React.FC<TopNavProps> = ({
                             <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 flex-shrink-0" />
                           )}
                           <div className="flex-1">
-                            <p className="text-sm" style={{ color: "var(--text-primary)" }}>
+                            <p className="text-sm text-primary">
                               {n.message}
                             </p>
-                            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                            <p className="text-xs mt-1 text-muted">
                               {n.time}
                             </p>
                           </div>
@@ -216,7 +212,7 @@ const TopNav: React.FC<TopNavProps> = ({
                     className="px-4 py-3 text-center"
                     style={{ background: dropHeaderBg }}
                   >
-                    <button className="text-sm font-medium" style={{ color: "var(--text-accent)" }}>
+                    <button className="text-sm font-medium text-accent">
                       View all notifications
                     </button>
                   </div>
@@ -231,8 +227,7 @@ const TopNav: React.FC<TopNavProps> = ({
                   setShowUserMenu(!showUserMenu);
                   setShowNotifications(false);
                 }}
-                className="flex items-center gap-3 p-2 rounded-lg transition-all"
-                style={{ color: "var(--text-primary)" }}
+                className="flex items-center gap-3 p-2 rounded-lg transition-all text-primary"
               >
                 <img
                   src={user.avatar}
@@ -240,17 +235,16 @@ const TopNav: React.FC<TopNavProps> = ({
                   className="w-10 h-10 rounded-full border-2 border-purple-500"
                 />
                 <div className="text-left hidden md:block">
-                  <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                  <p className="text-sm font-medium text-primary">
                     {user.name}
                   </p>
-                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                  <p className="text-xs text-secondary">
                     {user.role}
                   </p>
                 </div>
                 <IconChevronDown
                   size={16}
-                  className={`hidden md:block transition-transform ${showUserMenu ? "rotate-180" : ""}`}
-                  style={{ color: "var(--text-muted)" }}
+                  className={`hidden md:block transition-transform text-muted ${showUserMenu ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -278,10 +272,10 @@ const TopNav: React.FC<TopNavProps> = ({
                         className="w-12 h-12 rounded-full"
                       />
                       <div>
-                        <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                        <p className="font-semibold text-primary">
                           {user.name}
                         </p>
-                        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                        <p className="text-sm text-secondary">
                           {user.email}
                         </p>
                       </div>
@@ -291,8 +285,7 @@ const TopNav: React.FC<TopNavProps> = ({
                   <div className="py-2">
                     <button
                       onClick={() => navigate("/Users/profile")}
-                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors text-secondary"
                       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
@@ -301,8 +294,7 @@ const TopNav: React.FC<TopNavProps> = ({
                     </button>
                     <button
                       onClick={() => navigate("/settings")}
-                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors"
-                      style={{ color: "var(--text-secondary)" }}
+                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors text-secondary"
                       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >

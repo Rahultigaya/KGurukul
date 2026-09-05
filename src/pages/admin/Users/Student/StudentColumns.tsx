@@ -2,7 +2,7 @@
 
 import { type TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
-import { IconPencil, IconPhone, IconCurrencyRupee } from "@tabler/icons-react";
+import { IconPencil, IconPhone, IconCurrencyRupee, IconEye } from "@tabler/icons-react";
 import type { StudentRegistrationData } from "../Student/types";
 
 export type Student = StudentRegistrationData & { id: string };
@@ -57,8 +57,8 @@ export function useStudentColumns(): TableColumn<Student>[] {
               </div>
             )}
             <div className="min-w-0">
-              <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{fullName}</p>
-              <p className="text-xs"             style={{ color: "var(--text-muted)"  }}>{row.email}</p>
+              <p className="font-medium text-sm text-primary">{fullName}</p>
+              <p className="text-xs text-muted">{row.email}</p>
             </div>
           </div>
         );
@@ -71,8 +71,8 @@ export function useStudentColumns(): TableColumn<Student>[] {
       width: "180px",
       cell: (row) => (
         <div>
-          <p className="text-sm" style={{ color: "var(--text-primary)"   }}>{row.courseType}</p>
-          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{row.subject}</p>
+          <p className="text-sm text-primary">{row.courseType}</p>
+          <p className="text-xs text-secondary">{row.subject}</p>
         </div>
       ),
     },
@@ -82,7 +82,7 @@ export function useStudentColumns(): TableColumn<Student>[] {
       selector: (row) => row.standard,
       width: "100px",
       cell: (row) => (
-        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+        <span className="text-sm font-medium text-primary">
           Std {row.standard}
         </span>
       ),
@@ -92,10 +92,10 @@ export function useStudentColumns(): TableColumn<Student>[] {
       width: "200px",
       cell: (row) => (
         <div>
-          <p className="text-sm flex items-center gap-1" style={{ color: "var(--text-primary)" }}>
-            <IconPhone size={12} style={{ color: "var(--text-muted)" }} /> {row.contactNo}
+          <p className="text-sm flex items-center gap-1 text-primary">
+            <IconPhone size={12} className="text-muted" /> {row.contactNo}
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{row.branch}</p>
+          <p className="text-xs mt-0.5 text-secondary">{row.branch}</p>
         </div>
       ),
     },
@@ -120,7 +120,7 @@ export function useStudentColumns(): TableColumn<Student>[] {
         const net = computeNetFees(row);
         return (
           <div>
-            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+            <p className="text-sm font-semibold text-primary">
               {formatCurrency(String(net))}
             </p>
             {parseFloat(row.discountAmount) > 0 && (
@@ -132,28 +132,29 @@ export function useStudentColumns(): TableColumn<Student>[] {
     },
     {
       name: "Actions",
-      width: "100px",
+      width: "140px",
       cell: (row) => (
         <div className="flex items-center gap-1">
           <button
-            onClick={() => navigate(`/Users/edit-student/${row.id}`)}
-            className="p-2 rounded-lg transition-colors"
-            title="Edit student"
-            style={{ background: "var(--bg-tertiary)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)"  )}
+            onClick={() => navigate(`/Users/edit-student/${row.id}?mode=view`)}
+            className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 shadow-sm transition-all hover:scale-105"
+            title="View student"
           >
-            <IconPencil size={15} style={{ color: "var(--text-secondary)" }} />
+            <IconEye size={15} />
+          </button>
+          <button
+            onClick={() => navigate(`/Users/edit-student/${row.id}`)}
+            className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200/60 shadow-sm transition-all hover:scale-105"
+            title="Edit student"
+          >
+            <IconPencil size={15} />
           </button>
           <button
             onClick={() => navigate(`/Users/edit-student/${row.id}?tab=fees`)}
-            className="p-2 rounded-lg transition-colors"
+            className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 shadow-sm transition-all hover:scale-105"
             title="Update payment"
-            style={{ background: "var(--bg-tertiary)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)"  )}
           >
-            <IconCurrencyRupee size={15} style={{ color: "var(--text-secondary)" }} />
+            <IconCurrencyRupee size={15} />
           </button>
         </div>
       ),

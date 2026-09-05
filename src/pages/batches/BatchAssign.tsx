@@ -1,8 +1,10 @@
 // src/pages/batches/BatchAssign.tsx
 // Route: { path: "batches/:id/assign", element: <BatchAssign /> }
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "../../components/PageHeader";
+import { IconDeviceFloppy } from "@tabler/icons-react";
 import {
   Typography,
   IconButton,
@@ -27,7 +29,6 @@ import {
   InfoOutlined as InfoOutlinedIcon,
   CheckCircleOutlined as CheckCircleOutlineIcon,
   ErrorOutlined as ErrorOutlineIcon,
-  Save as SaveIcon,
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 import {
@@ -37,41 +38,63 @@ import {
   canAssignStudent,
   BATCH_TYPE_META,
   batchStore,
+  assignStudentsToBatchAPI,
   type Batch,
 } from "./batchStore";
 import { studentCache, loadStudentCache } from "../admin/Users/Student/studentStore";
-import { getAllStandards, getAllSubjects } from "../admin/Master/masterStore";
+import { getStudents } from "../../api/api";
+
+export interface AssignableStudent {
+  id: string;
+  name: string;
+  standard: string;
+  subject: string;
+  rollNo?: string;
+  contactNo?: string;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function getStudentName(id: string): string {
+function safeText(val: any, fallback = "–"): string {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === "string") return val.trim() || fallback;
+  if (typeof val === "number") return String(val);
+  if (typeof val === "object") {
+    if (val.name) return String(val.name).trim() || fallback;
+    if (val.label) return String(val.label).trim() || fallback;
+  }
+  return fallback;
+}
+
+function getStudentName(id: string, map?: Record<string, AssignableStudent>): string {
+  if (map && map[id]) return safeText(map[id].name);
   const s = studentCache[id];
   if (!s) return `Student #${id}`;
-  return `${s.firstName} ${s.surname}`;
+  return `${s.firstName || ""} ${s.surname || ""}`.trim() || `Student #${id}`;
 }
 
-function getStudentStandard(id: string, stdMap?: Record<string, string>): string {
+function getStudentStandard(id: string, map?: Record<string, AssignableStudent>): string {
+  if (map && map[id] && map[id].standard) return safeText(map[id].standard);
   const s = studentCache[id] as any;
   if (!s) return "–";
-  const raw = s.standardName || s.standard;
-  if (!raw) return "–";
-  return stdMap?.[raw] ?? stdMap?.[s.standard] ?? raw;
+  return safeText(s.standard?.name || s.standardName || s.standard);
 }
 
-function getStudentSubject(id: string, subMap?: Record<string, string>): string {
+function getStudentSubject(id: string, map?: Record<string, AssignableStudent>): string {
+  if (map && map[id] && map[id].subject) return safeText(map[id].subject);
   const s = studentCache[id] as any;
   if (!s) return "–";
-  const raw = s.subjectName || s.subject;
-  if (!raw) return "–";
-  return subMap?.[raw] ?? subMap?.[s.subject] ?? raw;
+  return safeText(s.subject?.name || s.subjectName || s.subject);
 }
 
-function getInitials(id: string): string {
-  const s = studentCache[id];
-  if (!s) return id.slice(0, 2).toUpperCase();
-  return `${s.firstName[0]}${s.surname[0]}`.toUpperCase();
+function getInitials(id: string, map?: Record<string, AssignableStudent>): string {
+  const name = getStudentName(id, map);
+  const parts = name.split(" ").filter(Boolean);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  if (parts.length === 1 && parts[0].length >= 2) return parts[0].slice(0, 2).toUpperCase();
+  return id.slice(0, 2).toUpperCase();
 }
 
 function getReasonTag(reason?: string): {
@@ -97,9 +120,8 @@ const AssignedRow: React.FC<{
   index: number;
   canRemove: boolean;
   onRemove: () => void;
-  stdMap?: Record<string, string>;
-  subMap?: Record<string, string>;
-}> = ({ id, index, canRemove, onRemove, stdMap, subMap }) => (
+  studentsMap?: Record<string, AssignableStudent>;
+}> = ({ id, index, canRemove, onRemove, studentsMap }) => (
   <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
     <div className="flex items-center gap-3 min-w-0">
       <Avatar
@@ -115,10 +137,10 @@ const AssignedRow: React.FC<{
       </Avatar>
       <div className="min-w-0">
         <Typography variant="body2" className="!font-semibold text-slate-800 truncate">
-          {getStudentName(id)}
+          {getStudentName(id, studentsMap)}
         </Typography>
         <Typography variant="caption" className="text-slate-500">
-          Std {getStudentStandard(id, stdMap)} · {getStudentSubject(id, subMap)}
+          Std {getStudentStandard(id, studentsMap)} · {getStudentSubject(id, studentsMap)}
         </Typography>
       </div>
     </div>
@@ -141,9 +163,8 @@ const CandidateRow: React.FC<{
   eligible: boolean;
   reason?: string;
   onAssign: () => void;
-  stdMap?: Record<string, string>;
-  subMap?: Record<string, string>;
-}> = ({ id, eligible, reason, onAssign, stdMap, subMap }) => {
+  studentsMap?: Record<string, AssignableStudent>;
+}> = ({ id, eligible, reason, onAssign, studentsMap }) => {
   const tag = !eligible ? getReasonTag(reason) : null;
   return (
     <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
@@ -157,7 +178,7 @@ const CandidateRow: React.FC<{
             fontWeight: 700,
           }}
         >
-          {getInitials(id)}
+          {getInitials(id, studentsMap)}
         </Avatar>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -165,7 +186,7 @@ const CandidateRow: React.FC<{
               variant="body2"
               className={`!font-semibold truncate ${eligible ? "text-slate-800" : "text-slate-400"}`}
             >
-              {getStudentName(id)}
+              {getStudentName(id, studentsMap)}
             </Typography>
             {tag && (
               <Chip
@@ -178,7 +199,7 @@ const CandidateRow: React.FC<{
             )}
           </div>
           <Typography variant="caption" className="text-slate-500">
-            Std {getStudentStandard(id, stdMap)} · {getStudentSubject(id, subMap)}
+            Std {getStudentStandard(id, studentsMap)} · {getStudentSubject(id, studentsMap)}
           </Typography>
           {!eligible && reason && (
             <Typography variant="caption" className="text-red-500 block">
@@ -221,23 +242,66 @@ const BatchAssign: React.FC = () => {
   );
   const [loadingBatch, setLoadingBatch] = useState<boolean>(!batch);
   const [saving, setSaving] = useState<boolean>(false);
-  const [stdMap, setStdMap] = useState<Record<string, string>>({});
-  const [subMap, setSubMap] = useState<Record<string, string>>({});
+  const savingRef = useRef<boolean>(false);
+  const [studentsMap, setStudentsMap] = useState<Record<string, AssignableStudent>>({});
+  const [, setLoadingStudents] = useState<boolean>(false);
 
+  // Fetch eligible students specifically for this batch's standard and subject
   useEffect(() => {
-    loadStudentCache().then(() => {
-      setStudentIds(Object.keys(studentCache));
-    });
-    Promise.all([getAllStandards(), getAllSubjects()]).then(([stds, subjs]) => {
-      const sMap: Record<string, string> = {};
-      stds.forEach((item) => { sMap[String(item.id)] = item.name; });
-      setStdMap(sMap);
+    if (!batch?.standard_id || !batch?.subject_id) return;
 
-      const subObj: Record<string, string> = {};
-      subjs.forEach((item) => { subObj[String(item.id)] = item.name; });
-      setSubMap(subObj);
-    }).catch(console.error);
-  }, []);
+    const fetchStudentsForBatch = async () => {
+      setLoadingStudents(true);
+      try {
+        const res = await getStudents({
+          standard_id: batch.standard_id,
+          subject_id: batch.subject_id,
+        });
+
+        const rawList = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.students)
+            ? res.data.students
+            : Array.isArray(res.data?.data)
+              ? res.data.data
+              : [];
+
+        if (rawList.length > 0) {
+          const map: Record<string, AssignableStudent> = {};
+          rawList.forEach((s: any) => {
+            const sid = String(s.id);
+            const stdName = s.standard?.name || s.standard || batch.standard || "";
+            const subjName = s.subject?.name || s.subject || batch.subject || "";
+            const fullName = `${s.first_name || ""} ${s.surname || ""}`.trim() || `Student #${sid}`;
+
+            map[sid] = {
+              id: sid,
+              name: fullName,
+              standard: stdName,
+              subject: subjName,
+              rollNo: s.roll_no || "",
+              contactNo: s.contact_no || "",
+            };
+          });
+          setStudentsMap(map);
+          setStudentIds(Object.keys(map));
+        } else {
+          loadStudentCache().then(() => {
+            setStudentIds(Object.keys(studentCache));
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching students for batch standard/subject:", err);
+        loadStudentCache().then(() => {
+          setStudentIds(Object.keys(studentCache));
+        });
+      } finally {
+        setLoadingStudents(false);
+      }
+    };
+
+    fetchStudentsForBatch();
+  }, [batch?.standard_id, batch?.subject_id]);
 
   useEffect(() => {
     if (!id) {
@@ -288,9 +352,9 @@ const BatchAssign: React.FC = () => {
       .filter((sid) => {
         if (!q) return true;
         return (
-          getStudentName(sid).toLowerCase().includes(q) ||
-          getStudentStandard(sid, stdMap).toLowerCase().includes(q) ||
-          getStudentSubject(sid, subMap).toLowerCase().includes(q)
+          getStudentName(sid, studentsMap).toLowerCase().includes(q) ||
+          getStudentStandard(sid, studentsMap).toLowerCase().includes(q) ||
+          getStudentSubject(sid, studentsMap).toLowerCase().includes(q)
         );
       })
       .map((sid) => {
@@ -298,23 +362,28 @@ const BatchAssign: React.FC = () => {
         const result = canAssignStudent(sid, candidateBatch, allBatches);
         return { id: sid, eligible: result.ok, reason: result.ok ? undefined : result.reason };
       });
-  }, [search, candidateBatch, allBatches, allStudentIds, assignedStudentIds, stdMap, subMap]);
+  }, [search, candidateBatch, allBatches, allStudentIds, assignedStudentIds, studentsMap]);
 
   const handleAssign = (studentId: string) => {
     if (assignedStudentIds.includes(studentId)) return;
     setAssignedStudentIds((prev) => [...prev, studentId]);
-    showToast(`${getStudentName(studentId)} added to assignment list.`, true);
+    showToast(`${getStudentName(studentId, studentsMap)} added to assignment list.`, true);
   };
 
   const handleRemove = (studentId: string) => {
     setAssignedStudentIds((prev) => prev.filter((sid) => sid !== studentId));
-    showToast(`${getStudentName(studentId)} removed from assignment list.`, true);
+    showToast(`${getStudentName(studentId, studentsMap)} removed from assignment list.`, true);
   };
 
   const handleSave = async () => {
-    if (!id || !batch) return;
+    if (!id || !batch || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
+      // 1. Call Backend API to persist student assignments
+      await assignStudentsToBatchAPI(id, assignedStudentIds);
+
+      // 2. Update local state
       batch.studentIds = [...assignedStudentIds];
       batchStore[id] = { ...batch, studentIds: [...assignedStudentIds] };
 
@@ -327,13 +396,15 @@ const BatchAssign: React.FC = () => {
         customClass: { confirmButton: "rounded-xl px-6 py-2.5 font-medium text-sm shadow-md" },
       }).then(() => navigate("/batches"));
     } catch (err: any) {
-      setSaving(false);
       Swal.fire({
         title: "Error",
         text: err.message || "Failed to save assignments",
         icon: "error",
         confirmButtonColor: "#2563eb",
       });
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   };
 
@@ -397,19 +468,11 @@ const BatchAssign: React.FC = () => {
       )}
 
       {/* ── Page Header ────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <IconButton onClick={() => navigate("/batches")} color="primary">
-          <ArrowBackIcon />
-        </IconButton>
-        <div>
-          <Typography variant="h5" className="!font-bold text-slate-800">
-            Assign Students
-          </Typography>
-          <Typography variant="body2" className="text-slate-500">
-            {batch.name}
-          </Typography>
-        </div>
-      </div>
+      <PageHeader
+        title="Assign Students to Batch"
+        subtitle="Manage and assign students to this batch"
+        onBack={() => navigate("/batches")}
+      />
 
       {/* ── Batch Summary Banner Card ────────────────────────────────────── */}
       <Card
@@ -549,8 +612,7 @@ const BatchAssign: React.FC = () => {
                     index={idx}
                     canRemove={canEdit}
                     onRemove={() => handleRemove(sid)}
-                    stdMap={stdMap}
-                    subMap={subMap}
+                    studentsMap={studentsMap}
                   />
                 ))}
               </div>
@@ -628,8 +690,7 @@ const BatchAssign: React.FC = () => {
                     eligible={eligible && canEdit}
                     reason={!canEdit ? "Batch is not active" : reason}
                     onAssign={() => handleAssign(sid)}
-                    stdMap={stdMap}
-                    subMap={subMap}
+                    studentsMap={studentsMap}
                   />
                 ))}
               </div>
@@ -658,7 +719,7 @@ const BatchAssign: React.FC = () => {
           {saving ? (
             <CircularProgress size={18} color="inherit" />
           ) : (
-            <SaveIcon fontSize="small" />
+            <IconDeviceFloppy size={18} className="text-white" stroke={2.5} />
           )}
           <span>Save Assignments</span>
         </button>

@@ -50,6 +50,7 @@ export interface StudentRegistrationData {
   isActive?: boolean;
   subjectName?: string;
   standardName?: string;
+  rollNo?: string;
 }
 
 export type ValidationErrors = Record<string, string>;

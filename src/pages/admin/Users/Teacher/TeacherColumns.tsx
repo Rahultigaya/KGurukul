@@ -2,7 +2,7 @@
 
 import { type TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
-import { IconPencil } from "@tabler/icons-react";
+import { IconPencil, IconEye } from "@tabler/icons-react";
 import { type TeacherData } from "./teacherStore";
 
 type FormattedTeacher = TeacherData & { name: string; avatar: string; joined: string };
@@ -33,10 +33,10 @@ export function useTeacherColumns(): TableColumn<FormattedTeacher>[] {
             />
           )}
           <div className="min-w-0">
-            <p className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>
+            <p className="font-semibold text-sm truncate text-primary">
               {row.name}
             </p>
-            <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs truncate text-muted">
               {row.email}
             </p>
           </div>
@@ -48,25 +48,29 @@ export function useTeacherColumns(): TableColumn<FormattedTeacher>[] {
       selector: (row) => row.joined,
       sortable: true,
       cell: (row) => (
-        <span className="text-sm" style={{ color: "var(--text-primary)" }}>
+        <span className="text-sm text-primary">
           {row.joined}
         </span>
       ),
     },
     {
       name: "Actions",
-      width: "100px",
+      width: "120px",
       cell: (row) => (
         <div className="flex gap-1">
           <button
-            onClick={() => navigate(`/Users/edit-teacher/${row.id}`)}
-            className="p-2 rounded-lg transition-colors"
-            title="Edit teacher"
-            style={{ background: "var(--bg-tertiary)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
+            onClick={() => navigate(`/Users/edit-teacher/${row.id}?mode=view`)}
+            className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 shadow-sm transition-all hover:scale-105"
+            title="View teacher"
           >
-            <IconPencil size={15} style={{ color: "var(--text-secondary)" }} />
+            <IconEye size={15} />
+          </button>
+          <button
+            onClick={() => navigate(`/Users/edit-teacher/${row.id}`)}
+            className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200/60 shadow-sm transition-all hover:scale-105"
+            title="Edit teacher"
+          >
+            <IconPencil size={15} />
           </button>
         </div>
       ),

@@ -1,6 +1,5 @@
-// src/pages/AdminDashboard.tsx
-
 import React from "react";
+import { PageHeader } from "../../../components/PageHeader";
 import {
   IconUsers,
   IconUsersGroup,
@@ -122,13 +121,13 @@ const StatCard: React.FC<(typeof stats)[0]> = ({
     </div>
 
     <div>
-      <p className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+      <p className="text-2xl font-bold text-primary">
         {value}
       </p>
-      <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
+      <p className="text-sm mt-0.5 text-secondary">
         {label}
       </p>
-      <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+      <p className="text-xs mt-1 text-muted">
         {sub}
       </p>
     </div>
@@ -180,23 +179,19 @@ const AdminDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto pb-10 space-y-6 px-2 sm:px-0">
 
       {/* ── Page heading ──────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Dashboard
-          </h1>
-          <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-            {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </p>
-        </div>
-        <div
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium"
-          style={{ background: "rgba(249,115,22,0.1)", color: "#f97316", border: "1px solid rgba(249,115,22,0.2)" }}
-        >
-          <IconClockHour4 size={15} />
-          {todayBatches.length} batches today
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle={new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+        action={
+          <div
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium"
+            style={{ background: "rgba(249,115,22,0.1)", color: "#f97316", border: "1px solid rgba(249,115,22,0.2)" }}
+          >
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            Live System
+          </div>
+        }
+      />
 
       {/* ── Stat cards ────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

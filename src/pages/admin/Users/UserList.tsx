@@ -1,17 +1,18 @@
-// src/pages/admin/Users/UserList.tsx
-
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../../../components/PageHeader";
 
 import {
   IconPlus,
   IconPencil,
+  IconEye,
   IconPhone,
   IconCurrencyRupee,
   IconSchool,
   IconChalkboard,
   IconUserOff,
   IconUserCheck,
+  IconAlertCircle,
 } from "@tabler/icons-react";
 
 import { Loader } from "@mantine/core";
@@ -40,14 +41,11 @@ import {
 
 import Swal from "sweetalert2";
 
-import { getStudents } from "../../../api/api";
+import { getStudents, toggleStudentStatus, toggleTeacherStatus } from "../../../api/api";
 import {
   getAllTeachers,
   formatTeacherForUI,
-  updateTeacher,
 } from "./Teacher/teacherStore";
-
-import { updateStudent } from "./Student/studentStore";
 import { type Student } from "./Student/StudentColumns";
 import { DUMMY_STUDENT } from "./Student/dummyStudent";
 import { DUMMY_TEACHER } from "./Teacher/dummyTeacher";
@@ -265,10 +263,15 @@ const UsersList: React.FC = () => {
   }, [activeTab]);
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Fetch data on mount
+  // Fetch data on mount: Call both APIs once (guarded against StrictMode double calls)
   // ───────────────────────────────────────────────────────────────────────────
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     fetchStudents();
     fetchTeachers();
   }, []);
@@ -387,15 +390,9 @@ const UsersList: React.FC = () => {
     }
 
     try {
-      await updateStudent(student.id, {
-        ...student,
-        isActive: newIsActive,
-      });
+      await toggleStudentStatus(Number(student.id));
     } catch (err: any) {
-      console.error(
-        "API update error for student status:",
-        err
-      );
+      console.error("API error toggling student status:", err);
     }
 
     setStudents((prev) =>
@@ -469,45 +466,9 @@ const UsersList: React.FC = () => {
     }
 
     try {
-      await updateTeacher(
-        teacher.id,
-        {
-          firstName:
-            teacher.firstName ??
-            teacher.name?.split(" ")[0] ??
-            "",
-
-          middleName:
-            teacher.middleName ?? "",
-
-          lastName:
-            teacher.lastName ??
-            teacher.name
-              ?.split(" ")
-              .slice(1)
-              .join(" ") ??
-            "",
-
-          email:
-            teacher.email ?? "",
-
-          joiningDate:
-            teacher.joiningDate ??
-            new Date()
-              .toISOString()
-              .split("T")[0],
-
-          photo:
-            teacher.photo ?? null,
-
-          status: newStatus,
-        }
-      );
+      await toggleTeacherStatus(teacher.id);
     } catch (err: any) {
-      console.error(
-        "API update error for teacher status:",
-        err
-      );
+      console.error("API error toggling teacher status:", err);
     }
 
     setTeachers((prev) =>
@@ -820,60 +781,35 @@ const UsersList: React.FC = () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2
-            className="text-3xl font-bold mb-1"
-            style={{
-              color:
-                "var(--text-primary)",
-            }}
-          >
-            Users
-          </h2>
-
-          <p
-            className="text-sm"
-            style={{
-              color:
-                "var(--text-secondary)",
-            }}
-          >
-            Manage students and teachers
-          </p>
-        </div>
-
-        {activeTab === "students" && (
-          <button
-            onClick={() =>
-              navigate(
-                "/Users/add-student"
-              )
-            }
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
-          >
-            <IconPlus size={16} />
-            Add Student
-          </button>
-        )}
-
-        {activeTab === "teachers" && (
-          <button
-            onClick={() =>
-              navigate(
-                "/Users/add-teacher"
-              )
-            }
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
-          >
-            <IconPlus size={16} />
-            Add Teacher
-          </button>
-        )}
-      </div>
+      <PageHeader
+        title="Users"
+        subtitle="Manage students and teachers"
+        action={
+          <>
+            {activeTab === "students" && (
+              <button
+                onClick={() => navigate("/Users/add-student")}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
+              >
+                <IconPlus size={16} />
+                Add Student
+              </button>
+            )}
+            {activeTab === "teachers" && (
+              <button
+                onClick={() => navigate("/Users/add-teacher")}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
+              >
+                <IconPlus size={16} />
+                Add Teacher
+              </button>
+            )}
+          </>
+        }
+      />
 
       {/* Main Card with Folder Tabs Sticking Out */}
       <div className="space-y-0 relative">
@@ -998,8 +934,9 @@ const UsersList: React.FC = () => {
                   {/* Student Error */}
                   {studentError && (
                     <div className="flex items-center justify-between px-4 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm">
-                      <span>
-                        ⚠️ API connection failed (
+                      <span className="flex items-center gap-1.5">
+                        <IconAlertCircle size={16} className="shrink-0" />
+                        API connection failed (
                         {studentError}
                         ). Showing 1 dummy student for offline preview.
                       </span>
@@ -1191,7 +1128,7 @@ const UsersList: React.FC = () => {
                                   hover
                                   onClick={() =>
                                     navigate(
-                                      `/Users/edit-student/${row.id}`
+                                      `/profile/student/${row.id}`
                                     )
                                   }
                                   className="cursor-pointer transition-colors hover:bg-slate-50/80"
@@ -1319,6 +1256,21 @@ const UsersList: React.FC = () => {
                                       }
                                     >
 
+                                      {/* View */}
+                                      <button
+                                        onClick={() =>
+                                          navigate(
+                                            `/Users/edit-student/${row.id}?mode=view`
+                                          )
+                                        }
+                                        className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 shadow-sm transition-all hover:scale-105"
+                                        title="View student"
+                                      >
+                                        <IconEye
+                                          size={15}
+                                        />
+                                      </button>
+
                                       {/* Edit */}
                                       <button
                                         onClick={() =>
@@ -1326,7 +1278,7 @@ const UsersList: React.FC = () => {
                                             `/Users/edit-student/${row.id}`
                                           )
                                         }
-                                        className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                        className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200/60 shadow-sm transition-all hover:scale-105"
                                         title="Edit student"
                                       >
                                         <IconPencil
@@ -1341,7 +1293,7 @@ const UsersList: React.FC = () => {
                                             `/Users/edit-student/${row.id}?tab=fees`
                                           )
                                         }
-                                        className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                        className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 shadow-sm transition-all hover:scale-105"
                                         title="Update payment"
                                       >
                                         <IconCurrencyRupee
@@ -1356,10 +1308,10 @@ const UsersList: React.FC = () => {
                                             row
                                           )
                                         }
-                                        className={`p-2 rounded-lg transition-colors ${
+                                        className={`p-2 rounded-lg shadow-sm border transition-all hover:scale-105 ${
                                           isActive
-                                            ? "bg-rose-50 hover:bg-rose-100 text-rose-600"
-                                            : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
+                                            ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200/60"
+                                            : "bg-teal-50 hover:bg-teal-100 text-teal-600 border-teal-200/60"
                                         }`}
                                         title={
                                           isActive
@@ -1492,8 +1444,9 @@ const UsersList: React.FC = () => {
                   {teacherError && (
                     <div className="flex items-center justify-between px-4 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm">
 
-                      <span>
-                        ⚠️ API connection failed (
+                      <span className="flex items-center gap-1.5">
+                        <IconAlertCircle size={16} className="shrink-0" />
+                        API connection failed (
                         {teacherError}
                         ). Showing 1 dummy teacher for offline preview.
                       </span>
@@ -1591,7 +1544,12 @@ const UsersList: React.FC = () => {
                               <TableRow
                                 key={row.id}
                                 hover
-                                className="transition-colors hover:bg-slate-50/80"
+                                onClick={() =>
+                                  navigate(
+                                    `/profile/teacher/${row.id}`
+                                  )
+                                }
+                                className="cursor-pointer transition-colors hover:bg-slate-50/80"
                               >
 
                                 {/* Teacher */}
@@ -1639,7 +1597,27 @@ const UsersList: React.FC = () => {
                                   className="!py-3"
                                   align="right"
                                 >
-                                  <div className="flex items-center justify-end gap-1">
+                                  <div
+                                    className="flex items-center justify-end gap-1"
+                                    onClick={(e) =>
+                                      e.stopPropagation()
+                                    }
+                                  >
+
+                                    {/* View */}
+                                    <button
+                                      onClick={() =>
+                                        navigate(
+                                          `/Users/edit-teacher/${row.id}?mode=view`
+                                        )
+                                      }
+                                      className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 shadow-sm transition-all hover:scale-105"
+                                      title="View teacher"
+                                    >
+                                      <IconEye
+                                        size={15}
+                                      />
+                                    </button>
 
                                     {/* Edit */}
                                     <button
@@ -1648,7 +1626,7 @@ const UsersList: React.FC = () => {
                                           `/Users/edit-teacher/${row.id}`
                                         )
                                       }
-                                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                      className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200/60 shadow-sm transition-all hover:scale-105"
                                       title="Edit teacher"
                                     >
                                       <IconPencil
@@ -1663,11 +1641,11 @@ const UsersList: React.FC = () => {
                                           row
                                         )
                                       }
-                                      className={`p-2 rounded-lg transition-colors ${
+                                      className={`p-2 rounded-lg shadow-sm border transition-all hover:scale-105 ${
                                         row.status ===
                                         "Active"
-                                          ? "bg-rose-50 hover:bg-rose-100 text-rose-600"
-                                          : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
+                                          ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200/60"
+                                          : "bg-teal-50 hover:bg-teal-100 text-teal-600 border-teal-200/60"
                                       }`}
                                       title={
                                         row.status ===

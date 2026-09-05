@@ -272,3 +272,85 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: #0f172a !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* Global High-Contrast Input & Form Control Enhancements (MUI, Mantine, HTML) */
+.MuiOutlinedInput-root {
+  background-color: #ffffff !important;
+  border-radius: 10px !important;
+}
+
+.MuiOutlinedInput-root fieldset {
+  border-color: #94a3b8 !important;
+  border-width: 1.5px !important;
+  transition: border-color 0.2s ease;
+}
+
+.MuiOutlinedInput-root:hover fieldset {
+  border-color: #475569 !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: #2563eb !important;
+  border-width: 2px !important;
+}
+
+.MuiInputBase-input {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+.MuiInputBase-input::placeholder {
+  color: #475569 !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+.MuiInputLabel-root {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+.MuiInputLabel-root.Mui-focused {
+  color: #2563eb !important;
+}
+
+.MuiSvgIcon-root {
+  color: #475569;
+}
+
+button.text-white .MuiSvgIcon-root,
+.text-white .MuiSvgIcon-root,
+.MuiSvgIcon-root.text-white {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.mantine-Input-input,
+.mantine-TextInput-input,
+.mantine-Select-input,
+.mantine-DateInput-input {
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.mantine-Input-input:focus,
+.mantine-TextInput-input:focus,
+.mantine-Select-input:focus,
+.mantine-DateInput-input:focus {
+  border-color: #2563eb !important;
+}
+
+.mantine-Input-input::placeholder,
+.mantine-TextInput-input::placeholder,
+.mantine-Select-input::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+.mantine-InputWrapper-label {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}

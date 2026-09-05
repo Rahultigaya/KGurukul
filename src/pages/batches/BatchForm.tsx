@@ -1,10 +1,8 @@
-// src/pages/batches/BatchForm.tsx
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "../../components/PageHeader";
 import {
   Typography,
-  IconButton,
   Card,
   CardContent,
   Autocomplete,
@@ -50,15 +48,7 @@ import {
 import { IconCheck } from "@tabler/icons-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Styling helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
-const inputSxSlate = {
-  "& .MuiOutlinedInput-root": {
-    backgroundColor: "#f8fafc",
-    borderRadius: "10px",
-  },
-};
 
 interface OptionItem {
   value: string;
@@ -91,7 +81,8 @@ function buildTimeSlot(start: string, end: string): string {
 }
 
 function parseTimeSlot(slot: string): { startTime: string; endTime: string } {
-  const parts = slot.split("–").map((s) => s.trim());
+  if (!slot) return { startTime: "", endTime: "" };
+  const parts = slot.split(/\s*[-–—]\s*/).map((s) => s.trim());
   if (parts.length !== 2) return { startTime: "", endTime: "" };
   const to24 = (t: string) => {
     const match = t.match(/^(\d+):(\d+)\s*(AM|PM)$/i);
@@ -105,6 +96,139 @@ function parseTimeSlot(slot: string): { startTime: string; endTime: string } {
   };
   return { startTime: to24(parts[0]), endTime: to24(parts[1]) };
 }
+
+const HOURS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+
+function parse24to12(time24: string, defaultHour = "09", defaultAmPm = "AM") {
+  if (!time24) return { hour: defaultHour, minute: "00", ampm: defaultAmPm };
+  const [hStr, mStr] = time24.split(":");
+  let h = parseInt(hStr || defaultHour, 10);
+  const m = mStr || "00";
+  const ampm = h >= 12 ? "PM" : "AM";
+  if (h === 0) h = 12;
+  else if (h > 12) h -= 12;
+  const hourStr = String(h).padStart(2, "0");
+  return { hour: hourStr, minute: m, ampm };
+}
+
+function build24From12(hourStr: string, minuteStr: string, ampm: string): string {
+  let h = parseInt(hourStr, 10) || 12;
+  if (ampm === "PM" && h < 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  const h24 = String(h).padStart(2, "0");
+  const m24 = String(minuteStr).padStart(2, "0");
+  return `${h24}:${m24}`;
+}
+
+const AmPmTimePicker: React.FC<{
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  error?: boolean;
+  helperText?: string;
+  defaultHour?: string;
+  defaultAmPm?: "AM" | "PM";
+}> = ({ label, value, onChange, error, helperText, defaultHour = "09", defaultAmPm = "AM" }) => {
+  useEffect(() => {
+    if (!value) {
+      onChange(build24From12(defaultHour, "00", defaultAmPm));
+    }
+  }, [value, defaultHour, defaultAmPm, onChange]);
+
+  const { hour, minute, ampm } = parse24to12(value, defaultHour, defaultAmPm);
+
+  const handleHourChange = (newHour: string) => {
+    let nextAmPm = ampm;
+    // When selecting 12 from an AM time (e.g. 9 AM -> 12), default to 12 PM (Noon)
+    if (newHour === "12" && ampm === "AM") {
+      nextAmPm = "PM";
+    }
+    onChange(build24From12(newHour, minute, nextAmPm));
+  };
+
+  const handleMinChange = (newMin: string) => {
+    onChange(build24From12(hour, newMin, ampm));
+  };
+
+  const handleAmPmToggle = (newAmPm: string) => {
+    onChange(build24From12(hour, minute, newAmPm));
+  };
+
+  return (
+    <div className="space-y-1">
+      <label className="block text-xs font-semibold text-slate-700">
+        {label}
+      </label>
+      <div
+        className={`flex items-center gap-1.5 p-1.5 rounded-xl border bg-white shadow-sm transition-all ${
+          error
+            ? "border-red-500 ring-1 ring-red-500 bg-red-50/20"
+            : "border-slate-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500"
+        }`}
+      >
+        {/* Hour Dropdown */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] uppercase font-bold text-slate-400 pl-1">Hr</span>
+          <select
+            value={hour}
+            onChange={(e) => handleHourChange(e.target.value)}
+            className="bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-800 py-1 px-2 focus:outline-none cursor-pointer hover:border-blue-400"
+          >
+            {HOURS_12.map((h) => (
+              <option key={h} value={h}>{h}</option>
+            ))}
+          </select>
+        </div>
+
+        <span className="font-bold text-slate-400 text-sm">:</span>
+
+        {/* Minute Dropdown */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] uppercase font-bold text-slate-400">Min</span>
+          <select
+            value={minute}
+            onChange={(e) => handleMinChange(e.target.value)}
+            className="bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-800 py-1 px-2 focus:outline-none cursor-pointer hover:border-blue-400"
+          >
+            {MINUTES.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* AM / PM Segmented Control */}
+        <div className="flex items-center bg-slate-200/80 p-0.5 rounded-lg ml-auto border border-slate-300/50">
+          <button
+            type="button"
+            onClick={() => handleAmPmToggle("AM")}
+            className={`px-2.5 py-1 text-xs font-extrabold rounded-md transition-all ${
+              ampm === "AM"
+                ? "bg-blue-600 text-white shadow-md scale-105"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            AM
+          </button>
+          <button
+            type="button"
+            onClick={() => handleAmPmToggle("PM")}
+            className={`px-2.5 py-1 text-xs font-extrabold rounded-md transition-all ${
+              ampm === "PM"
+                ? "bg-indigo-600 text-white shadow-md scale-105"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            PM
+          </button>
+        </div>
+      </div>
+      {helperText && (
+        <p className="text-xs text-red-500 font-medium pl-1">{helperText}</p>
+      )}
+    </div>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Form types
@@ -127,7 +251,7 @@ type FormErrors = Partial<Record<keyof FormData, string>>;
 
 const emptyForm: FormData = {
   area_id: null, branch_id: null, day: null,
-  startTime: "", endTime: "",
+  startTime: "09:00", endTime: "11:00",
   subject_id: null, standard_id: null, teacher_id: null,
   capacity: 30, type: "Regular", status: "Active",
 };
@@ -158,7 +282,7 @@ const BatchNamePreview: React.FC<{
 
   if (!hasAny)
     return (
-      <Text size="sm" fs="italic" style={{ color: "var(--text-muted)" }}>
+      <Text size="sm" fs="italic" className="text-muted">
         Fill Area, Branch, Day and Time to generate name…
       </Text>
     );
@@ -172,7 +296,7 @@ const BatchNamePreview: React.FC<{
               {t.filled ? t.value : `[ ${t.label} ]`}
             </span>
             {i < tokens.length - 1 && (
-              <span style={{ color: "var(--text-muted)" }} className="mx-1.5">·</span>
+              <span className="mx-1.5 text-muted">·</span>
             )}
           </span>
         ))}
@@ -237,25 +361,30 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
       try {
         const batch = await getBatchByIdAPI(batchId);
         if (!batch) { setNotFound(true); return; }
-        const { startTime, endTime } = parseTimeSlot(batch.timeSlot);
-        // Find IDs from names
-        const areaObj = areas.find(a => a.name === batch.area);
-        const branchObj = branches.find(b => b.name === batch.branch);
-        const subjectObj = subjects.find(s => s.name === batch.subject);
-        const standardObj = standards.find(s => s.name === batch.standard);
-        const teacherObj = teachers.find(t => t.id === batch.teacherId || getTeacherFullName(t) === batch.teacherName);
+
+        const parsedTimes = parseTimeSlot(batch.timeSlot);
+        const startTime = batch.start_time || (batch as any).startTime || parsedTimes.startTime || "09:00";
+        const endTime = batch.end_time || (batch as any).endTime || parsedTimes.endTime || "11:00";
+
+        // Extract IDs directly from backend response fields first, with name lookup as fallback
+        const areaId = batch.area_id != null ? Number(batch.area_id) : (areas.find(a => a.name === batch.area)?.id != null ? Number(areas.find(a => a.name === batch.area)!.id) : null);
+        const branchId = batch.branch_id != null ? Number(batch.branch_id) : (branches.find(b => b.name === batch.branch)?.id != null ? Number(branches.find(b => b.name === batch.branch)!.id) : null);
+        const subjectId = batch.subject_id != null ? Number(batch.subject_id) : (subjects.find(s => s.name === batch.subject)?.id != null ? Number(subjects.find(s => s.name === batch.subject)!.id) : null);
+        const standardId = batch.standard_id != null ? Number(batch.standard_id) : (standards.find(s => s.name === batch.standard)?.id != null ? Number(standards.find(s => s.name === batch.standard)!.id) : null);
+        const teacherId = batch.teacher_id != null ? Number(batch.teacher_id) : (teachers.find(t => String(t.id) === String(batch.teacherId) || getTeacherFullName(t) === batch.teacherName)?.id != null ? Number(teachers.find(t => String(t.id) === String(batch.teacherId) || getTeacherFullName(t) === batch.teacherName)!.id) : null);
 
         setForm({
-          area_id: areaObj?.id != null ? Number(areaObj.id) || null : null,
-          branch_id: branchObj?.id != null ? Number(branchObj.id) || null : null,
-          day: batch.day,
-          startTime, endTime,
-          subject_id: subjectObj?.id != null ? Number(subjectObj.id) || null : null,
-          standard_id: standardObj?.id != null ? Number(standardObj.id) || null : null,
-          teacher_id: teacherObj?.id != null ? Number(teacherObj.id) || null : null,
-          capacity: batch.capacity,
-          type: batch.type,
-          status: batch.status,
+          area_id: areaId,
+          branch_id: branchId,
+          day: batch.day || null,
+          startTime,
+          endTime,
+          subject_id: subjectId,
+          standard_id: standardId,
+          teacher_id: teacherId,
+          capacity: batch.capacity ?? 30,
+          type: batch.type || "Regular",
+          status: batch.status || "Active",
         });
       } catch (err) {
         console.error("Error loading batch:", err);
@@ -296,10 +425,10 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
 
   const timeSlot = buildTimeSlot(form.startTime, form.endTime);
 
-  // Filter branches based on selected area (only active branches)
+  // Filter branches based on selected area (including current branch if assigned)
   const branchOpts = form.area_id
     ? branches
-      .filter(b => b.area_id === form.area_id && b.is_active === 1)
+      .filter(b => String(b.area_id) === String(form.area_id) && (Number(b.is_active) === 1 || String(b.id) === String(form.branch_id)))
       .map(b => ({ value: String(b.id), label: b.name }))
     : [];
 
@@ -404,7 +533,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
   if (notFound)
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <Text style={{ color: "var(--text-secondary)" }}>Batch not found.</Text>
+        <Text className="text-secondary">Batch not found.</Text>
         <Button variant="contained" color="primary" startIcon={<ArrowBackIcon fontSize="small" />} onClick={() => navigate("/batches")}>
           Back to Batches
         </Button>
@@ -414,21 +543,21 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
   const errorCount = Object.keys(errors).length;
 
   const areaOptions: OptionItem[] = areas
-    .filter((a) => a.is_active === 1)
+    .filter((a) => Number(a.is_active) === 1 || String(a.id) === String(form.area_id))
     .map((a) => ({ value: String(a.id), label: a.name }));
 
   const dayOptions: OptionItem[] = DAYS.map((d) => ({ value: d, label: d }));
 
   const subjectOptions: OptionItem[] = subjects
-    .filter((s) => s.is_active === 1)
+    .filter((s) => Number(s.is_active) === 1 || String(s.id) === String(form.subject_id))
     .map((s) => ({ value: String(s.id), label: s.name }));
 
   const standardOptions: OptionItem[] = standards
-    .filter((s) => s.is_active === 1)
+    .filter((s) => Number(s.is_active) === 1 || String(s.id) === String(form.standard_id))
     .map((s) => ({ value: String(s.id), label: s.name }));
 
   const teacherOptions: OptionItem[] = teachers
-    .filter((t) => t.status === "Active")
+    .filter((t) => t.status === "Active" || String(t.id) === String(form.teacher_id))
     .map((t) => ({ value: String(t.id), label: getTeacherFullName(t) }));
 
   const batchTypeOptions: OptionItem[] = BATCH_TYPES.map((t) => ({ value: t, label: t }));
@@ -446,19 +575,10 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
       )}
 
       {/* ── Header ────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <IconButton onClick={() => navigate("/batches")} color="primary">
-          <ArrowBackIcon />
-        </IconButton>
-        <div>
-          <Typography variant="h5" className="!font-bold text-slate-800">
-            {mode === "edit" ? "Edit Batch" : "Create Batch"}
-          </Typography>
-          <Typography variant="body2" className="text-slate-500">
-            {mode === "edit" ? "Update the batch details below" : "Fill in the details to create a new batch"}
-          </Typography>
-        </div>
-      </div>
+      <PageHeader
+        title={mode === "edit" ? "Edit Batch" : "Create Batch"}
+        subtitle={mode === "edit" ? "Update the batch details below" : "Fill in the details to create a new batch"}
+      />
 
       {/* ── Batch name preview banner ──────────────────────────────────── */}
       <Card
@@ -522,7 +642,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                       placeholder="Select area"
                       error={Boolean(errors.area_id)}
                       helperText={errors.area_id}
-                      sx={inputSxSlate}
                     />
                   )}
                 />
@@ -542,7 +661,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                       placeholder={form.area_id ? "Select branch" : "Select area first"}
                       error={Boolean(errors.branch_id)}
                       helperText={errors.branch_id}
-                      sx={inputSxSlate}
                     />
                   )}
                 />
@@ -562,7 +680,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                       placeholder="Select subject"
                       error={Boolean(errors.subject_id)}
                       helperText={errors.subject_id}
-                      sx={inputSxSlate}
                     />
                   )}
                 />
@@ -582,7 +699,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                       placeholder="Select standard"
                       error={Boolean(errors.standard_id)}
                       helperText={errors.standard_id}
-                      sx={inputSxSlate}
                     />
                   )}
                 />
@@ -618,41 +734,26 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                       placeholder="Select day"
                       error={Boolean(errors.day)}
                       helperText={errors.day}
-                      sx={inputSxSlate}
                     />
                   )}
                 />
 
-                <TextField
+                <AmPmTimePicker
                   label="Start Time *"
-                  type="time"
-                  size="small"
-                  fullWidth
                   value={form.startTime}
-                  onChange={(e) => set("startTime", e.target.value)}
+                  onChange={(val) => set("startTime", val)}
                   error={Boolean(errors.startTime)}
                   helperText={errors.startTime}
-                  slotProps={{
-                    inputLabel: { shrink: true },
-                    htmlInput: { step: 1800 }
-                  }}
-                  sx={inputSxSlate}
                 />
 
-                <TextField
+                <AmPmTimePicker
                   label="End Time *"
-                  type="time"
-                  size="small"
-                  fullWidth
                   value={form.endTime}
-                  onChange={(e) => set("endTime", e.target.value)}
+                  onChange={(val) => set("endTime", val)}
                   error={Boolean(errors.endTime)}
                   helperText={errors.endTime}
-                  slotProps={{
-                    inputLabel: { shrink: true },
-                    htmlInput: { step: 1800 }
-                  }}
-                  sx={inputSxSlate}
+                  defaultHour="11"
+                  defaultAmPm="AM"
                 />
               </div>
             </div>
@@ -695,7 +796,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                       placeholder="Select teacher"
                       error={Boolean(errors.teacher_id)}
                       helperText={errors.teacher_id}
-                      sx={inputSxSlate}
                     />
                   )}
                 />
@@ -713,7 +813,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                   slotProps={{
                     htmlInput: { min: 1, max: 100 }
                   }}
-                  sx={inputSxSlate}
                 />
 
                 <div className="grid grid-cols-2 gap-3">
@@ -731,7 +830,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                         placeholder="Batch type"
                         error={Boolean(errors.type)}
                         helperText={errors.type}
-                        sx={inputSxSlate}
                       />
                     )}
                   />
@@ -750,7 +848,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                         placeholder="Status"
                         error={Boolean(errors.status)}
                         helperText={errors.status}
-                        sx={inputSxSlate}
                       />
                     )}
                   />

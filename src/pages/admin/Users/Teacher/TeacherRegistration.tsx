@@ -1,19 +1,21 @@
-// src/pages/admin/Users/Teacher/TeacherRegistration.tsx
-// Routes:
-//   { path: "Users/add-teacher",           element: <TeacherRegistration /> }
-//   { path: "Users/edit-teacher/:id",      element: <TeacherRegistration /> }
-
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { PageHeader } from "../../../../components/PageHeader";
 import {
-  Stack, Paper, Title, Grid, Text, Group,
-  TextInput, ActionIcon, Avatar, Tooltip, Alert,
-} from "@mantine/core";
-import { DateInput } from "@mantine/dates";
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Avatar,
+  Alert,
+  IconButton,
+  Button,
+} from "@mui/material";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import {
-  IconArrowLeft, IconUpload, IconX, IconUser,
-  IconDeviceFloppy, IconAlertCircle, IconCircleCheck,
-  IconUserOff, IconUserCheck,
+  IconUpload, IconX, IconUser,
+  IconDeviceFloppy, IconAlertCircle, IconPencil,
 } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../../context/ThemeContext";
@@ -31,30 +33,59 @@ type FormErrors = Partial<Record<keyof TeacherFormData | "general", string>>;
 
 function validate(form: TeacherFormData): FormErrors {
   const errors: FormErrors = {};
-  if (!form.firstName.trim())     errors.firstName   = "First name is required.";
+  if (!form.firstName.trim()) errors.firstName = "First name is required.";
   else if (!/^[a-zA-Z\s]+$/.test(form.firstName))
-                                  errors.firstName   = "First name must contain letters only.";
+    errors.firstName = "First name must contain letters only.";
   if (form.middleName.trim() && !/^[a-zA-Z\s]+$/.test(form.middleName))
-                                  errors.middleName  = "Middle name must contain letters only.";
-  if (!form.lastName.trim())      errors.lastName    = "Last name is required.";
+    errors.middleName = "Middle name must contain letters only.";
+  if (!form.lastName.trim()) errors.lastName = "Last name is required.";
   else if (!/^[a-zA-Z\s]+$/.test(form.lastName))
-                                  errors.lastName    = "Last name must contain letters only.";
-  if (!form.email.trim())         errors.email       = "Email is required.";
+    errors.lastName = "Last name must contain letters only.";
+  if (!form.email.trim()) errors.email = "Email is required.";
   else if (!/\S+@\S+\.\S+/.test(form.email))
-                                  errors.email       = "Enter a valid email address.";
-  if (!form.joiningDate)          errors.joiningDate = "Joining date is required.";
+    errors.email = "Enter a valid email address.";
+  if (!form.joiningDate) errors.joiningDate = "Joining date is required.";
   return errors;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared input styles
+// Date Helpers (Prevent UTC offset shifts and RangeError crashes)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const inputSt = {
-  label:       { color: "var(--text-primary)", marginBottom: 6 },
-  input:       { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-  placeholder: { color: "var(--text-muted)" },
-  error:       { color: "#f87171" },
+const formatDateToISO = (date: Date | null): string => {
+  if (!date || isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseISOToDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return new Date(year, month, day);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared MUI input styling (matches your CSS var theme, keeps borders/labels themed)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "var(--bg-input)",
+    color: "var(--text-primary)",
+    "& fieldset": { borderColor: "var(--border-default)" },
+    "&:hover fieldset": { borderColor: "var(--border-accent)" },
+    "&.Mui-focused fieldset": { borderColor: "var(--accent-orange)" },
+  },
+  "& .MuiInputLabel-root": { color: "var(--text-muted)" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "var(--accent-orange)" },
+  "& .MuiFormHelperText-root": { color: "#f87171" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,46 +93,60 @@ const inputSt = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TeacherRegistration: React.FC = () => {
-  const navigate     = useNavigate();
-  const { id }       = useParams<{ id: string }>();
-  const { isDark }   = useTheme();
-  const isEdit       = Boolean(id);
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const { isDark } = useTheme();
+  const isEdit = Boolean(id);
+  const isView = searchParams.get("mode") === "view" || window.location.pathname.includes("view-teacher");
 
-  const [form,    setForm]    = useState<TeacherFormData>(emptyTeacherForm);
-  const [errors,  setErrors]  = useState<FormErrors>({});
-  const [saving,  setSaving]  = useState(false);
-  const [toast,   setToast]   = useState<{ msg: string; ok: boolean } | null>(null);
+  const [form, setForm] = useState<TeacherFormData>(emptyTeacherForm);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [saving, setSaving] = useState(false);
+  const hasFetched = useRef(false);
 
-  // ── Load for edit ──────────────────────────────────────────────────────────
+  // ── Load for edit / view ───────────────────────────────────────────────────
   useEffect(() => {
-    if (!isEdit || !id) return;
+    if (!isEdit || !id || hasFetched.current) return;
+    hasFetched.current = true;
 
     const loadTeacher = async () => {
-      console.log("Loading teacher with id:", id);
-      const t = await getTeacherById(id);
-      console.log("Teacher data:", t);
-      if (!t) {
+      try {
+        const t = await getTeacherById(id);
+        if (!t) {
+          Swal.fire({
+            title: "Teacher not found",
+            text: "The teacher record could not be found on the server.",
+            icon: "error",
+            background: isDark ? "#1e293b" : "#fff",
+            color: isDark ? "#f8fafc" : "#0f172a",
+            confirmButtonColor: "#7c3aed",
+          });
+          return;
+        }
+        setForm({
+          photo: t.photo,
+          firstName: t.firstName,
+          middleName: t.middleName,
+          lastName: t.lastName,
+          email: t.email,
+          joiningDate: t.joiningDate,
+          status: t.status,
+        });
+      } catch {
         Swal.fire({
-          title: "Teacher not found", icon: "error",
+          title: "Error",
+          text: "Failed to load teacher data from server.",
+          icon: "error",
           background: isDark ? "#1e293b" : "#fff",
           color: isDark ? "#f8fafc" : "#0f172a",
           confirmButtonColor: "#7c3aed",
-        }).then(() => navigate("/Users"));
-        return;
+        });
       }
-      setForm({
-        photo:       t.photo,
-        firstName:   t.firstName,
-        middleName:  t.middleName,
-        lastName:    t.lastName,
-        email:       t.email,
-        joiningDate: t.joiningDate,
-        status:      t.status,
-      });
     };
 
     loadTeacher();
-  }, [id, isEdit, navigate, isDark]);
+  }, [id, isEdit, isDark]);
 
   // ── Field helpers ──────────────────────────────────────────────────────────
   const set = useCallback(<K extends keyof TeacherFormData>(field: K, value: TeacherFormData[K]) => {
@@ -113,7 +158,6 @@ const TeacherRegistration: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file (type and size)
     const validation = validateImage(file);
     if (!validation.valid) {
       Swal.fire({
@@ -127,12 +171,10 @@ const TeacherRegistration: React.FC = () => {
       return;
     }
 
-    // Convert to base64 for upload
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
         const base64 = reader.result as string;
-        // Upload to Cloudinary
         const cloudinaryUrl = await uploadToCloudinary(base64, "kgurukul/teachers");
         set("photo", cloudinaryUrl);
       } catch (error) {
@@ -164,16 +206,20 @@ const TeacherRegistration: React.FC = () => {
     }
     setSaving(true);
 
-    console.log("Form data before submit:", form);
-    console.log("Status value:", form.status);
-
     try {
       if (isEdit && id) {
-        console.log("Editing teacher with id:", id);
         await updateTeacher(id, form);
       } else {
         await addTeacher(form);
       }
+
+      const formattedDate = form.joiningDate
+        ? new Date(form.joiningDate + "T00:00:00").toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "";
 
       setSaving(false);
       Swal.fire({
@@ -183,8 +229,8 @@ const TeacherRegistration: React.FC = () => {
             <div style="color:#f97316;font-weight:700;font-size:16px;margin-bottom:8px">
               ${previewName}
             </div>
-            <div>📧 ${form.email}</div>
-            <div>📅 Joined: ${new Date(form.joiningDate + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+            <div>Email: ${form.email}</div>
+            <div>Joined: ${formattedDate}</div>
           </div>`,
         icon: "success",
         confirmButtonText: "Go to Users",
@@ -201,7 +247,6 @@ const TeacherRegistration: React.FC = () => {
       setSaving(false);
       console.error("Error saving teacher:", error);
 
-      // Extract error message
       let errorMessage = "Failed to save teacher. Please try again.";
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -213,7 +258,6 @@ const TeacherRegistration: React.FC = () => {
         }
       }
 
-      // Show error alert
       Swal.fire({
         title: "Error!",
         text: errorMessage,
@@ -230,316 +274,310 @@ const TeacherRegistration: React.FC = () => {
     }
   };
 
-  const handleToggleStatus = async () => {
-    const isCurrentlyActive = form.status === "Active";
-    const newStatus: "Active" | "Inactive" = isCurrentlyActive ? "Inactive" : "Active";
-    const actionText = isCurrentlyActive ? "deactivate" : "activate";
-
-    const result = await Swal.fire({
-      title: `${isCurrentlyActive ? "Deactivate" : "Activate"} Teacher?`,
-      text: `Are you sure you want to ${actionText} ${form.firstName} ${form.lastName}?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: isCurrentlyActive ? "#ef4444" : "#10b981",
-      cancelButtonColor: "#64748b",
-      confirmButtonText: `Yes, ${actionText}!`,
-      background: isDark ? "#1e293b" : "#ffffff",
-      color: isDark ? "#f8fafc" : "#0f172a",
-    });
-
-    if (result.isConfirmed) {
-      set("status", newStatus);
-      if (isEdit && id) {
-        try {
-          await updateTeacher(id, { ...form, status: newStatus });
-          Swal.fire({
-            title: "Status Updated!",
-            text: `Teacher has been ${newStatus === "Inactive" ? "deactivated" : "activated"}.`,
-            icon: "success",
-            background: isDark ? "#1e293b" : "#ffffff",
-            color: isDark ? "#f8fafc" : "#0f172a",
-            confirmButtonColor: "#7c3aed",
-          });
-        } catch (err: any) {
-          console.error("Error toggling teacher status:", err);
-        }
-      }
-    }
-  };
-
   const errorCount = Object.keys(errors).length;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <Stack gap="md" maw={760} mx="auto" pb="xl" px={{ base: "xs", sm: 0 }}>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Box sx={{ maxWidth: "1280px", mx: "auto" }} className="space-y-6">
 
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl ${
-          toast.ok ? "bg-green-500/15 border-green-500/30 text-green-500" : "bg-red-500/15 border-red-500/30 text-red-400"
-        }`}>
-          {toast.ok ? <IconCircleCheck size={16} /> : <IconAlertCircle size={16} />}
-          <span className="text-sm font-medium">{toast.msg}</span>
-          <button onClick={() => setToast(null)}><IconX size={13} /></button>
-        </div>
-      )}
+        {/* ── Header ────────────────────────────────────────────────────── */}
+        <PageHeader
+          title={isView ? "View Teacher" : isEdit ? "Edit Teacher" : "Teacher Registration"}
+          subtitle={isView ? "View teacher details" : isEdit ? "Update teacher information" : "Register a new teacher"}
+        />
 
-      {/* ── Header ────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <Group gap="sm">
-          <Tooltip label="Back to Users" position="right" withArrow>
-            <ActionIcon variant="subtle" size="lg" radius="lg"
-              onClick={() => navigate("/Users")}
-              styles={{ root: { color: "var(--text-secondary)" } }}>
-              <IconArrowLeft size={20} />
-            </ActionIcon>
-          </Tooltip>
-          <div>
-            <Title order={3} style={{ color: "var(--text-primary)" }}>
-              {isEdit ? "Edit Teacher" : "Teacher Registration"}
-            </Title>
-            <Text size="sm" style={{ color: "var(--text-muted)" }}>
-              {isEdit ? "Update teacher information" : "Register a new teacher"}
-            </Text>
-          </div>
-        </Group>
-
-        {isEdit && (
-          <button
-            type="button"
-            onClick={handleToggleStatus}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
-              form.status === "Active"
-                ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200"
-                : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200"
-            }`}
-          >
-            {form.status === "Active" ? (
-              <>
-                <IconUserOff size={16} />
-                <span>Deactivate Teacher</span>
-              </>
-            ) : (
-              <>
-                <IconUserCheck size={16} />
-                <span>Activate Teacher</span>
-              </>
-            )}
-          </button>
+        {/* ── View Mode Banner ───────────────────────────────────────────── */}
+        {isView && (
+          <Alert severity="info" sx={{ borderRadius: 3, mt: 2 }}>
+            You are viewing this teacher in <strong>View Mode (Read-Only)</strong>. All form inputs are disabled. Click <strong>Edit Teacher</strong> below to modify.
+          </Alert>
         )}
-      </div>
 
-      {/* ── Error banner ──────────────────────────────────────────────── */}
-      {errorCount > 0 && (
-        <Alert icon={<IconAlertCircle size={18} />}
-          title="Please fix the errors below before saving"
-          color="red" variant="light"
-          classNames={{ title: "font-semibold" }}
-          styles={{
-            root:    { backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)" },
-            icon:    { color: "#f87171" },
-            title:   { color: "var(--text-primary)" },
-            message: { color: "var(--text-primary)" },
-          }}>
-          {errorCount === 1 ? "1 required field is missing or invalid." : `${errorCount} required fields are missing or invalid.`}
-        </Alert>
-      )}
+        {/* ── Error banner ──────────────────────────────────────────────── */}
+        {errorCount > 0 && !isView && (
+          <Alert
+            icon={<IconAlertCircle size={18} />}
+            severity="error"
+            sx={{
+              backgroundColor: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.25)",
+              color: "var(--text-primary)",
+              "& .MuiAlert-icon": { color: "#f87171" },
+              mt: 2,
+            }}
+          >
+            <strong>Please fix the errors below before saving.</strong>{" "}
+            {errorCount === 1 ? "1 required field is missing or invalid." : `${errorCount} required fields are missing or invalid.`}
+          </Alert>
+        )}
 
-      {/* ── Form card ─────────────────────────────────────────────────── */}
-      <Paper className="p-5 sm:p-7"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border-accent)" }}>
+        {/* ── Form card ─────────────────────────────────────────────────── */}
+        <fieldset
+          disabled={isView}
+          className={`contents border-0 p-0 m-0 ${
+            isView
+              ? "pointer-events-none opacity-85 select-text [&_input]:!cursor-not-allowed [&_.MuiInputBase-root]:!bg-slate-100/90 [&_.MuiInputBase-input]:!text-slate-600 [&_.MuiOutlinedInput-notchedOutline]:!border-slate-300"
+              : ""
+          }`}
+        >
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2.5, sm: 3.5 },
+              mt: 2,
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-accent)",
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-        <Grid gutter="lg">
+              {/* ── Photo + name preview column ───────────────────────────── */}
+              <div className="md:col-span-3">
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5, pt: { sm: 1 } }}>
 
-          {/* ── Photo + name preview column ───────────────────────────── */}
-          <Grid.Col span={{ base: 12, sm: 3 }}>
-            <div className="flex flex-col items-center gap-3 sm:pt-2">
+                  {form.photo ? (
+                    <Box sx={{ position: "relative" }}>
+                      <Avatar src={form.photo} sx={{ width: 96, height: 96 }} />
+                      {!isView && (
+                        <IconButton
+                          onClick={() => set("photo", null)}
+                          size="small"
+                          sx={{
+                            position: "absolute", top: -4, right: -4,
+                            width: 24, height: 24,
+                            background: "#ef4444",
+                            "&:hover": { background: "#dc2626" },
+                          }}
+                        >
+                          <IconX size={12} color="white" />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ) : (
+                    <Avatar
+                      sx={{
+                        width: 96, height: 96,
+                        background: "var(--bg-tertiary)",
+                        border: "2px dashed var(--border-default)",
+                      }}
+                    >
+                      <IconUser size={38} style={{ color: "var(--text-muted)" }} />
+                    </Avatar>
+                  )}
 
-              {/* Avatar */}
-              {form.photo ? (
-                <div className="relative">
-                  <Avatar src={form.photo} size={96} radius="xl" />
-                  <button
-                    onClick={() => set("photo", null)}
-                    className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center shadow"
-                    style={{ background: "#ef4444" }}>
-                    <IconX size={12} color="white" />
-                  </button>
-                </div>
-              ) : (
-                <Avatar size={96} radius="xl"
-                  style={{ background: "var(--bg-tertiary)", border: "2px dashed var(--border-default)" }}>
-                  <IconUser size={38} style={{ color: "var(--text-muted)" }} />
-                </Avatar>
-              )}
+                  {!isView && (
+                    <label style={{ cursor: "pointer" }}>
+                      <input type="file" accept="image/jpeg,image/jpg,image/png" hidden onChange={handlePhotoUpload} />
+                      <Box
+                        sx={{
+                          display: "flex", alignItems: "center", gap: 0.75,
+                          px: 1.5, py: 0.75, borderRadius: 2,
+                          fontSize: 12, fontWeight: 500,
+                          background: "var(--bg-tertiary)",
+                          color: "var(--text-secondary)",
+                          border: "1px solid var(--border-default)",
+                        }}
+                      >
+                        <IconUpload size={13} />
+                        {form.photo ? "Change" : "Upload Photo"}
+                      </Box>
+                    </label>
+                  )}
 
-              {/* Upload button */}
-              <label className="cursor-pointer">
-                <input type="file" accept="image/jpeg,image/jpg,image/png" className="hidden" onChange={handlePhotoUpload} />
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                  style={{ background: "var(--bg-tertiary)", color: "var(--text-secondary)", border: "1px solid var(--border-default)" }}>
-                  <IconUpload size={13} />
-                  {form.photo ? "Change" : "Upload Photo"}
-                </div>
-              </label>
+                <Typography variant="caption" align="center" sx={{ color: "var(--text-muted)" }}>
+                  Optional · JPG, PNG · Max 500KB
+                </Typography>
 
-              <Text size="xs" ta="center" style={{ color: "var(--text-muted)" }}>
-                Optional · JPG, PNG · Max 500KB
-              </Text>
-
-              {/* Name preview */}
-              <div className="w-full mt-1 px-3 py-2 rounded-xl text-center"
-                style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-default)" }}>
-                <Text size="xs" mb={2} style={{ color: "var(--text-muted)" }}>Preview</Text>
-                <Text size="sm" fw={600} style={{ color: form.firstName ? "var(--text-primary)" : "var(--text-muted)", fontStyle: form.firstName ? "normal" : "italic" }}>
-                  {previewName}
-                </Text>
-              </div>
+                <Box
+                  sx={{
+                    width: "100%", mt: 0.5, px: 1.5, py: 1, borderRadius: 2, textAlign: "center",
+                    background: "var(--bg-tertiary)", border: "1px solid var(--border-default)",
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: "var(--text-muted)", display: "block", mb: 0.25 }}>
+                    Preview
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      color: form.firstName ? "var(--text-primary)" : "var(--text-muted)",
+                      fontStyle: form.firstName ? "normal" : "italic",
+                    }}
+                  >
+                    {previewName}
+                  </Typography>
+                </Box>
+              </Box>
             </div>
-          </Grid.Col>
 
-          {/* ── Fields column ─────────────────────────────────────────── */}
-          <Grid.Col span={{ base: 12, sm: 9 }}>
-            <Stack gap="md">
+            {/* ── Fields column ─────────────────────────────────────────── */}
+            <div className="md:col-span-9">
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
 
-              {/* Name row */}
-              <div>
-                <Text size="xs" fw={700} mb={8}
-                  style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
-                  Full Name
-                </Text>
-                <Grid gutter="sm">
-                  <Grid.Col span={{ base: 12, sm: 4 }}>
-                    <TextInput
-                      label="First Name"
-                      placeholder="e.g. Rahul"
-                      value={form.firstName}
-                      onChange={(e) => set("firstName", e.currentTarget.value)}
-                      required withAsterisk
-                      error={errors.firstName}
-                      styles={inputSt}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 4 }}>
-                    <TextInput
-                      label="Middle Name"
-                      placeholder="optional"
-                      value={form.middleName}
-                      onChange={(e) => set("middleName", e.currentTarget.value)}
-                      error={errors.middleName}
-                      styles={inputSt}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 4 }}>
-                    <TextInput
-                      label="Last Name"
-                      placeholder="e.g. Sharma"
-                      value={form.lastName}
-                      onChange={(e) => set("lastName", e.currentTarget.value)}
-                      required withAsterisk
-                      error={errors.lastName}
-                      styles={inputSt}
-                    />
-                  </Grid.Col>
-                </Grid>
-              </div>
+                {/* Name row */}
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", mb: 1 }}
+                  >
+                    Full Name
+                  </Typography>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        label="First Name"
+                        value={form.firstName}
+                        onChange={(e) => set("firstName", e.target.value)}
+                        required
+                        error={Boolean(errors.firstName)}
+                        helperText={errors.firstName}
+                        sx={fieldSx}
+                      />
+                    </div>
+                    <div>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        label="Middle Name"
+                        value={form.middleName}
+                        onChange={(e) => set("middleName", e.target.value)}
+                        error={Boolean(errors.middleName)}
+                        helperText={errors.middleName}
+                        sx={fieldSx}
+                      />
+                    </div>
+                    <div>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        label="Last Name"
+                        value={form.lastName}
+                        onChange={(e) => set("lastName", e.target.value)}
+                        required
+                        error={Boolean(errors.lastName)}
+                        helperText={errors.lastName}
+                        sx={fieldSx}
+                      />
+                    </div>
+                  </div>
+                </Box>
 
-              {/* Divider */}
-              <div style={{ borderTop: "1px solid var(--border-default)" }} />
+                <Box sx={{ borderTop: "1px solid var(--border-default)" }} />
 
-              {/* Contact + Joining date */}
-              <div>
-                <Text size="xs" fw={700} mb={8}
-                  style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
-                  Contact & Joining
-                </Text>
-                <Grid gutter="sm">
-                  <Grid.Col span={{ base: 12, sm: 7 }}>
-                    <TextInput
-                      label="Email Address"
-                      placeholder="teacher@kgurukul.com"
-                      value={form.email}
-                      onChange={(e) => set("email", e.currentTarget.value)}
-                      required withAsterisk
-                      error={errors.email}
-                      styles={inputSt}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 5 }}>
-                    <DateInput
-                      label="Joining Date"
-                      placeholder="Select date"
-                      value={form.joiningDate ? new Date(form.joiningDate + "T00:00:00") : null}
-                      onChange={(v) => {
-                        if (!v) { set("joiningDate", ""); return; }
-                        const d = typeof v === "string" ? new Date(v) : v;
-                        set("joiningDate", d.toISOString().split("T")[0]);
-                      }}
-                      maxDate={new Date()}
-                      required withAsterisk
-                      error={errors.joiningDate}
-                      onKeyDown={(e) => e.preventDefault()}
-                      popoverProps={{
-                        styles: { dropdown: { backgroundColor: "var(--bg-secondary)" } },
-                      }}
-                      styles={{
-                        label:                 { color: "var(--text-primary)", marginBottom: 6 },
-                        input:                 { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
-                        error:                 { color: "#f87171" },
-                        calendarHeader:        { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-                        calendarHeaderLevel:   { color: "var(--text-primary)" },
-                        calendarHeaderControl: { color: "var(--text-primary)" },
-                        weekday:               { color: "var(--text-secondary)" },
-                        day:                   { color: "var(--text-primary)" },
-                      }}
-                    />
-                  </Grid.Col>
-                </Grid>
-              </div>
+                {/* Contact + Joining date */}
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", mb: 1 }}
+                  >
+                    Contact & Joining
+                  </Typography>
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div className="sm:col-span-7">
+                      <TextField
+                        size="small"
+                        fullWidth
+                        label="Email Address"
+                        value={form.email}
+                        onChange={(e) => set("email", e.target.value)}
+                        required
+                        error={Boolean(errors.email)}
+                        helperText={errors.email}
+                        sx={fieldSx}
+                      />
+                    </div>
+                    <div className="sm:col-span-5">
+                      <DatePicker
+                        label="Joining Date"
+                        format="dd/MM/yyyy"
+                        value={parseISOToDate(form.joiningDate)}
+                        onChange={(newDate: Date | null) => {
+                          set("joiningDate", formatDateToISO(newDate));
+                        }}
+                        maxDate={new Date()}
+                        slotProps={{
+                          textField: {
+                            size: "small",
+                            fullWidth: true,
+                            required: true,
+                            error: Boolean(errors.joiningDate),
+                            helperText: errors.joiningDate,
+                            onKeyDown: (e) => e.preventDefault(),
+                            sx: fieldSx,
+                          },
+                          popper: {
+                            sx: {
+                              "& .MuiPaper-root": {
+                                backgroundColor: "var(--bg-secondary)",
+                                color: "var(--text-primary)",
+                              },
+                            },
+                          },
+                        }}
+                      />
+                    </div>
+                  </div>
+                </Box>
+              </Box>
+            </div>
+          </div>
+        </Paper>
+      </fieldset>
 
-              {/* Active Status */}
-              <div>
-                <Text size="xs" fw={700} mb={8}
-                  style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
-                  Status
-                </Text>
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.status === "Active"}
-                      onChange={(e) => set("status", e.target.checked ? "Active" : "Inactive")}
-                      className="w-4 h-4 rounded"
-                      style={{ accentColor: "var(--accent-orange)" }}
-                    />
-                    <span className="text-sm" style={{ color: "var(--text-primary)" }}>
-                      Active
-                    </span>
-                  </label>
-                </div>
-              </div>
+        {/* ── Actions ───────────────────────────────────────────────────── */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mt: 2 }}>
+          <Button
+            onClick={() => navigate("/Users")}
+            startIcon={<IconX size={15} />}
+            sx={{
+              px: 2, py: 1.25, borderRadius: 3,
+              fontSize: 14, fontWeight: 500, textTransform: "none",
+              background: "var(--bg-tertiary)", color: "var(--text-secondary)",
+              border: "1px solid var(--border-default)",
+              "&:hover": { background: "var(--bg-tertiary)", opacity: 0.85 },
+            }}
+          >
+            Cancel
+          </Button>
+          {isView ? (
+            <Button
+              onClick={() => navigate(`/Users/edit-teacher/${id}`)}
+              startIcon={<IconPencil size={15} />}
+              sx={{
+                px: 2.5, py: 1.25, borderRadius: 3,
+                fontSize: 14, fontWeight: 600, textTransform: "none",
+                background: "#2563eb", color: "white",
+                boxShadow: "0 4px 14px rgba(37,99,235,0.3)",
+                "&:hover": { background: "#1d4ed8" },
+              }}
+            >
+              Edit Teacher
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={saving}
+              startIcon={<IconDeviceFloppy size={15} />}
+              sx={{
+                px: 2.5, py: 1.25, borderRadius: 3,
+                fontSize: 14, fontWeight: 600, textTransform: "none",
+                background: "var(--accent-orange)", color: "white",
+                boxShadow: "0 4px 14px rgba(249,115,22,0.3)",
+                "&:hover": { background: "var(--accent-orange)", opacity: 0.9 },
+                "&.Mui-disabled": { opacity: 0.5, color: "white" },
+              }}
+            >
+              {saving ? "Saving…" : isEdit ? "Save Changes" : "Register Teacher"}
+            </Button>
+          )}
+        </Box>
 
-            </Stack>
-          </Grid.Col>
-        </Grid>
-      </Paper>
-
-      {/* ── Actions ───────────────────────────────────────────────────── */}
-      <Group justify="flex-end" gap="sm">
-        <button onClick={() => navigate("/Users")}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
-          style={{ background: "var(--bg-tertiary)", color: "var(--text-secondary)", border: "1px solid var(--border-default)" }}>
-          <IconX size={15} /> Cancel
-        </button>
-        <button onClick={handleSubmit} disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-          style={{ background: "var(--accent-orange)", color: "white", boxShadow: "0 4px 14px rgba(249,115,22,0.3)" }}>
-          <IconDeviceFloppy size={15} />
-          {saving ? "Saving…" : isEdit ? "Save Changes" : "Register Teacher"}
-        </button>
-      </Group>
-
-    </Stack>
+      </Box>
+    </LocalizationProvider>
   );
 };
 

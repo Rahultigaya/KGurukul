@@ -86,10 +86,10 @@ const Attendance: React.FC = () => {
             <IconCalendarCheck size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+            <h1 className="text-2xl font-bold text-primary">
               Attendance Management
             </h1>
-            <p className="text-sm opacity-60" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-sm font-bold text-secondary">
               Mark and manage student attendance
             </p>
           </div>

@@ -56,7 +56,6 @@ export const router = createBrowserRouter([
     element: <NewLogin/>
   },
   {
-    path: "/",
     element: <AppLayout />,
     children: [
       // Dashboard
@@ -78,6 +77,10 @@ export const router = createBrowserRouter([
       // Batches
       {
         path: "Batches",
+        element: <BatchList />,
+      },
+      {
+        path: "batches",
         element: <BatchList />,
       },
       {
@@ -103,6 +106,10 @@ export const router = createBrowserRouter([
         element: <UsersList />,
       },
       {
+        path: "users",
+        element: <UsersList />,
+      },
+      {
         path: "Users/profile",
         element: <UserProfile />,
       },
@@ -119,11 +126,19 @@ export const router = createBrowserRouter([
         element: <StudentRegistration />,
       },
       {
+        path: "Users/view-student/:id",
+        element: <StudentRegistration />,
+      },
+      {
         path: "Users/add-teacher",
         element: <TeacherRegistration />,
       },
       {
         path: "Users/edit-teacher/:id",
+        element: <TeacherRegistration />,
+      },
+      {
+        path: "Users/view-teacher/:id",
         element: <TeacherRegistration />,
       },
 

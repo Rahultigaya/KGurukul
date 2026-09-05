@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../../../components/PageHeader";
 import {
   Card,
   CardContent,
@@ -64,17 +65,11 @@ const Master: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* ── Page Header (Matching Batch List Header Style) ─────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold mb-1 text-slate-800">
-            Master Management
-          </h2>
-          <p className="text-sm text-slate-500">
-            Manage your organization's master data (Areas, Branches, Standards, and Subjects)
-          </p>
-        </div>
-      </div>
+      {/* ── Page Header ────────────────────────────────────────────────── */}
+      <PageHeader
+        title="Master Management"
+        subtitle="Manage your organization's master data (Areas, Branches, Standards, and Subjects)"
+      />
 
       {/* ── Cards Grid ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

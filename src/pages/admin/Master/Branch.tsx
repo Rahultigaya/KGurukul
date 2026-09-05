@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { PageHeader } from "../../../components/PageHeader";
 import {
   Typography,
   IconButton,
@@ -22,7 +23,6 @@ import {
   MenuItem,
 } from "@mui/material";
 import {
-  ArrowBack as ArrowBackIcon,
   Add as AddIcon,
   Search as SearchIcon,
   Close as CloseIcon,
@@ -180,31 +180,22 @@ const BranchPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* ── Page Header ────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <IconButton onClick={() => navigate("/master")} color="primary">
-            <ArrowBackIcon />
-          </IconButton>
-          <div>
-            <Typography variant="h5" className="!font-bold text-slate-800">
-              Branch Management
-            </Typography>
-            <Typography variant="body2" className="text-slate-500">
-              Manage branches and center locations within your areas
-            </Typography>
-          </div>
-        </div>
-
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenModal()}
-          className="!rounded-xl !px-5 !py-2.5 !font-semibold shadow-md hover:shadow-lg transition-all"
-        >
-          Add Branch
-        </Button>
-      </div>
+      <PageHeader
+        title="Branch Management"
+        subtitle="Manage branches and center locations within your areas"
+        onBack={() => navigate("/master")}
+        action={
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenModal()}
+            className="!rounded-xl !px-5 !py-2.5 !font-semibold shadow-md hover:shadow-lg transition-all"
+          >
+            Add Branch
+          </Button>
+        }
+      />
 
       {/* ── Stats Card ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -9,11 +9,19 @@ export const studentCache: Record<string, StudentRegistrationData & { id: string
 
 let cacheLoaded = false;
 
-export async function loadStudentCache(): Promise<void> {
-  if (cacheLoaded) return;
+export async function loadStudentCache(force: boolean = false): Promise<void> {
+  if (cacheLoaded && !force) return;
   try {
     const res = await apiGetStudents();
-    res.data.forEach((s: any) => {
+    const list = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data?.students)
+          ? res.data.students
+          : [];
+
+    list.forEach((s: any) => {
       studentCache[String(s.id)] = { ...transformApiToFormData(s), id: String(s.id) };
     });
     cacheLoaded = true;

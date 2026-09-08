@@ -234,10 +234,16 @@ export default function CourseModal({
           <Button
             variant="contained"
             size="large"
-            endIcon={<ArrowForwardIcon />}
+            endIcon={<ArrowForwardIcon sx={{ color: "#fff" }} />}
             onClick={() => {
               onClose();
               onEnroll(`${course.class} ${course.name}`);
+            }}
+            sx={{
+              color: "#fff",
+              "& .MuiButton-startIcon, & .MuiButton-endIcon": {
+                color: "#fff",
+              },
             }}
           >
             Enroll Now

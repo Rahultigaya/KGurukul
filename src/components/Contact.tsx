@@ -356,7 +356,7 @@ export default function Contact() {
                 variant="contained"
                 fullWidth
                 disabled={loading}
-                endIcon={<SendIcon fontSize="small" />}
+                endIcon={<SendIcon fontSize="small" sx={{ color: "#fff" }} />}
                 className="ct-submit-btn"
                 sx={{
                   borderRadius: 3,
@@ -364,6 +364,10 @@ export default function Contact() {
                   fontWeight: 700,
                   textTransform: "none",
                   fontSize: "0.95rem",
+                  color: "#fff",
+                  "& .MuiButton-startIcon, & .MuiButton-endIcon": {
+                    color: "#fff",
+                  },
                   background: "linear-gradient(135deg, #2563eb, #16a34a)",
                   boxShadow: "0 6px 16px -4px rgba(37,99,235,0.4)",
                   "&:hover": {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { IconButton } from "@mui/material";
 import {
   IconUser,
   IconPhone,
@@ -159,13 +160,14 @@ const ChildCard: React.FC<{
             {cfg.icon}
             {student.paymentStatus}
           </span>
-          <button
+          <IconButton
+            size="small"
             onClick={() => onView(student.id)}
-            className="p-1.5 rounded-lg bg-slate-600/50 hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
+            className="!p-1.5 !rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
             title="View student profile"
           >
             <IconChevronRight size={14} />
-          </button>
+          </IconButton>
         </div>
       </div>
 

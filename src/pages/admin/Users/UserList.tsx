@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../../components/PageHeader";
 
 import {
-  IconPlus,
   IconPencil,
   IconEye,
   IconPhone,
@@ -32,11 +31,13 @@ import {
   TextField,
   InputAdornment,
   IconButton,
+  Button,
 } from "@mui/material";
 
 import {
   Search as SearchIcon,
   Close as CloseIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 
 import Swal from "sweetalert2";
@@ -790,22 +791,26 @@ const UsersList: React.FC = () => {
         action={
           <>
             {activeTab === "students" && (
-              <button
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon className="!text-white" />}
                 onClick={() => navigate("/Users/add-student")}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 !text-white [&_svg]:!text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
               >
-                <IconPlus size={16} />
                 Add Student
-              </button>
+              </Button>
             )}
             {activeTab === "teachers" && (
-              <button
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon className="!text-white" />}
                 onClick={() => navigate("/Users/add-teacher")}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 !text-white [&_svg]:!text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
               >
-                <IconPlus size={16} />
                 Add Teacher
-              </button>
+              </Button>
             )}
           </>
         }
@@ -816,15 +821,15 @@ const UsersList: React.FC = () => {
         {/* Top Folder Tabs (Sticking out of top of card) */}
         <div className="flex items-end gap-2 px-2 -mb-px relative z-10">
           {/* Students Tab */}
-          <button
+          <Button
             onClick={() => {
               setActiveTab("students");
               setPage(0);
             }}
-            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl border transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl border transition-all !normal-case ${
               activeTab === "students"
-                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                : "bg-slate-100/90 hover:bg-slate-200 text-slate-600 border-slate-200 border-b-slate-200"
+                ? "!bg-blue-600 !text-white !border-blue-600 shadow-sm"
+                : "!bg-slate-100/90 hover:!bg-slate-200 !text-slate-600 !border-slate-200"
             }`}
           >
             <IconSchool size={18} />
@@ -838,18 +843,18 @@ const UsersList: React.FC = () => {
             >
               {filteredStudents.length}
             </span>
-          </button>
+          </Button>
 
           {/* Teachers Tab */}
-          <button
+          <Button
             onClick={() => {
               setActiveTab("teachers");
               setPage(0);
             }}
-            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl border transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-t-xl border transition-all !normal-case ${
               activeTab === "teachers"
-                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                : "bg-slate-100/90 hover:bg-slate-200 text-slate-600 border-slate-200 border-b-slate-200"
+                ? "!bg-blue-600 !text-white !border-blue-600 shadow-sm"
+                : "!bg-slate-100/90 hover:!bg-slate-200 !text-slate-600 !border-slate-200"
             }`}
           >
             <IconChalkboard size={18} />
@@ -863,7 +868,7 @@ const UsersList: React.FC = () => {
             >
               {filteredTeachers.length}
             </span>
-          </button>
+          </Button>
         </div>
 
         {/* Main Card Container */}
@@ -941,14 +946,16 @@ const UsersList: React.FC = () => {
                         ). Showing 1 dummy student for offline preview.
                       </span>
 
-                      <button
+                      <Button
+                        size="small"
+                        variant="contained"
                         onClick={
                           fetchStudents
                         }
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                        className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded !normal-case"
                       >
                         Retry API
-                      </button>
+                      </Button>
                     </div>
                   )}
 
@@ -1126,12 +1133,7 @@ const UsersList: React.FC = () => {
                                 <TableRow
                                   key={row.id}
                                   hover
-                                  onClick={() =>
-                                    navigate(
-                                      `/profile/student/${row.id}`
-                                    )
-                                  }
-                                  className="cursor-pointer transition-colors hover:bg-slate-50/80"
+                                  className="transition-colors hover:bg-slate-50/80"
                                 >
 
                                   {/* Student */}
@@ -1257,61 +1259,65 @@ const UsersList: React.FC = () => {
                                     >
 
                                       {/* View */}
-                                      <button
+                                      <IconButton
+                                        size="small"
                                         onClick={() =>
                                           navigate(
                                             `/Users/edit-student/${row.id}?mode=view`
                                           )
                                         }
-                                        className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 shadow-sm transition-all hover:scale-105"
+                                        className="!p-1.5 !rounded-lg !bg-blue-50 hover:!bg-blue-100 !text-blue-600 !border !border-blue-200/60 shadow-sm transition-all hover:scale-105"
                                         title="View student"
                                       >
                                         <IconEye
                                           size={15}
                                         />
-                                      </button>
+                                      </IconButton>
 
                                       {/* Edit */}
-                                      <button
+                                      <IconButton
+                                        size="small"
                                         onClick={() =>
                                           navigate(
                                             `/Users/edit-student/${row.id}`
                                           )
                                         }
-                                        className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200/60 shadow-sm transition-all hover:scale-105"
+                                        className="!p-1.5 !rounded-lg !bg-amber-50 hover:!bg-amber-100 !text-amber-600 !border !border-amber-200/60 shadow-sm transition-all hover:scale-105"
                                         title="Edit student"
                                       >
                                         <IconPencil
                                           size={15}
                                         />
-                                      </button>
+                                      </IconButton>
 
                                       {/* Payment */}
-                                      <button
+                                      <IconButton
+                                        size="small"
                                         onClick={() =>
                                           navigate(
                                             `/Users/edit-student/${row.id}?tab=fees`
                                           )
                                         }
-                                        className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 shadow-sm transition-all hover:scale-105"
+                                        className="!p-1.5 !rounded-lg !bg-emerald-50 hover:!bg-emerald-100 !text-emerald-600 !border !border-emerald-200/60 shadow-sm transition-all hover:scale-105"
                                         title="Update payment"
                                       >
                                         <IconCurrencyRupee
                                           size={15}
                                         />
-                                      </button>
+                                      </IconButton>
 
                                       {/* Activate / Deactivate */}
-                                      <button
+                                      <IconButton
+                                        size="small"
                                         onClick={() =>
                                           handleToggleStudentStatus(
                                             row
                                           )
                                         }
-                                        className={`p-2 rounded-lg shadow-sm border transition-all hover:scale-105 ${
+                                        className={`!p-1.5 !rounded-lg shadow-sm !border transition-all hover:scale-105 ${
                                           isActive
-                                            ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200/60"
-                                            : "bg-teal-50 hover:bg-teal-100 text-teal-600 border-teal-200/60"
+                                            ? "!bg-rose-50 hover:!bg-rose-100 !text-rose-600 !border-rose-200/60"
+                                            : "!bg-teal-50 hover:!bg-teal-100 !text-teal-600 !border-teal-200/60"
                                         }`}
                                         title={
                                           isActive
@@ -1328,7 +1334,7 @@ const UsersList: React.FC = () => {
                                             size={15}
                                           />
                                         )}
-                                      </button>
+                                      </IconButton>
 
                                     </div>
                                   </TableCell>
@@ -1451,14 +1457,16 @@ const UsersList: React.FC = () => {
                         ). Showing 1 dummy teacher for offline preview.
                       </span>
 
-                      <button
+                      <Button
+                        size="small"
+                        variant="contained"
                         onClick={
                           fetchTeachers
                         }
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                        className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded !normal-case"
                       >
                         Retry API
-                      </button>
+                      </Button>
 
                     </div>
                   )}
@@ -1504,8 +1512,7 @@ const UsersList: React.FC = () => {
                                 "joined"
                               }
                               direction={
-                                orderBy ===
-                                "joined"
+                                orderBy === "joined"
                                   ? order
                                   : "asc"
                               }
@@ -1544,12 +1551,7 @@ const UsersList: React.FC = () => {
                               <TableRow
                                 key={row.id}
                                 hover
-                                onClick={() =>
-                                  navigate(
-                                    `/profile/teacher/${row.id}`
-                                  )
-                                }
-                                className="cursor-pointer transition-colors hover:bg-slate-50/80"
+                                className="transition-colors hover:bg-slate-50/80"
                               >
 
                                 {/* Teacher */}
@@ -1605,47 +1607,50 @@ const UsersList: React.FC = () => {
                                   >
 
                                     {/* View */}
-                                    <button
+                                    <IconButton
+                                      size="small"
                                       onClick={() =>
                                         navigate(
                                           `/Users/edit-teacher/${row.id}?mode=view`
                                         )
                                       }
-                                      className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 shadow-sm transition-all hover:scale-105"
+                                      className="!p-1.5 !rounded-lg !bg-blue-50 hover:!bg-blue-100 !text-blue-600 !border !border-blue-200/60 shadow-sm transition-all hover:scale-105"
                                       title="View teacher"
                                     >
                                       <IconEye
                                         size={15}
                                       />
-                                    </button>
+                                    </IconButton>
 
                                     {/* Edit */}
-                                    <button
+                                    <IconButton
+                                      size="small"
                                       onClick={() =>
                                         navigate(
                                           `/Users/edit-teacher/${row.id}`
                                         )
                                       }
-                                      className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200/60 shadow-sm transition-all hover:scale-105"
+                                      className="!p-1.5 !rounded-lg !bg-amber-50 hover:!bg-amber-100 !text-amber-600 !border !border-amber-200/60 shadow-sm transition-all hover:scale-105"
                                       title="Edit teacher"
                                     >
                                       <IconPencil
                                         size={15}
                                       />
-                                    </button>
+                                    </IconButton>
 
                                     {/* Activate / Deactivate */}
-                                    <button
+                                    <IconButton
+                                      size="small"
                                       onClick={() =>
                                         handleToggleTeacherStatus(
                                           row
                                         )
                                       }
-                                      className={`p-2 rounded-lg shadow-sm border transition-all hover:scale-105 ${
+                                      className={`!p-1.5 !rounded-lg shadow-sm !border transition-all hover:scale-105 ${
                                         row.status ===
                                         "Active"
-                                          ? "bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200/60"
-                                          : "bg-teal-50 hover:bg-teal-100 text-teal-600 border-teal-200/60"
+                                          ? "!bg-rose-50 hover:!bg-rose-100 !text-rose-600 !border-rose-200/60"
+                                          : "!bg-teal-50 hover:!bg-teal-100 !text-teal-600 !border-teal-200/60"
                                       }`}
                                       title={
                                         row.status ===
@@ -1664,7 +1669,7 @@ const UsersList: React.FC = () => {
                                           size={15}
                                         />
                                       )}
-                                    </button>
+                                    </IconButton>
 
                                   </div>
                                 </TableCell>

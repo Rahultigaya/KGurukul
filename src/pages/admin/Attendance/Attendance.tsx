@@ -1,6 +1,7 @@
 // src/pages/admin/Attendance/Attendance.tsx
 
 import React, { useState } from "react";
+import { Button } from "@mui/material";
 import {
   IconCalendarCheck,
   IconUsers,
@@ -61,35 +62,30 @@ const Attendance: React.FC = () => {
     color: string;
     bgColor: string;
   }> = ({ icon, label, value, color, bgColor }) => (
-    <div className="rounded-2xl p-4 flex items-center gap-3">
-      <div
-        className={`w-12 h-12 rounded-xl flex items-center justify-center ${bgColor}`}
-      >
+    <div className="rounded-2xl p-4 flex items-center gap-3 bg-white border border-slate-200 shadow-sm">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${bgColor}`}>
         {icon}
       </div>
       <div>
-        <p className="text-sm opacity-70">{label}</p>
-        <p className={`text-2xl font-bold ${color}`}>{value}</p>
+        <p className="text-xs text-slate-500 font-medium">{label}</p>
+        <p className={`text-xl font-bold ${color}`}>{value}</p>
       </div>
     </div>
   );
 
   return (
-    <div className="p-6 space-y-6" style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
+    <div className="max-w-7xl mx-auto space-y-6 pb-10">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center"
-            style={{ background: "var(--accent-purple)" }}
-          >
-            <IconCalendarCheck size={24} className="text-white" />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-purple-100 text-purple-600">
+            <IconCalendarCheck size={24} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-primary">
+            <h1 className="text-2xl font-bold text-slate-800">
               Attendance Management
             </h1>
-            <p className="text-sm font-bold text-secondary">
+            <p className="text-sm font-medium text-slate-500">
               Mark and manage student attendance
             </p>
           </div>
@@ -99,42 +95,38 @@ const Attendance: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          icon={<IconUsers size={24} className="text-blue-400" />}
+          icon={<IconUsers size={24} className="text-blue-600" />}
           label="Total Students"
           value={attendanceData.length}
-          color="text-blue-400"
-          bgColor="bg-blue-500/15"
+          color="text-blue-600"
+          bgColor="bg-blue-50"
         />
         <StatCard
-          icon={<IconCheck size={24} className="text-green-400" />}
+          icon={<IconCheck size={24} className="text-emerald-600" />}
           label="Present"
           value={`${presentCount} (${Math.round((presentCount / attendanceData.length) * 100)}%)`}
-          color="text-green-400"
-          bgColor="bg-green-500/15"
+          color="text-emerald-600"
+          bgColor="bg-emerald-50"
         />
         <StatCard
-          icon={<IconX size={24} className="text-red-400" />}
+          icon={<IconX size={24} className="text-red-600" />}
           label="Absent"
           value={`${absentCount} (${Math.round((absentCount / attendanceData.length) * 100)}%)`}
-          color="text-red-400"
-          bgColor="bg-red-500/15"
+          color="text-red-600"
+          bgColor="bg-red-50"
         />
       </div>
 
       {/* Filters */}
-      <div
-        className="rounded-2xl p-4 flex flex-wrap gap-4 items-center"
-        style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-default)" }}
-      >
-        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <IconSearch size={20} className="opacity-50" />
+      <div className="rounded-2xl p-4 flex flex-wrap gap-4 items-center bg-white border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-2 flex-1 min-w-[200px] bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+          <IconSearch size={18} className="text-slate-400" />
           <input
             type="text"
             placeholder="Search students..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none"
-            style={{ color: "var(--text-primary)" }}
+            className="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 placeholder-slate-400"
           />
         </div>
 
@@ -142,23 +134,13 @@ const Attendance: React.FC = () => {
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          className="px-4 py-2 rounded-lg border outline-none"
-          style={{
-            background: "var(--bg-tertiary)",
-            borderColor: "var(--border-default)",
-            color: "var(--text-primary)",
-          }}
+          className="px-4 py-2 rounded-xl border border-slate-200 outline-none text-sm bg-slate-50 text-slate-800"
         />
 
         <select
           value={selectedBatch}
           onChange={(e) => setSelectedBatch(e.target.value)}
-          className="px-4 py-2 rounded-lg border outline-none cursor-pointer"
-          style={{
-            background: "var(--bg-tertiary)",
-            borderColor: "var(--border-default)",
-            color: "var(--text-primary)",
-          }}
+          className="px-4 py-2 rounded-xl border border-slate-200 outline-none text-sm bg-slate-50 text-slate-800 cursor-pointer"
         >
           <option value="">All Batches</option>
           {batches.map(batch => (
@@ -166,32 +148,26 @@ const Attendance: React.FC = () => {
           ))}
         </select>
 
-        <button
+        <Button
           onClick={markAllPresent}
-          className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors flex items-center gap-2"
+          startIcon={<IconCheck size={18} />}
+          className="!bg-emerald-50 hover:!bg-emerald-100 !text-emerald-600 !border !border-emerald-200 !normal-case !rounded-xl !px-4 !py-2 !text-xs !font-semibold"
         >
-          <IconCheck size={18} />
           Mark All Present
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={markAllAbsent}
-          className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors flex items-center gap-2"
+          startIcon={<IconX size={18} />}
+          className="!bg-red-50 hover:!bg-red-100 !text-red-600 !border !border-red-200 !normal-case !rounded-xl !px-4 !py-2 !text-xs !font-semibold"
         >
-          <IconX size={18} />
           Mark All Absent
-        </button>
+        </Button>
       </div>
 
       {/* Students List */}
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ border: "1px solid var(--border-default)" }}
-      >
-        <div
-          className="grid grid-cols-12 gap-4 p-4 font-semibold"
-          style={{ background: "var(--bg-secondary)", borderBottom: "1px solid var(--border-default)" }}
-        >
+      <div className="rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm">
+        <div className="grid grid-cols-12 gap-4 p-4 font-semibold text-xs text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-200">
           <div className="col-span-1">Roll No</div>
           <div className="col-span-5">Student Name</div>
           <div className="col-span-3">Status</div>
@@ -206,62 +182,49 @@ const Attendance: React.FC = () => {
           .map((student) => (
             <div
               key={student.id}
-              className="grid grid-cols-12 gap-4 p-4 items-center transition-colors hover:bg-white/5"
-              style={{ borderBottom: "1px solid var(--border-default)" }}
+              className="grid grid-cols-12 gap-4 p-4 items-center border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
             >
-              <div className="col-span-1 font-mono text-sm opacity-70">{student.rollNo}</div>
-              <div className="col-span-5" style={{ color: "var(--text-primary)" }}>
+              <div className="col-span-1 font-mono text-xs text-slate-500 font-semibold">{student.rollNo}</div>
+              <div className="col-span-5 text-sm font-semibold text-slate-800">
                 {student.name}
               </div>
               <div className="col-span-3">
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     student.status === "present"
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-red-500/20 text-red-400"
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      : "bg-red-50 text-red-600 border border-red-200"
                   }`}
                 >
                   {student.status === "present" ? "Present" : "Absent"}
                 </span>
               </div>
               <div className="col-span-3 text-right">
-                <button
+                <Button
                   onClick={() => toggleAttendance(student.id)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ml-auto ${
+                  startIcon={student.status === "present" ? <IconX size={16} /> : <IconCheck size={16} />}
+                  className={`!normal-case !text-xs !font-semibold !rounded-lg !px-3 !py-1.5 ${
                     student.status === "present"
-                      ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                      : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                      ? "!bg-red-50 hover:!bg-red-100 !text-red-600 !border !border-red-200"
+                      : "!bg-emerald-50 hover:!bg-emerald-100 !text-emerald-600 !border !border-emerald-200"
                   }`}
                 >
-                  {student.status === "present" ? (
-                    <>
-                      <IconX size={18} />
-                      Mark Absent
-                    </>
-                  ) : (
-                    <>
-                      <IconCheck size={18} />
-                      Mark Present
-                    </>
-                  )}
-                </button>
+                  {student.status === "present" ? "Mark Absent" : "Mark Present"}
+                </Button>
               </div>
             </div>
           ))}
       </div>
 
       {/* Overall Percentage */}
-      <div
-        className="rounded-2xl p-6 text-center"
-        style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-default)" }}
-      >
-        <div className="flex items-center justify-center gap-4 mb-2">
-          <IconClock size={24} className="opacity-70" />
-          <span className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+      <div className="rounded-2xl p-6 text-center bg-white border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <IconClock size={20} className="text-slate-400" />
+          <span className="text-base font-bold text-slate-800">
             Overall Attendance: {attendancePercentage}%
           </span>
         </div>
-        <div className="w-full h-3 rounded-full overflow-hidden" style={{ background: "var(--bg-tertiary)" }}>
+        <div className="w-full h-3 rounded-full overflow-hidden bg-slate-100">
           <div
             className="h-full transition-all duration-500"
             style={{
@@ -269,7 +232,7 @@ const Attendance: React.FC = () => {
               background: attendancePercentage >= 75
                 ? "#22c55e"
                 : attendancePercentage >= 50
-                ? "#eab308"
+                ? "#f59e0b"
                 : "#ef4444"
             }}
           />
@@ -280,3 +243,4 @@ const Attendance: React.FC = () => {
 };
 
 export default Attendance;
+

@@ -6,6 +6,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { IconArrowLeft } from "@tabler/icons-react";
+import { IconButton } from "@mui/material";
 import AdminProfile from "./AdminProfile";
 import StudentProfile from "./StudentProfile";
 import TeacherProfile from "./TeacherProfile";
@@ -61,15 +62,15 @@ const ProfilePage: React.FC = () => {
     <div className="max-w-5xl mx-auto pb-10">
       {/* Page header */}
       <div className="flex items-center gap-3 mb-6">
-        <button
+        <IconButton
           onClick={() => navigate(-1)}
-          className="p-2 rounded-lg hover:bg-slate-700/60 text-slate-400 hover:text-white transition-colors"
+          className="!p-2 !rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
         >
           <IconArrowLeft size={20} />
-        </button>
+        </IconButton>
         <div>
-          <h2 className="text-2xl font-bold text-white">{meta.title}</h2>
-          <p className="text-slate-400 text-sm">{meta.subtitle}</p>
+          <h2 className="text-2xl font-bold text-slate-900">{meta.title}</h2>
+          <p className="text-slate-500 text-sm font-medium">{meta.subtitle}</p>
         </div>
       </div>
 

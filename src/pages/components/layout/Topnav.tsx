@@ -1,6 +1,4 @@
-// src/pages/components/layout/Topnav.tsx
-
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   IconBell,
@@ -8,8 +6,10 @@ import {
   IconChevronDown,
   IconMenu2,
   IconSettings,
+  IconUser,
 } from "@tabler/icons-react";
-import { useTheme } from "../../../context/ThemeContext";
+import { Button, IconButton } from "@mui/material";
+import { getCurrentUserRole, getRoleName } from "../../../utils/authRole";
 
 interface TopNavProps {
   isMobileMenuOpen: boolean;
@@ -29,11 +29,29 @@ const TopNav: React.FC<TopNavProps> = ({
   setIsMobileMenuOpen,
 }) => {
   const navigate = useNavigate();
-  const { isDark } = useTheme();
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [userData, setUserData] = useState<UserData>({});
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Load user data from localStorage on mount
   useEffect(() => {
@@ -67,11 +85,20 @@ const TopNav: React.FC<TopNavProps> = ({
 
   // Memoize user object with defaults
   const user = useMemo(() => {
+    const rawRole =
+      userData.role_id ??
+      userData.role ??
+      userData.user_role ??
+      userData.roleId ??
+      userData.userRole;
+
+    const detectedRole = rawRole !== undefined ? getRoleName(rawRole) : getRoleName(getCurrentUserRole());
+
     return {
       name: userData.name || userData.full_name || userData.username || "User",
       email: userData.email || localStorage.getItem("userEmail") || "user@kgurukul.com",
-      role: userData.role || "Student",
-      avatar: userData.avatar || userData.profile_image ||
+      role: detectedRole,
+      avatar: userData.avatar || userData.photo || userData.profile_image ||
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.email || "User"}`,
     };
   }, [userData]);
@@ -85,9 +112,9 @@ const TopNav: React.FC<TopNavProps> = ({
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleLogout = () => {
-    // Use the logout function from common.ts
+    setShowUserMenu(false);
     localStorage.clear();
-    navigate("/auth/login");
+    navigate("/login");
   };
 
   // ── style helpers ──────────────────────────────────────────────────────────
@@ -97,39 +124,27 @@ const TopNav: React.FC<TopNavProps> = ({
   const dropHeaderBg = "#f8fafc";
 
   return (
-    <nav
-      className="sticky top-0 z-[60] bg-white border-b border-slate-200 shadow-sm"
-      style={{
-        background: "#ffffff",
-        borderBottom: "1px solid #e2e8f0",
-        color: "var(--text-primary)",
-        transition: "background 0.3s, border-color 0.3s",
-      }}
-    >
+    <nav className="sticky top-0 z-[60] bg-white border-b border-slate-200 shadow-sm transition-all">
       <div className="px-4 md:px-6 py-3">
         <div className="flex items-center justify-between">
 
           {/* Left — Welcome */}
           <div className="flex items-center gap-4">
             {/* Mobile burger */}
-            <button
+            <IconButton
               onClick={() => setIsMobileMenuOpen(true)}
-              className={`md:hidden p-2 rounded-lg shadow-lg transition-all ${
+              className={`md:hidden !p-2 !rounded-lg text-slate-700 hover:bg-slate-100 transition-all ${
                 isMobileMenuOpen ? "opacity-0 pointer-events-none" : "opacity-100"
               }`}
-              style={{
-                background: "var(--bg-secondary)",
-                color: "var(--text-primary)",
-              }}
             >
               <IconMenu2 size={24} />
-            </button>
+            </IconButton>
 
             <div className="hidden md:block">
-              <h2 className="text-xl font-semibold text-primary">
+              <h2 className="text-xl font-semibold text-slate-900">
                 Welcome back, {user.name.split(" ")[0]} !!!
               </h2>
-              <p className="text-sm text-secondary">
+              <p className="text-sm text-slate-500 font-medium">
                 {new Date().toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
@@ -144,13 +159,13 @@ const TopNav: React.FC<TopNavProps> = ({
           <div className="flex items-center gap-2 md:gap-3">
 
             {/* ── Notifications ────────────────────────────────────── */}
-            <div className="relative">
-              <button
+            <div className="relative" ref={notificationsRef}>
+              <IconButton
                 onClick={() => {
-                  setShowNotifications(!showNotifications);
+                  setShowNotifications((prev) => !prev);
                   setShowUserMenu(false);
                 }}
-                className="relative p-2 rounded-lg transition-all text-secondary"
+                className="relative !p-2 !rounded-lg text-slate-600 hover:bg-slate-100 transition-all"
               >
                 <IconBell size={24} />
                 {unreadCount > 0 && (
@@ -158,15 +173,14 @@ const TopNav: React.FC<TopNavProps> = ({
                     {unreadCount}
                   </span>
                 )}
-              </button>
+              </IconButton>
 
               {showNotifications && (
                 <div
-                  className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden"
+                  className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden z-50"
                   style={{
                     background: dropBg,
                     border: `1px solid ${dropBorder}`,
-                    boxShadow: "var(--shadow-card)",
                   }}
                 >
                   <div
@@ -176,7 +190,7 @@ const TopNav: React.FC<TopNavProps> = ({
                       background: dropHeaderBg,
                     }}
                   >
-                    <h3 className="font-semibold text-primary">
+                    <h3 className="font-semibold text-slate-800">
                       Notifications
                     </h3>
                   </div>
@@ -184,23 +198,22 @@ const TopNav: React.FC<TopNavProps> = ({
                     {notifications.map((n) => (
                       <div
                         key={n.id}
-                        className="px-4 py-3 cursor-pointer transition-colors"
+                        onClick={() => setShowNotifications(false)}
+                        className="px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50"
                         style={{
                           borderBottom: `1px solid ${dropBorder}`,
-                          background: n.unread
-                            ? isDark ? "rgba(124,58,237,0.07)" : "rgba(124,58,237,0.04)"
-                            : "transparent",
+                          background: n.unread ? "rgba(37,99,235,0.04)" : "transparent",
                         }}
                       >
                         <div className="flex items-start gap-3">
                           {n.unread && (
-                            <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 flex-shrink-0" />
+                            <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0" />
                           )}
                           <div className="flex-1">
-                            <p className="text-sm text-primary">
+                            <p className="text-sm text-slate-800 font-medium">
                               {n.message}
                             </p>
-                            <p className="text-xs mt-1 text-muted">
+                            <p className="text-xs mt-1 text-slate-500">
                               {n.time}
                             </p>
                           </div>
@@ -212,49 +225,53 @@ const TopNav: React.FC<TopNavProps> = ({
                     className="px-4 py-3 text-center"
                     style={{ background: dropHeaderBg }}
                   >
-                    <button className="text-sm font-medium text-accent">
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={() => setShowNotifications(false)}
+                      className="!normal-case !text-xs !font-semibold !text-blue-600"
+                    >
                       View all notifications
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
             </div>
 
             {/* ── User Menu ────────────────────────────────────────── */}
-            <div className="relative">
-              <button
+            <div className="relative" ref={userMenuRef}>
+              <Button
                 onClick={() => {
-                  setShowUserMenu(!showUserMenu);
+                  setShowUserMenu((prev) => !prev);
                   setShowNotifications(false);
                 }}
-                className="flex items-center gap-3 p-2 rounded-lg transition-all text-primary"
+                className="!normal-case !p-1.5 !rounded-xl text-slate-800 hover:!bg-slate-100 flex items-center gap-3 transition-all"
               >
                 <img
                   src={user.avatar}
                   alt={user.name}
-                  className="w-10 h-10 rounded-full border-2 border-purple-500"
+                  className="w-10 h-10 rounded-full border-2 border-blue-600 object-cover"
                 />
                 <div className="text-left hidden md:block">
-                  <p className="text-sm font-medium text-primary">
+                  <p className="text-sm font-semibold text-slate-800">
                     {user.name}
                   </p>
-                  <p className="text-xs text-secondary">
+                  <p className="text-xs text-slate-500 font-medium">
                     {user.role}
                   </p>
                 </div>
                 <IconChevronDown
                   size={16}
-                  className={`hidden md:block transition-transform text-muted ${showUserMenu ? "rotate-180" : ""}`}
+                  className={`hidden md:block transition-transform text-slate-500 ${showUserMenu ? "rotate-180" : ""}`}
                 />
-              </button>
+              </Button>
 
               {showUserMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden"
+                  className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden z-50"
                   style={{
                     background: dropBg,
                     border: `1px solid ${dropBorder}`,
-                    boxShadow: "var(--shadow-card)",
                   }}
                 >
                   {/* User info header */}
@@ -269,50 +286,50 @@ const TopNav: React.FC<TopNavProps> = ({
                       <img
                         src={user.avatar}
                         alt={user.name}
-                        className="w-12 h-12 rounded-full"
+                        className="w-12 h-12 rounded-full object-cover"
                       />
-                      <div>
-                        <p className="font-semibold text-primary">
+                      <div className="overflow-hidden">
+                        <p className="font-semibold text-slate-900 truncate">
                           {user.name}
                         </p>
-                        <p className="text-sm text-secondary">
+                        <p className="text-sm text-slate-500 truncate">
                           {user.email}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="py-2">
-                    <button
-                      onClick={() => navigate("/Users/profile")}
-                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors text-secondary"
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  <div className="py-1">
+                    <Button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        navigate("/Users/profile");
+                      }}
+                      className="w-full !justify-start !normal-case !px-4 !py-2.5 !text-slate-700 hover:!bg-slate-50 flex items-center gap-3"
                     >
-                      <IconBell size={18} />
+                      <IconUser size={18} />
                       <span>My Profile</span>
-                    </button>
-                    <button
-                      onClick={() => navigate("/settings")}
-                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors text-secondary"
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-tertiary)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        navigate("/settings");
+                      }}
+                      className="w-full !justify-start !normal-case !px-4 !py-2.5 !text-slate-700 hover:!bg-slate-50 flex items-center gap-3"
                     >
                       <IconSettings size={18} />
                       <span>Settings</span>
-                    </button>
+                    </Button>
                   </div>
 
-                  <div className="py-2" style={{ borderTop: `1px solid ${dropBorder}` }}>
-                    <button
+                  <div className="py-1 border-t border-slate-200">
+                    <Button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left flex items-center gap-3 transition-colors text-red-400 hover:text-red-300"
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.08)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      className="w-full !justify-start !normal-case !px-4 !py-2.5 !text-rose-600 hover:!bg-rose-50 flex items-center gap-3 font-semibold"
                     >
                       <IconLogout size={18} />
                       <span>Logout</span>
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}

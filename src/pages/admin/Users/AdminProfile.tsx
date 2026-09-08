@@ -1,179 +1,109 @@
-// src/pages/admin/Profile/UserProfile.tsx
+// src/pages/admin/Users/AdminProfile.tsx
+// Route: { path: "Users/profile", element: <UserProfile /> }
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../../../components/PageHeader";
 import {
-  IconArrowLeft,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Chip,
+  IconButton,
+  Divider,
+  Switch,
+  Tooltip,
+} from "@mui/material";
+import {
   IconCamera,
   IconUser,
   IconMail,
   IconPhone,
-  IconMapPin,
-  IconBriefcase,
-  IconCalendar,
-  IconEdit,
   IconCheck,
   IconX,
-  IconShield,
   IconBell,
-  IconKey,
+  IconSchool,
+  IconUsers,
+  IconBook,
+  IconCurrencyRupee,
+  IconSparkles,
+  IconTrash,
 } from "@tabler/icons-react";
+import Swal from "sweetalert2";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mock user data — replace with real auth/user context later
+// Default Admin Data (Only Name, Email, and Phone)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const defaultUser = {
+const initialAdmin = {
   name: "Arjun Mehta",
   role: "Admin",
-  email: "arjun.mehta@institute.com",
+  email: "arjun.mehta@kgurukul.com",
   phone: "+91 98765 43210",
-  address: "Shivajinagar, Pune, Maharashtra",
-  department: "Management",
-  joined: "15 Jan, 2023",
-  bio: "Institute administrator managing student registrations, fee collections, and overall operations.",
   photo: null as string | null,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Stat card data
-// ─────────────────────────────────────────────────────────────────────────────
-
-const stats = [
-  {
-    label: "Students",
-    value: "248",
-    color: "text-orange-400",
-    bg: "bg-orange-500/10 border-orange-500/20",
-  },
-  {
-    label: "Teachers",
-    value: "12",
-    color: "text-violet-400",
-    bg: "bg-violet-500/10 border-violet-500/20",
-  },
-  {
-    label: "Collections",
-    value: "₹4.2L",
-    color: "text-green-400",
-    bg: "bg-green-500/10 border-green-500/20",
-  },
-  {
-    label: "Pending",
-    value: "18",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/10 border-yellow-500/20",
-  },
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Editable field component
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface EditableFieldProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  field: string;
-  type?: string;
-  onSave: (field: string, value: string) => void;
-}
-
-const EditableField: React.FC<EditableFieldProps> = ({
-  icon,
-  label,
-  value,
-  field,
-  type = "text",
-  onSave,
-}) => {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-
-  const handleSave = () => {
-    onSave(field, draft);
-    setEditing(false);
-  };
-
-  const handleCancel = () => {
-    setDraft(value);
-    setEditing(false);
-  };
-
-  return (
-    <div className="group flex items-start gap-4 p-4 rounded-xl hover:bg-slate-800/50 transition-colors">
-      <div className="mt-0.5 w-8 h-8 rounded-lg bg-slate-700/60 flex items-center justify-center shrink-0">
-        <span className="text-slate-400">{icon}</span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wider">
-          {label}
-        </p>
-        {editing ? (
-          <div className="flex items-center gap-2">
-            <input
-              type={type}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              autoFocus
-              className="flex-1 bg-slate-700/80 border border-violet-500/50 text-white text-sm rounded-lg px-3 py-1.5 outline-none focus:border-violet-400 transition-colors"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSave();
-                if (e.key === "Escape") handleCancel();
-              }}
-            />
-            <button
-              onClick={handleSave}
-              className="p-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors"
-            >
-              <IconCheck size={14} />
-            </button>
-            <button
-              onClick={handleCancel}
-              className="p-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
-            >
-              <IconX size={14} />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <p className="text-white text-sm font-medium truncate">{value}</p>
-            <button
-              onClick={() => setEditing(true)}
-              className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-orange-400 transition-all"
-            >
-              <IconEdit size={13} />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Component
+// Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 const UserProfile: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [user, setUser] = useState(defaultUser);
+  const [activeTab, setActiveTab] = useState<"overview" | "notifications">("overview");
+  const [user, setUser] = useState(initialAdmin);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [photoSaved, setPhotoSaved] = useState(false);
 
-  // ── Photo upload ──────────────────────────────────────────────────────────
+  // Notification Preferences State
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [smsAlerts, setSmsAlerts] = useState(false);
+  const [feeReminders, setFeeReminders] = useState(true);
+  const [attendanceAlerts, setAttendanceAlerts] = useState(true);
+
+  // Load from localStorage if present
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("userData");
+      const storedEmail = localStorage.getItem("userEmail");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setUser((prev) => ({
+          ...prev,
+          name: parsed.name || parsed.full_name || parsed.username || prev.name,
+          email: parsed.email || storedEmail || prev.email,
+          phone: parsed.phone || parsed.contactNo || parsed.contact_no || prev.phone,
+          role: parsed.role || prev.role,
+          photo: parsed.avatar || parsed.photo || prev.photo,
+        }));
+      } else if (storedEmail) {
+        setUser((prev) => ({ ...prev, email: storedEmail }));
+      }
+    } catch (err) {
+      console.error("Failed to load user from localStorage:", err);
+    }
+  }, []);
+
+  // ── Photo Upload Handlers ──────────────────────────────────────────────────
 
   const handlePhotoChange = (file: File | null) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return;
+    if (!file.type.startsWith("image/")) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid File",
+        text: "Please upload an image file (PNG, JPG, or WEBP).",
+        confirmButtonColor: "#2563eb",
+      });
+      return;
+    }
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPhotoPreview(reader.result as string);
-      setPhotoSaved(false);
+      const base64 = reader.result as string;
+      setPhotoPreview(base64);
     };
     reader.readAsDataURL(file);
   };
@@ -191,23 +121,54 @@ const UserProfile: React.FC = () => {
   const handleSavePhoto = () => {
     if (!photoPreview) return;
     setUser((prev) => ({ ...prev, photo: photoPreview }));
-    setPhotoSaved(true);
-    setTimeout(() => setPhotoSaved(false), 2000);
+
+    // Persist to localStorage
+    try {
+      const stored = localStorage.getItem("userData");
+      const current = stored ? JSON.parse(stored) : {};
+      localStorage.setItem("userData", JSON.stringify({ ...current, photo: photoPreview, avatar: photoPreview }));
+    } catch (e) {
+      console.error(e);
+    }
+
+    setPhotoPreview(null);
+    Swal.fire({
+      icon: "success",
+      title: "Photo Updated",
+      text: "Profile photo saved successfully!",
+      timer: 1800,
+      showConfirmButton: false,
+    });
   };
 
   const handleRemovePhoto = () => {
-    setPhotoPreview(null);
-    setUser((prev) => ({ ...prev, photo: null }));
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    Swal.fire({
+      title: "Remove Photo?",
+      text: "Your profile picture will be reset to default initials.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Yes, remove",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setPhotoPreview(null);
+        setUser((prev) => ({ ...prev, photo: null }));
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        try {
+          const stored = localStorage.getItem("userData");
+          if (stored) {
+            const current = JSON.parse(stored);
+            delete current.photo;
+            delete current.avatar;
+            localStorage.setItem("userData", JSON.stringify(current));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
   };
-
-  // ── Field save ────────────────────────────────────────────────────────────
-
-  const handleSaveField = (field: string, value: string) => {
-    setUser((prev) => ({ ...prev, [field]: value }));
-  };
-
-  // ── Active photo ──────────────────────────────────────────────────────────
 
   const activePhoto = photoPreview ?? user.photo;
   const initials = user.name
@@ -217,285 +178,390 @@ const UserProfile: React.FC = () => {
     .toUpperCase()
     .slice(0, 2);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────────────────
-
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-lg hover:bg-slate-700/60 text-slate-400 hover:text-white transition-colors"
-        >
-          <IconArrowLeft size={20} />
-        </button>
-        <div>
-          <h2 className="text-2xl font-bold text-white">My Profile</h2>
-          <p className="text-slate-400 text-sm">
-            View and manage your account details
-          </p>
-        </div>
-      </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* ── Page Header ──────────────────────────────────────────────────── */}
+      <PageHeader
+        title="Admin Profile"
+        subtitle="View and manage your account details and system settings"
+        onBack={() => navigate("/adminDashboard")}
+      />
 
-      {/* ── Top card — photo + name + stats ────────────────────────────── */}
-      <div className="relative rounded-2xl border border-slate-700/60 bg-slate-800/40 overflow-hidden">
-        {/* Banner gradient */}
-        <div className="h-28 bg-gradient-to-r from-orange-500/20 via-violet-500/20 to-slate-800/0 relative">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(249,115,22,0.15),transparent_60%)]" />
-        </div>
-
-        <div className="px-6 pb-6">
-          {/* Avatar row */}
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12 mb-6">
-            {/* Avatar with upload overlay */}
-            <div
-              className={`relative shrink-0 w-24 h-24 rounded-2xl border-4 border-slate-800 overflow-hidden cursor-pointer group ${isDragging ? "ring-2 ring-orange-400" : ""}`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-            >
-              {activePhoto ? (
-                <img
-                  src={activePhoto}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-orange-500 to-violet-600 flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">
-                    {initials}
-                  </span>
-                </div>
-              )}
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
-                <IconCamera size={18} className="text-white" />
-                <span className="text-white text-[10px] font-medium">
-                  Change
-                </span>
-              </div>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileInput}
-            />
-
-            {/* Name + role */}
-            <div className="flex-1 sm:mb-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-xl font-bold text-white">{user.name}</h3>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-500/15 text-orange-400 border border-orange-500/25">
-                  {user.role}
-                </span>
-              </div>
-              <p className="text-slate-400 text-sm mt-0.5">
-                {user.department} · Joined {user.joined}
-              </p>
-            </div>
-
-            {/* Photo action buttons — show only when preview is pending */}
-            {photoPreview && (
-              <div className="flex items-center gap-2 sm:mb-1">
-                <button
-                  onClick={handleSavePhoto}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    photoSaved
-                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                      : "bg-orange-500 hover:bg-orange-600 text-white"
-                  }`}
-                >
-                  {photoSaved ? (
-                    <>
-                      <IconCheck size={14} /> Saved
-                    </>
-                  ) : (
-                    "Save Photo"
-                  )}
-                </button>
-                <button
-                  onClick={handleRemovePhoto}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-700/60 hover:bg-slate-700 text-slate-300 transition-colors"
-                >
-                  <IconX size={14} />
-                  Remove
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Stats row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className={`rounded-xl border p-3 text-center ${s.bg}`}
-              >
-                <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-                <p className="text-slate-400 text-xs mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Bottom two columns ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left — Personal details (editable) */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-700/60 bg-slate-800/40 p-2">
-          <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-            <IconUser size={16} className="text-orange-400" />
-            <h4 className="text-white font-semibold text-sm">
-              Personal Details
-            </h4>
-            <span className="ml-auto text-xs text-slate-500">
-              Hover a field to edit
+      {/* ── Top Hero Profile Card ────────────────────────────────────────── */}
+      <Card
+        elevation={1}
+        className="bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden"
+      >
+        {/* Soft, Light Top Banner */}
+        <div className="h-16 sm:h-20 bg-gradient-to-r from-slate-100 via-blue-50/60 to-indigo-50/50 border-b border-slate-200/60 relative">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_50%,rgba(59,130,246,0.06),transparent_60%)]" />
+          <div className="absolute top-3 right-4 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/90 backdrop-blur-sm text-blue-700 border border-blue-200/80 shadow-xs">
+              <IconSparkles size={14} className="text-blue-600" />
+              Verified Institute Admin
             </span>
           </div>
-
-          <div className="divide-y divide-slate-700/40">
-            <EditableField
-              icon={<IconMail size={15} />}
-              label="Email Address"
-              value={user.email}
-              field="email"
-              type="email"
-              onSave={handleSaveField}
-            />
-            <EditableField
-              icon={<IconPhone size={15} />}
-              label="Phone Number"
-              value={user.phone}
-              field="phone"
-              type="tel"
-              onSave={handleSaveField}
-            />
-            <EditableField
-              icon={<IconMapPin size={15} />}
-              label="Address"
-              value={user.address}
-              field="address"
-              onSave={handleSaveField}
-            />
-            <EditableField
-              icon={<IconBriefcase size={15} />}
-              label="Department"
-              value={user.department}
-              field="department"
-              onSave={handleSaveField}
-            />
-            <EditableField
-              icon={<IconCalendar size={15} />}
-              label="Joined On"
-              value={user.joined}
-              field="joined"
-              onSave={handleSaveField}
-            />
-          </div>
-
-          {/* Bio */}
-          <div className="px-4 pt-3 pb-4">
-            <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wider">
-              Bio
-            </p>
-            <p className="text-slate-300 text-sm leading-relaxed">{user.bio}</p>
-          </div>
         </div>
 
-        {/* Right — Quick actions */}
-        <div className="flex flex-col gap-4">
-          {/* Photo upload zone */}
-          <div className="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <IconCamera size={16} className="text-orange-400" />
-              <h4 className="text-white font-semibold text-sm">
-                Profile Photo
-              </h4>
-            </div>
-            <div
-              className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
-                isDragging
-                  ? "border-orange-400 bg-orange-500/10"
-                  : "border-slate-600 hover:border-slate-500 hover:bg-slate-700/30"
-              }`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-            >
-              <IconCamera size={24} className="text-slate-500 mx-auto mb-2" />
-              <p className="text-slate-400 text-xs font-medium">
-                Click or drag & drop
-              </p>
-              <p className="text-slate-600 text-xs mt-1">PNG, JPG, WEBP</p>
-            </div>
-            {photoPreview && (
-              <div className="mt-3 flex items-center gap-2">
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  className="w-10 h-10 rounded-lg object-cover border border-slate-600"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-slate-300 text-xs font-medium truncate">
-                    New photo ready
-                  </p>
-                  <p className="text-slate-500 text-xs">
-                    Click "Save Photo" above
-                  </p>
+        <CardContent className="!p-5 sm:!p-6 !pt-0 relative">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 -mt-10 sm:-mt-12 mb-6">
+            {/* Left: Avatar + Details */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
+              {/* Avatar with Click-to-Upload */}
+              <div
+                className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white shadow-md overflow-hidden cursor-pointer group bg-white shrink-0 ${
+                  isDragging ? "ring-4 ring-blue-400" : ""
+                }`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                title="Click or drag an image to update avatar"
+              >
+                {activePhoto ? (
+                  <img src={activePhoto} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-black">
+                    {initials}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-white">
+                  <IconCamera size={20} />
+                  <span className="text-[10px] font-bold">Change Photo</span>
                 </div>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileInput}
+              />
+
+              {/* Title & Core Meta */}
+              <div className="space-y-1 sm:mb-1">
+                <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap">
+                  <h2 className="text-2xl font-black text-slate-800">{user.name}</h2>
+                  <Chip
+                    label={user.role}
+                    size="small"
+                    sx={{
+                      bgcolor: "#eff6ff",
+                      color: "#1d4ed8",
+                      border: "1px solid #bfdbfe",
+                      fontWeight: 700,
+                      borderRadius: "8px",
+                      height: "24px",
+                    }}
+                  />
+                  <Chip
+                    label="Active"
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                    sx={{ fontWeight: 700, borderRadius: "8px", height: "24px" }}
+                  />
+                </div>
+
+                <p className="text-sm font-semibold text-slate-600 flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                  <span>{user.email}</span>
+                  <span className="text-slate-300">•</span>
+                  <span>{user.phone}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Actions / Pending Photo Controls */}
+            {photoPreview ? (
+              <div className="flex items-center gap-2.5 w-full md:w-auto justify-end sm:mb-1">
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleSavePhoto}
+                  startIcon={<IconCheck size={16} />}
+                  sx={{
+                    bgcolor: "#16a34a",
+                    "&:hover": { bgcolor: "#15803d" },
+                    borderRadius: "10px",
+                    textTransform: "none",
+                    fontWeight: 700,
+                    px: 2.5,
+                  }}
+                >
+                  Save Photo
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="error"
+                  onClick={() => setPhotoPreview(null)}
+                  startIcon={<IconX size={16} />}
+                  sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 600 }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 w-full md:w-auto justify-end sm:mb-1">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => fileInputRef.current?.click()}
+                  startIcon={<IconCamera size={16} />}
+                  sx={{
+                    borderRadius: "10px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    color: "#334155",
+                    borderColor: "#cbd5e1",
+                    "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
+                  }}
+                >
+                  Upload Photo
+                </Button>
+                {user.photo && (
+                  <Tooltip title="Remove custom photo">
+                    <IconButton size="small" color="error" onClick={handleRemovePhoto}>
+                      <IconTrash size={18} />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </div>
             )}
           </div>
 
-          {/* Account actions */}
-          <div className="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <IconShield size={16} className="text-violet-400" />
-              <h4 className="text-white font-semibold text-sm">Account</h4>
+          <Divider className="my-5" />
+
+          {/* ── Key Statistics Row ────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <IconSchool size={22} />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">248</p>
+                <p className="text-xs font-semibold text-blue-700">Enrolled Students</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              {[
-                {
-                  icon: <IconKey size={15} />,
-                  label: "Change Password",
-                  color: "hover:text-orange-400",
-                },
-                {
-                  icon: <IconBell size={15} />,
-                  label: "Notifications",
-                  color: "hover:text-violet-400",
-                },
-                {
-                  icon: <IconShield size={15} />,
-                  label: "Privacy Settings",
-                  color: "hover:text-green-400",
-                },
-              ].map((item) => (
-                <button
-                  key={item.label}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 ${item.color} hover:bg-slate-700/50 transition-all text-sm text-left`}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              ))}
+
+            <div className="p-4 rounded-xl bg-violet-50/70 border border-violet-100 flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-violet-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <IconUsers size={22} />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">12</p>
+                <p className="text-xs font-semibold text-violet-700">Active Teachers</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-100 flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <IconBook size={22} />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">16</p>
+                <p className="text-xs font-semibold text-amber-700">Batches Running</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <IconCurrencyRupee size={22} />
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">₹4.2L</p>
+                <p className="text-xs font-semibold text-emerald-700">Monthly Collections</p>
+              </div>
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Navigation Tabs ──────────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 border-b border-slate-200">
+        <Button
+          onClick={() => setActiveTab("overview")}
+          className={`!flex !items-center !gap-2 !px-5 !py-3 !text-sm !font-bold !rounded-t-xl transition-all !normal-case ${
+            activeTab === "overview"
+              ? "!bg-white !text-blue-600 !border-t-2 !border-t-blue-600 !border-x !border-x-slate-200 -mb-px shadow-xs"
+              : "!text-slate-500 hover:!text-slate-800 hover:!bg-slate-100"
+          }`}
+        >
+          <IconUser size={18} />
+          <span>Basic Information</span>
+        </Button>
+
+        <Button
+          onClick={() => setActiveTab("notifications")}
+          className={`!flex !items-center !gap-2 !px-5 !py-3 !text-sm !font-bold !rounded-t-xl transition-all !normal-case ${
+            activeTab === "notifications"
+              ? "!bg-white !text-blue-600 !border-t-2 !border-t-blue-600 !border-x !border-x-slate-200 -mb-px shadow-xs"
+              : "!text-slate-500 hover:!text-slate-800 hover:!bg-slate-100"
+          }`}
+        >
+          <IconBell size={18} />
+          <span>Notification Preferences</span>
+        </Button>
       </div>
+
+      {/* ── Tab 1: Basic Information (Only Name, Email, Number) ───────────── */}
+      {activeTab === "overview" && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column: Basic Information */}
+          <div className="lg:col-span-8">
+            <Card elevation={1} className="bg-white border border-slate-200/80 rounded-2xl shadow-sm">
+              <CardContent className="!p-6 space-y-5">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <IconUser size={18} />
+                  </div>
+                  <Typography variant="h6" className="!font-bold text-slate-800 !text-base">
+                    Basic Information
+                  </Typography>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                      <IconUser size={15} className="text-blue-600" />
+                      Full Name
+                    </div>
+                    <p className="text-base font-bold text-slate-800">{user.name}</p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                      <IconMail size={15} className="text-blue-600" />
+                      Email Address
+                    </div>
+                    <p className="text-sm font-bold text-slate-800 truncate">{user.email}</p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                      <IconPhone size={15} className="text-emerald-600" />
+                      Contact Number
+                    </div>
+                    <p className="text-sm font-bold text-slate-800">{user.phone}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Profile Photo Upload Card */}
+          <div className="lg:col-span-4">
+            <Card elevation={1} className="bg-white border border-slate-200/80 rounded-2xl shadow-sm">
+              <CardContent className="!p-6 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <IconCamera size={18} className="text-blue-600" />
+                  <Typography variant="subtitle1" className="!font-bold text-slate-800">
+                    Profile Photo
+                  </Typography>
+                </div>
+
+                <div
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                    isDragging
+                      ? "border-blue-500 bg-blue-50/70 scale-102"
+                      : "border-slate-200 bg-slate-50/60 hover:border-blue-300 hover:bg-blue-50/30"
+                  }`}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                >
+                  <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+                    <IconCamera size={24} />
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">Click or drag image here</p>
+                  <p className="text-xs text-slate-400 mt-1">Supports PNG, JPG, or WEBP (Max 2MB)</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab 2: Notification Preferences ──────────────────────────────── */}
+      {activeTab === "notifications" && (
+        <Card elevation={1} className="bg-white border border-slate-200/80 rounded-2xl shadow-sm max-w-3xl">
+          <CardContent className="!p-6 space-y-6">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <IconBell size={18} />
+              </div>
+              <div>
+                <Typography variant="h6" className="!font-bold text-slate-800 !text-base">
+                  Notification & Alert Preferences
+                </Typography>
+                <Typography variant="caption" className="text-slate-400 block">
+                  Select which notifications you would like to receive across channels
+                </Typography>
+              </div>
+            </div>
+
+            <div className="space-y-4 divide-y divide-slate-100">
+              <div className="flex items-center justify-between pt-3">
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Email Digest & Alerts</p>
+                  <p className="text-xs text-slate-500">Receive weekly summaries and important administrative announcements via email.</p>
+                </div>
+                <Switch checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} color="primary" />
+              </div>
+
+              <div className="flex items-center justify-between pt-4">
+                <div>
+                  <p className="text-sm font-bold text-slate-800">SMS Notifications</p>
+                  <p className="text-xs text-slate-500">Get urgent OTPs and critical server alerts directly on your registered mobile number.</p>
+                </div>
+                <Switch checked={smsAlerts} onChange={(e) => setSmsAlerts(e.target.checked)} color="primary" />
+              </div>
+
+              <div className="flex items-center justify-between pt-4">
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Student Attendance Updates</p>
+                  <p className="text-xs text-slate-500">Notifications when attendance sheets are submitted or students are absent.</p>
+                </div>
+                <Switch checked={attendanceAlerts} onChange={(e) => setAttendanceAlerts(e.target.checked)} color="primary" />
+              </div>
+
+              <div className="flex items-center justify-between pt-4">
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Fee Collection & Invoice Reminders</p>
+                  <p className="text-xs text-slate-500">Alerts for upcoming installment due dates and payment receipts.</p>
+                </div>
+                <Switch checked={feeReminders} onChange={(e) => setFeeReminders(e.target.checked)} color="primary" />
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <Button
+                variant="contained"
+                onClick={() =>
+                  Swal.fire({
+                    icon: "success",
+                    title: "Preferences Saved",
+                    text: "Notification settings updated successfully!",
+                    timer: 1600,
+                    showConfirmButton: false,
+                  })
+                }
+                className="!bg-blue-600 hover:!bg-blue-700 !text-white !font-bold !px-6 !py-2 !rounded-xl !text-sm shadow-md !normal-case"
+              >
+                Save Preferences
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

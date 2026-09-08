@@ -27,6 +27,7 @@ import BatchAssign from "../pages/batches/BatchAssign";
 // Attendance
 import MarkAttendance from "../pages/attendance/MarkAttendance";
 import Attendance from "../pages/admin/Attendance/Attendance";
+import StudentAttendance from "../pages/attendance/StudentAttendance";
 
 // Master
 import Master from "../pages/admin/Master/Master";
@@ -35,6 +36,7 @@ import BranchPage from "../pages/admin/Master/Branch";
 import StandardPage from "../pages/admin/Master/Standard";
 import SubjectPage from "../pages/admin/Master/Subject";
 import NewLogin from "../pages/auth/NewLogin";
+import MyGrades from "../pages/grades/MyGrades";
 
 export const router = createBrowserRouter([
   {
@@ -73,7 +75,10 @@ export const router = createBrowserRouter([
         path: "attendance/mark",
         element: <MarkAttendance />,
       },
-
+      {
+        path: "my-attendance",
+        element: <StudentAttendance />,
+      },
       // Batches
       {
         path: "Batches",
@@ -180,6 +185,12 @@ export const router = createBrowserRouter([
       {
         path: "master/subject",
         element: <SubjectPage />,
+      },
+
+      // Grades
+      {
+        path: "grades",
+        element: <MyGrades />,
       },
     ],
   },

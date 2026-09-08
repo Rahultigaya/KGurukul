@@ -1,6 +1,7 @@
 // src/pages/profile/AdminProfile.tsx
 
 import React, { useState } from "react";
+import { Button, IconButton } from "@mui/material";
 import {
   IconUser,
   IconMail,
@@ -119,28 +120,31 @@ const EditableField: React.FC<EditableFieldProps> = ({
               }}
               className="flex-1 bg-slate-700/80 border border-violet-500/50 text-white text-sm rounded-lg px-3 py-1.5 outline-none focus:border-violet-400"
             />
-            <button
+            <IconButton
+              size="small"
               onClick={save}
-              className="p-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg"
+              className="!p-1.5 !bg-emerald-50 hover:!bg-emerald-100 !text-emerald-600 !rounded-lg"
             >
               <IconCheck size={14} />
-            </button>
-            <button
+            </IconButton>
+            <IconButton
+              size="small"
               onClick={cancel}
-              className="p-1.5 bg-red-500/20   hover:bg-red-500/30   text-red-400   rounded-lg"
+              className="!p-1.5 !bg-rose-50 hover:!bg-rose-100 !text-rose-600 !rounded-lg"
             >
               <IconX size={14} />
-            </button>
+            </IconButton>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <p className="text-white text-sm font-medium truncate">{value}</p>
-            <button
+            <IconButton
+              size="small"
               onClick={() => setEditing(true)}
-              className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-orange-400 transition-all"
+              className="opacity-0 group-hover:opacity-100 !p-1 text-slate-400 hover:text-blue-500 transition-all"
             >
               <IconEdit size={13} />
-            </button>
+            </IconButton>
           </div>
         )}
       </div>
@@ -284,13 +288,13 @@ const AdminProfile: React.FC = () => {
                   color: "hover:text-green-400",
                 },
               ].map((item) => (
-                <button
+                <Button
                   key={item.label}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 ${item.color} hover:bg-slate-700/50 transition-all text-sm text-left`}
+                  className={`w-full !justify-start !normal-case !px-3 !py-2.5 !rounded-lg text-slate-400 ${item.color} hover:!bg-slate-700/50 transition-all text-sm text-left flex items-center gap-3`}
                 >
                   {item.icon}
                   {item.label}
-                </button>
+                </Button>
               ))}
             </div>
           </SectionCard>

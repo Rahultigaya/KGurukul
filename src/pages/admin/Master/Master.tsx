@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Typography,
+  Button,
 } from "@mui/material";
 import {
   LocationOn as LocationOnIcon,
@@ -102,14 +103,14 @@ const Master: React.FC = () => {
 
               {/* Bottom Action Button (Redirects only on click) */}
               <div className="pt-3 border-t border-slate-100">
-                <button
-                  type="button"
+                <Button
+                  fullWidth
                   onClick={() => navigate(card.path)}
-                  className="flex items-center justify-between w-full text-blue-600 hover:text-blue-700 font-semibold text-sm group/btn transition-colors cursor-pointer"
+                  endIcon={<ArrowForwardIcon fontSize="small" className="group-hover/btn:translate-x-1 transition-transform" />}
+                  className="!flex !items-center !justify-between !w-full !text-blue-600 hover:!text-blue-700 !font-semibold !text-sm group/btn !transition-colors !normal-case"
                 >
                   <span>{card.manageText}</span>
-                  <ArrowForwardIcon fontSize="small" className="group-hover/btn:translate-x-1 transition-transform" />
-                </button>
+                </Button>
               </div>
             </CardContent>
           </Card>

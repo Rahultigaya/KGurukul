@@ -14,6 +14,7 @@ import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import { sendOTP, verifyOTP, type AuthResponse } from "../../api/api";
+import { normalizeRole, getDefaultRouteForRole } from "../../utils/authRole";
 
 // =========================================================================
 // TEST EMAIL BYPASS CONFIGURATION (Easy to remove later)
@@ -213,8 +214,11 @@ export default function NewLogin() {
             setIsLoading(false);
             setStep("success");
 
+            const roleVal = user?.role_id ?? user?.role ?? user?.user_role ?? user?.roleId;
+            const targetRoute = getDefaultRouteForRole(normalizeRole(roleVal));
+
             setTimeout(() => {
-                navigate("/adminDashboard");
+                navigate(targetRoute);
             }, 1200);
         } catch (err: any) {
             setIsLoading(false);

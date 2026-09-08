@@ -6,6 +6,7 @@ import {
   Alert,
   Box,
   CircularProgress,
+  Button,
 } from "@mui/material";
 import {
   IconArrowLeft,
@@ -602,71 +603,76 @@ const StudentRegistration: React.FC = () => {
         )}
       </fieldset>
 
-      {/* Navigation Action Bar — Premium Custom Button UI */}
+      {/* Navigation Action Bar — MUI Button UI */}
       <div className="flex flex-col sm:flex-row justify-between gap-3 items-center pt-4 border-t border-slate-200 mt-6">
-        <button
+        <Button
+          variant="outlined"
           onClick={prevStep}
           disabled={active === 0 || isPaymentMode}
-          className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 hover:scale-[1.02] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-white disabled:hover:border-slate-300 w-full sm:w-auto"
+          startIcon={<IconArrowLeft size={18} />}
+          className="!px-5 !py-2.5 !rounded-xl !border-slate-300 !bg-white hover:!bg-slate-50 !text-slate-700 !font-semibold !text-sm !normal-case shadow-sm w-full sm:w-auto"
         >
-          <IconArrowLeft size={18} />
-          <span>Previous</span>
-        </button>
+          Previous
+        </Button>
 
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <button
+          <Button
+            variant="outlined"
             onClick={handleNavigateBack}
-            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm hover:shadow transition-all duration-200 hover:scale-[1.02] cursor-pointer w-full sm:w-auto"
+            startIcon={<IconX size={18} />}
+            className="!px-5 !py-2.5 !rounded-xl !border-slate-300 !bg-white hover:!bg-slate-50 !text-slate-700 !font-semibold !text-sm !normal-case shadow-sm w-full sm:w-auto"
           >
-            <IconX size={18} />
-            <span>Cancel</span>
-          </button>
+            Cancel
+          </Button>
 
           {isViewMode ? (
             <div className="flex items-center gap-2 w-full sm:w-auto">
               {active < 3 && (
-                <button
-                  type="button"
+                <Button
+                  variant="contained"
                   onClick={nextStep}
-                  className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  endIcon={<IconArrowRight size={18} />}
+                  className="!px-5 !py-2.5 !rounded-xl !bg-blue-600 hover:!bg-blue-700 !text-white !font-semibold !text-sm !normal-case shadow-md hover:scale-105 transition-all w-full sm:w-auto"
                 >
-                  <span>Next Step</span>
-                  <IconArrowRight size={18} />
-                </button>
+                  Next Step
+                </Button>
               )}
-              <button
-                type="button"
+              <Button
+                variant="contained"
                 onClick={() => navigate(`/Users/edit-student/${id}`)}
-                className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+                startIcon={<IconPencil size={18} />}
+                className="!px-5 !py-2.5 !rounded-xl !bg-amber-500 hover:!bg-amber-600 !text-white !font-semibold !text-sm !normal-case shadow-md hover:scale-105 transition-all w-full sm:w-auto"
               >
-                <IconPencil size={18} />
-                <span>Edit Student</span>
-              </button>
+                Edit Student
+              </Button>
             </div>
           ) : isPaymentMode ? (
-            <button
+            <Button
+              variant="contained"
               onClick={handleSubmit}
-              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+              startIcon={<IconCreditCard size={18} />}
+              className="!px-6 !py-2.5 !rounded-xl !bg-emerald-600 hover:!bg-emerald-700 !text-white !font-semibold !text-sm !normal-case shadow-md hover:scale-105 transition-all w-full sm:w-auto"
             >
-              <IconCreditCard size={18} />
-              <span>Save Payment</span>
-            </button>
+              Save Payment
+            </Button>
           ) : active < 3 ? (
-            <button
+            <Button
+              variant="contained"
               onClick={nextStep}
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+              endIcon={<IconArrowRight size={18} />}
+              className="!px-6 !py-2.5 !rounded-xl !bg-blue-600 hover:!bg-blue-700 !text-white !font-semibold !text-sm !normal-case shadow-md hover:scale-105 transition-all w-full sm:w-auto"
             >
-              <span>Next Step</span>
-              <IconArrowRight size={18} />
-            </button>
+              Next Step
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="contained"
               onClick={handleSubmit}
-              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer w-full sm:w-auto"
+              startIcon={<IconDeviceFloppy size={18} />}
+              className="!px-6 !py-2.5 !rounded-xl !bg-emerald-600 hover:!bg-emerald-700 !text-white !font-semibold !text-sm !normal-case shadow-md hover:scale-105 transition-all w-full sm:w-auto"
             >
-              <IconDeviceFloppy size={18} />
-              <span>{isEditMode ? "Save Changes" : "Complete Registration"}</span>
-            </button>
+              {isEditMode ? "Save Changes" : "Complete Registration"}
+            </Button>
           )}
         </div>
       </div>

@@ -26,7 +26,6 @@ import {
   Edit as EditIcon,
   LocationOn as LocationOnIcon,
   Save as SaveIcon,
-  CheckCircleOutlined as CheckCircleOutlinedIcon,
 } from "@mui/icons-material";
 import {
   getAllAreas,
@@ -35,10 +34,18 @@ import {
   type Area,
 } from "./masterStore";
 
+const DUMMY_AREA: Area = {
+  id: "dummy-area-1",
+  name: "Thane West",
+  is_active: 1,
+  created_at: new Date().toISOString(),
+};
+
 const AreaPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [areas, setAreas] = useState<Area[]>([]);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<Area | null>(null);
@@ -55,10 +62,17 @@ const AreaPage: React.FC = () => {
   const loadAreas = async () => {
     try {
       setLoading(true);
+      setApiError(null);
       const data = await getAllAreas();
-      setAreas(data);
+      if (data && data.length > 0) {
+        setAreas(data);
+      } else {
+        setAreas([DUMMY_AREA]);
+      }
     } catch (err: any) {
       console.error("Error loading areas:", err);
+      setApiError(err?.message || "Failed to fetch");
+      setAreas([DUMMY_AREA]);
     } finally {
       setLoading(false);
     }
@@ -122,9 +136,6 @@ const AreaPage: React.FC = () => {
     area.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeCount = areas.filter((a) => a.is_active === 1).length;
-  const totalCount = areas.length;
-
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* ── Page Header ────────────────────────────────────────────────── */}
@@ -136,53 +147,31 @@ const AreaPage: React.FC = () => {
           <Button
             variant="contained"
             color="primary"
-            startIcon={<AddIcon />}
+            startIcon={<AddIcon className="!text-white" />}
             onClick={() => handleOpenModal()}
-            className="!rounded-xl !px-5 !py-2.5 !font-semibold shadow-md hover:shadow-lg transition-all"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
           >
             Add Area
           </Button>
         }
       />
 
-      {/* ── Stats Card ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card elevation={1} className="bg-white border border-slate-200/60 rounded-2xl">
-          <CardContent className="!p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center">
-                <LocationOnIcon />
-              </div>
-              <div>
-                <Typography variant="caption" className="text-slate-500 font-medium">
-                  Total Areas
-                </Typography>
-                <Typography variant="h6" className="!font-bold text-slate-800">
-                  {totalCount}
-                </Typography>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card elevation={1} className="bg-white border border-slate-200/60 rounded-2xl">
-          <CardContent className="!p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
-                <CheckCircleOutlinedIcon />
-              </div>
-              <div>
-                <Typography variant="caption" className="text-slate-500 font-medium">
-                  Active Areas
-                </Typography>
-                <Typography variant="h6" className="!font-bold text-slate-800">
-                  {activeCount} ({Math.round((activeCount / (totalCount || 1)) * 100)}%)
-                </Typography>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Offline Alert Banner */}
+      {apiError && (
+        <div className="flex items-center justify-between px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+          <span className="flex items-center gap-1.5">
+            ⚠️ API connection failed ({apiError}). Showing 1 dummy area for offline preview.
+          </span>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={loadAreas}
+            className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded-lg !normal-case transition-colors"
+          >
+            Retry API
+          </Button>
+        </div>
+      )}
 
       {/* ── Main Content Card (Search & List) ─────────────────────────── */}
       <Card
@@ -351,7 +340,7 @@ const AreaPage: React.FC = () => {
             variant="contained"
             color="primary"
             disabled={saving}
-            startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
+            startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon className="!text-white" style={{ color: "#ffffff" }} />}
             className="!rounded-xl"
           >
             {editingArea ? "Update Area" : "Create Area"}

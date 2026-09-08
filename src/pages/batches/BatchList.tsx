@@ -2,9 +2,10 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../components/PageHeader";
 import { Loader } from "@mantine/core";
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, TextField, Button, IconButton } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
 import {
-  IconPlus, IconSearch, IconMapPin, IconClock,
+  IconSearch, IconMapPin, IconClock,
   IconUser, IconUsers, IconBook, IconEdit,
   IconEye, IconUserPlus, IconX, IconSchool,
   IconCircleCheck, IconCalendar, IconTrash,
@@ -118,10 +119,10 @@ const BatchCard: React.FC<{
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
-          <button onClick={onView} title="View Details" className="p-1.5 rounded-lg text-sky-600 bg-sky-50 hover:bg-sky-100 transition-colors"><IconEye size={15} /></button>
-          <button onClick={onAssign} title="Assign Students" className="p-1.5 rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors"><IconUserPlus size={15} /></button>
-          <button onClick={onEdit} title="Edit Batch" className="p-1.5 rounded-lg text-amber-600 bg-amber-50 hover:bg-amber-100 transition-colors"><IconEdit size={15} /></button>
-          <button onClick={onDelete} title="Delete Batch" className="p-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"><IconTrash size={15} /></button>
+          <IconButton size="small" onClick={onView} title="View Details" className="!p-1.5 !rounded-lg text-sky-600 bg-sky-50 hover:bg-sky-100 transition-colors"><IconEye size={15} /></IconButton>
+          <IconButton size="small" onClick={onAssign} title="Assign Students" className="!p-1.5 !rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors"><IconUserPlus size={15} /></IconButton>
+          <IconButton size="small" onClick={onEdit} title="Edit Batch" className="!p-1.5 !rounded-lg text-amber-600 bg-amber-50 hover:bg-amber-100 transition-colors"><IconEdit size={15} /></IconButton>
+          <IconButton size="small" onClick={onDelete} title="Delete Batch" className="!p-1.5 !rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"><IconTrash size={15} /></IconButton>
         </div>
       </div>
 
@@ -328,13 +329,15 @@ const BatchList: React.FC = () => {
         title="Batches"
         subtitle="Manage all batches across areas and branches"
         action={
-          <button
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
             onClick={() => navigate("/batches/create")}
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
           >
-            <IconPlus size={16} />
             Create Batch
-          </button>
+          </Button>
         }
       />
 
@@ -353,12 +356,14 @@ const BatchList: React.FC = () => {
               <span>
                 ⚠️ API connection failed ({error}). Showing 1 dummy batch for offline preview.
               </span>
-              <button
+              <Button
+                size="small"
+                variant="contained"
                 onClick={fetchBatches}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded-lg !normal-case transition-colors"
               >
                 Retry API
-              </button>
+              </Button>
             </div>
           )}
 
@@ -382,9 +387,9 @@ const BatchList: React.FC = () => {
                 className="w-full text-sm rounded-lg pl-10 pr-8 py-2.5 bg-white border border-slate-400 text-slate-900 font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 shadow-sm transition-all"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800">
+                <IconButton size="small" onClick={() => setSearch("")} className="!absolute !right-2 !top-1/2 !-translate-y-1/2 text-slate-500 hover:text-slate-800">
                   <IconX size={15} />
-                </button>
+                </IconButton>
               )}
             </div>
 
@@ -430,7 +435,8 @@ const BatchList: React.FC = () => {
                 renderInput={(params) => <TextField {...params} placeholder="All Status" />}
               />
               
-              <button
+              <Button
+                size="small"
                 onClick={() => {
                   setSearch("");
                   setFilterArea(null);
@@ -440,14 +446,15 @@ const BatchList: React.FC = () => {
                   setFilterStatus(null);
                 }}
                 disabled={!search && activeFilters.length === 0}
-                className={`flex items-center justify-center gap-1.5 h-[36px] px-3 rounded-lg text-xs font-semibold transition-all ${
+                startIcon={<IconX size={14} />}
+                className={`!flex !items-center !justify-center !h-[36px] !px-3 !rounded-lg !text-xs !font-semibold !normal-case transition-all ${
                   search || activeFilters.length > 0
-                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer border border-slate-300 shadow-sm"
-                    : "bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed"
+                    ? "!bg-slate-100 hover:!bg-slate-200 !text-slate-700 cursor-pointer !border !border-slate-300 shadow-sm"
+                    : "!bg-slate-50 !text-slate-300 !border !border-slate-200 cursor-not-allowed"
                 }`}
               >
-                <IconX size={14} /> Clear Filters
-              </button>
+                Clear Filters
+              </Button>
             </div>
 
             {/* Active Filter Chips */}
@@ -457,7 +464,7 @@ const BatchList: React.FC = () => {
                 {activeFilters.map((f) => (
                   <span key={f.label} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
                     {f.label}
-                    <button onClick={f.clear} className="hover:text-blue-900"><IconX size={11} /></button>
+                    <IconButton size="small" onClick={f.clear} className="!p-0.5 hover:text-blue-900"><IconX size={11} /></IconButton>
                   </span>
                 ))}
               </div>

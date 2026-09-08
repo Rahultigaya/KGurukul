@@ -29,7 +29,6 @@ import {
   Edit as EditIcon,
   Business as BusinessIcon,
   Save as SaveIcon,
-  CheckCircleOutlined as CheckCircleOutlinedIcon,
 } from "@mui/icons-material";
 import {
   getAllAreas,
@@ -41,6 +40,22 @@ import {
   type Area,
 } from "./masterStore";
 
+const DUMMY_BRANCH: Branch = {
+  id: "dummy-branch-1",
+  name: "Khopat Branch",
+  area_id: "dummy-area-1",
+  area_name: "Thane West",
+  is_active: 1,
+  created_at: new Date().toISOString(),
+};
+
+const DUMMY_AREA: Area = {
+  id: "dummy-area-1",
+  name: "Thane West",
+  is_active: 1,
+  created_at: new Date().toISOString(),
+};
+
 const BranchPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -48,6 +63,7 @@ const BranchPage: React.FC = () => {
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArea, setSelectedArea] = useState<string>(preselectedAreaId || "");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,24 +84,32 @@ const BranchPage: React.FC = () => {
   const loadAreas = async () => {
     try {
       const data = await getAllAreas();
-      setAreas(data);
+      setAreas(data && data.length > 0 ? data : [DUMMY_AREA]);
     } catch (err: any) {
       console.error("Error loading areas:", err);
+      setAreas([DUMMY_AREA]);
     }
   };
 
   const loadBranches = async () => {
     try {
       setLoading(true);
+      setApiError(null);
       let data;
       if (selectedArea) {
         data = await getBranchesByArea(selectedArea);
       } else {
         data = await getAllBranches();
       }
-      setBranches(data);
+      if (data && data.length > 0) {
+        setBranches(data);
+      } else {
+        setBranches([DUMMY_BRANCH]);
+      }
     } catch (err: any) {
       console.error("Error loading branches:", err);
+      setApiError(err?.message || "Failed to fetch");
+      setBranches([DUMMY_BRANCH]);
     } finally {
       setLoading(false);
     }
@@ -172,9 +196,6 @@ const BranchPage: React.FC = () => {
       (branch.area_name && branch.area_name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const activeCount = branches.filter((b) => b.is_active === 1).length;
-  const totalCount = branches.length;
-
   const activeAreas = areas.filter((area) => area.is_active === 1);
 
   return (
@@ -188,53 +209,34 @@ const BranchPage: React.FC = () => {
           <Button
             variant="contained"
             color="primary"
-            startIcon={<AddIcon />}
+            startIcon={<AddIcon className="!text-white" />}
             onClick={() => handleOpenModal()}
-            className="!rounded-xl !px-5 !py-2.5 !font-semibold shadow-md hover:shadow-lg transition-all"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-md transition-all hover:scale-105"
           >
             Add Branch
           </Button>
         }
       />
 
-      {/* ── Stats Card ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card elevation={1} className="bg-white border border-slate-200/60 rounded-2xl">
-          <CardContent className="!p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center">
-                <BusinessIcon />
-              </div>
-              <div>
-                <Typography variant="caption" className="text-slate-500 font-medium">
-                  Total Branches
-                </Typography>
-                <Typography variant="h6" className="!font-bold text-slate-800">
-                  {totalCount}
-                </Typography>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card elevation={1} className="bg-white border border-slate-200/60 rounded-2xl">
-          <CardContent className="!p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
-                <CheckCircleOutlinedIcon />
-              </div>
-              <div>
-                <Typography variant="caption" className="text-slate-500 font-medium">
-                  Active Branches
-                </Typography>
-                <Typography variant="h6" className="!font-bold text-slate-800">
-                  {activeCount} ({Math.round((activeCount / (totalCount || 1)) * 100)}%)
-                </Typography>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Offline Alert Banner */}
+      {apiError && (
+        <div className="flex items-center justify-between px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+          <span className="flex items-center gap-1.5">
+            ⚠️ API connection failed ({apiError}). Showing 1 dummy branch for offline preview.
+          </span>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              loadAreas();
+              loadBranches();
+            }}
+            className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded-lg !normal-case transition-colors"
+          >
+            Retry API
+          </Button>
+        </div>
+      )}
 
       {/* ── Main Content Card (Search & List) ─────────────────────────── */}
       <Card
@@ -462,7 +464,7 @@ const BranchPage: React.FC = () => {
             variant="contained"
             color="primary"
             disabled={saving}
-            startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
+            startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon className="!text-white" style={{ color: "#ffffff" }} />}
             className="!rounded-xl"
           >
             {editingBranch ? "Update Branch" : "Create Branch"}

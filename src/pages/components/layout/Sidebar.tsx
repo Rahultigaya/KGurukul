@@ -1,17 +1,18 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   IconLayoutDashboard,
   IconTrophy,
-  IconChecklist,
-  IconChartBar,
-  IconCreditCard,
   IconUser,
   IconX,
   IconMenu2,
   IconUsersGroup,
   IconCalendarCheck,
+  IconFolders,
 } from "@tabler/icons-react";
+import { IconButton } from "@mui/material";
+import { getCurrentUserRole, type RoleType } from "../../../utils/authRole";
+
 interface SidebarProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -24,27 +25,72 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const menuItems = [
-    { path: "/adminDashboard", icon: IconLayoutDashboard, label: "Dashboard" },
-    { path: "/Users", icon: IconUser, label: "Users" },
-    { path: "/Batches", icon: IconUsersGroup, label: "Batches" },
+  const [userRole, setUserRole] = useState<RoleType>(() => getCurrentUserRole());
 
-    // Bhavana Attendance Route
-    { path: "/attendance/mark", icon: IconCalendarCheck, label: "Attendance" },
+  useEffect(() => {
+    const updateRole = () => {
+      setUserRole(getCurrentUserRole());
+    };
 
-    // Rahul Attendance Route
-    // { path: "/attendance", icon: IconCalendarCheck, label: "Attendance" },
+    updateRole();
+    window.addEventListener("storage", updateRole);
+    return () => window.removeEventListener("storage", updateRole);
+  }, []);
 
-    // Added
-    { path: "/master", icon: IconCalendarCheck, label: "Master" },
+  // ── Menu items per user role ───────────────────────────────────────────────
+  const menuItems = useMemo(() => {
+    switch (userRole) {
+      case 0: // Admin
+        return [
+          { path: "/adminDashboard", icon: IconLayoutDashboard, label: "Dashboard" },
+          { path: "/Users", icon: IconUser, label: "Users" },
+          { path: "/Batches", icon: IconUsersGroup, label: "Batches" },
+          { path: "/attendance/mark", icon: IconCalendarCheck, label: "Mark Attendance" },
+          { path: "/master", icon: IconFolders, label: "Master" },
+        ];
+      case 3: // Teacher
+        return [
+          { path: "/attendance/mark", icon: IconCalendarCheck, label: "Mark Attendance" },
+        ];
+      case 2: // Student
+        return [
+          { path: "/my-attendance", icon: IconCalendarCheck, label: "My Attendance" },
+          { path: "/grades", icon: IconTrophy, label: "My Grades" },
+        ];
+      case 1: // Parent
+        return [
+          { path: "/my-attendance", icon: IconCalendarCheck, label: "My Attendance" },
+          { path: "/grades", icon: IconTrophy, label: "My Grades" },
+        ];
+      default:
+        return [
+          { path: "/adminDashboard", icon: IconLayoutDashboard, label: "Dashboard" },
+          { path: "/Users", icon: IconUser, label: "Users" },
+          { path: "/Batches", icon: IconUsersGroup, label: "Batches" },
+          { path: "/attendance/mark", icon: IconCalendarCheck, label: "Mark Attendance" },
+          { path: "/master", icon: IconFolders, label: "Master" },
+        ];
+    }
+  }, [userRole]);
 
-    { path: "/grades", icon: IconTrophy, label: "My Grades" },
-    { path: "/tasks", icon: IconChecklist, label: "Tasks" },
-    { path: "/analytics", icon: IconChartBar, label: "Analytics" },
-    { path: "/subscription", icon: IconCreditCard, label: "Subscription" },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === "/my-attendance" && (location.pathname === "/my-attendance" || location.pathname === "/attendance/my")) {
+      return true;
+    }
+    if (path === "/attendance/mark" && location.pathname.startsWith("/attendance") && location.pathname !== "/attendance/my") {
+      return true;
+    }
+    if (path === "/master" && location.pathname.startsWith("/master")) {
+      return true;
+    }
+    if (path === "/Batches" && (location.pathname.startsWith("/Batches") || location.pathname.startsWith("/batches"))) {
+      return true;
+    }
+    if (path === "/Users" && (location.pathname.startsWith("/Users") || location.pathname.startsWith("/users"))) {
+      return true;
+    }
+    return location.pathname === path;
+  };
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -55,17 +101,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     <>
       {/* Burger Button */}
       {!isMobileMenuOpen && (
-        <button
+        <IconButton
           onClick={() => setIsMobileMenuOpen(true)}
-          className="md:hidden fixed top-4 left-4 z-[60] p-2.5 rounded-lg shadow-lg transition-all"
-          style={{
-            backgroundColor: "var(--bg-secondary)",
-            color: "var(--text-primary)",
-            border: "1px solid var(--border-default)",
-          }}
+          className="md:hidden !fixed !top-4 !left-4 !z-[60] !p-2.5 !rounded-lg shadow-lg !bg-white !text-slate-800 !border !border-slate-200"
         >
           <IconMenu2 size={22} />
-        </button>
+        </IconButton>
       )}
 
       {/* Overlay */}
@@ -93,17 +134,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Close Button */}
         {isMobileMenuOpen && (
-          <button
+          <IconButton
             onClick={() => setIsMobileMenuOpen(false)}
-            className="md:hidden absolute top-4 -right-5 z-10 p-2.5 rounded-lg shadow-xl transition-all bg-white text-slate-800"
-            style={{
-              backgroundColor: "#ffffff",
-              color: "#0f172a",
-              border: "1px solid #e2e8f0",
-            }}
+            className="md:hidden !absolute !top-4 !-right-5 !z-10 !p-2.5 !rounded-lg shadow-xl !bg-white !text-slate-800 !border !border-slate-200"
           >
             <IconX size={22} />
-          </button>
+          </IconButton>
         )}
 
         {/* Logo */}
@@ -132,34 +168,34 @@ const Sidebar: React.FC<SidebarProps> = ({
               <div
                 key={item.path}
                 onClick={() => handleNavigation(item.path)}
-                className={`flex flex-col items-center px-2 py-4 cursor-pointer transition-all group ${
+                className={`flex flex-col items-center px-2 py-3.5 cursor-pointer transition-all group ${
                   active
-                    ? "bg-[rgba(124,58,237,0.20)] border-l-2 border-[var(--accent-purple)]"
-                    : "hover:bg-[var(--bg-card-hover)]"
+                    ? "bg-blue-50 border-l-4 border-blue-600"
+                    : "hover:bg-slate-50"
                 }`}
               >
                 <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all ${
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center mb-1.5 transition-all ${
                     active
-                      ? "bg-[var(--accent-purple)] shadow-lg scale-105"
-                      : "bg-[var(--bg-tertiary)] group-hover:bg-[var(--text-accent-secondary)] group-hover:scale-110"
+                      ? "bg-blue-600 shadow-md scale-105"
+                      : "bg-slate-100 group-hover:bg-slate-200 group-hover:scale-105"
                   }`}
                 >
                   <Icon
-                    size={24}
+                    size={22}
                     className={`transition-colors ${
                       active
                         ? "text-white"
-                        : "text-slate-400 group-hover:text-white"
+                        : "text-slate-500 group-hover:text-slate-800"
                     }`}
                   />
                 </div>
 
                 <span
-                  className={`text-xs text-center transition-colors ${
+                  className={`text-[11px] text-center transition-colors ${
                     active
-                      ? "text-[var(--text-accent-primary)] font-bold"
-                      : "text-[var(--text-accent-secondary)] group-hover:text-[var(--text-accent-primary)] group-hover:font-semibold"
+                      ? "text-blue-700 font-bold"
+                      : "text-slate-600 group-hover:text-slate-900 group-hover:font-semibold"
                   }`}
                 >
                   {item.label}
@@ -175,22 +211,22 @@ const Sidebar: React.FC<SidebarProps> = ({
           }
 
           .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(51, 65, 85, 0.3);
+            background: rgba(241, 245, 249, 0.8);
             border-radius: 10px;
           }
 
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(147, 51, 234, 0.5);
+            background: rgba(37, 99, 235, 0.4);
             border-radius: 10px;
           }
 
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(147, 51, 234, 0.7);
+            background: rgba(37, 99, 235, 0.6);
           }
 
           .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: var(--accent-purple) var(--bg-tertiary);
+            scrollbar-color: rgba(37, 99, 235, 0.4) rgba(241, 245, 249, 0.8);
           }
         `}</style>
       </div>

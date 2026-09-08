@@ -2,7 +2,8 @@
 
 import { type TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
-import { IconPencil, IconPhone, IconCurrencyRupee, IconEye } from "@tabler/icons-react";
+import { IconButton } from "@mui/material";
+import { IconPencil, IconCurrencyRupee, IconEye } from "@tabler/icons-react";
 import type { StudentRegistrationData } from "../Student/types";
 
 export type Student = StudentRegistrationData & { id: string };
@@ -18,19 +19,7 @@ const avatarColors = [
 
 const getInitials    = (first: string, last: string) => `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase();
 const getAvatarColor = (id: string) => avatarColors[Number(id) % avatarColors.length];
-const formatCurrency = (val: string) => { const n = parseFloat(val); return isNaN(n) ? "—" : `₹${n.toLocaleString("en-IN")}`; };
-const computeNetFees = (s: Student) => (parseFloat(s.totalFees) || 0) - (parseFloat(s.discountAmount) || 0);
-const computePaidAmount = (s: Student) =>
-  s.installments.reduce((acc, i) => acc + (parseFloat(i.amount) || 0), parseFloat(s.fullPayment.amount) || 0);
-
-const computePaymentStatus = (s: Student) => {
-  if (s.paymentType === "later") return { label: "Pending", color: "text-yellow-500 bg-yellow-500/10" };
-  const paid = computePaidAmount(s);
-  const net  = computeNetFees(s);
-  if (paid >= net) return { label: "Paid",    color: "text-green-500 bg-green-500/10" };
-  if (paid > 0)    return { label: "Partial", color: "text-blue-500 bg-blue-500/10"  };
-  return               { label: "Unpaid",  color: "text-red-500 bg-red-500/10"    };
-};
+const formatCurrency = (val: string | number) => { const n = typeof val === "number" ? val : parseFloat(val); return isNaN(n) ? "—" : `₹${n.toLocaleString("en-IN")}`; };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
@@ -46,7 +35,7 @@ export function useStudentColumns(): TableColumn<Student>[] {
       selector: (row) => row.firstName,
       width: "280px",
       cell: (row) => {
-        const fullName = `${row.firstName} ${row.middleName} ${row.surname}`.trim();
+        const fullName = `${row.firstName} ${row.middleName || ""} ${row.surname || ""}`.trim();
         return (
           <div className="flex items-center gap-3 py-1">
             {row.photo ? (
@@ -57,8 +46,8 @@ export function useStudentColumns(): TableColumn<Student>[] {
               </div>
             )}
             <div className="min-w-0">
-              <p className="font-medium text-sm text-primary">{fullName}</p>
-              <p className="text-xs text-muted">{row.email}</p>
+              <p className="font-semibold text-sm text-slate-800 truncate">{fullName}</p>
+              <p className="text-xs text-slate-500 truncate">{row.email}</p>
             </div>
           </div>
         );
@@ -71,8 +60,8 @@ export function useStudentColumns(): TableColumn<Student>[] {
       width: "180px",
       cell: (row) => (
         <div>
-          <p className="text-sm text-primary">{row.courseType}</p>
-          <p className="text-xs text-secondary">{row.subject}</p>
+          <p className="text-sm text-slate-800 font-medium">{row.courseType}</p>
+          <p className="text-xs text-slate-500">{row.subject}</p>
         </div>
       ),
     },
@@ -82,49 +71,52 @@ export function useStudentColumns(): TableColumn<Student>[] {
       selector: (row) => row.standard,
       width: "100px",
       cell: (row) => (
-        <span className="text-sm font-medium text-primary">
+        <span className="text-sm font-medium text-slate-700">
           Std {row.standard}
         </span>
       ),
     },
     {
       name: "Contact",
-      width: "200px",
+      selector: (row) => row.contactNo || (row as any).mobileNo || "",
       cell: (row) => (
-        <div>
-          <p className="text-sm flex items-center gap-1 text-primary">
-            <IconPhone size={12} className="text-muted" /> {row.contactNo}
-          </p>
-          <p className="text-xs mt-0.5 text-secondary">{row.branch}</p>
-        </div>
+        <span className="text-sm text-slate-700 font-medium">
+          {row.contactNo || (row as any).mobileNo || "—"}
+        </span>
       ),
     },
     {
-      name: "Payment",
+      name: "Standard & Stream",
+      selector: (row) => row.standard,
       sortable: true,
-      selector: (row) => computePaymentStatus(row).label,
-      cell: (row) => {
-        const s = computePaymentStatus(row);
-        return (
-          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${s.color}`}>
-            {s.label}
-          </span>
-        );
-      },
+      cell: (row) => (
+        <span className="text-sm text-slate-700 font-medium">
+          Std {row.standard} {(row as any).stream ? `(${(row as any).stream})` : ""}
+        </span>
+      ),
     },
     {
-      name: "Fees (Net)",
+      name: "Course / Batch",
+      selector: (row) => row.courseType,
+      cell: (row) => (
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+          {row.courseType}
+        </span>
+      ),
+    },
+    {
+      name: "Fees Info",
+      selector: (row) => (row as any).finalNetPayable || row.totalFees || "0",
       sortable: true,
-      selector: (row) => computeNetFees(row),
       cell: (row) => {
-        const net = computeNetFees(row);
+        const net = parseFloat((row as any).finalNetPayable || (row as any).totalFeesCalculated || row.totalFees || "0");
         return (
-          <div>
-            <p className="text-sm font-semibold text-primary">
-              {formatCurrency(String(net))}
+          <div className="py-1">
+            <p className="font-bold text-sm text-slate-800">
+              {formatCurrency(net)}
             </p>
             {parseFloat(row.discountAmount) > 0 && (
-              <p className="text-green-500 text-xs">-{formatCurrency(row.discountAmount)} off</p>
+              <p className="text-emerald-600 text-xs">-{formatCurrency(row.discountAmount)} off</p>
             )}
           </div>
         );
@@ -135,27 +127,30 @@ export function useStudentColumns(): TableColumn<Student>[] {
       width: "140px",
       cell: (row) => (
         <div className="flex items-center gap-1">
-          <button
+          <IconButton
+            size="small"
             onClick={() => navigate(`/Users/edit-student/${row.id}?mode=view`)}
-            className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 shadow-sm transition-all hover:scale-105"
+            className="!p-1.5 !rounded-lg !bg-blue-50 hover:!bg-blue-100 !text-blue-600 !border !border-blue-200/60 shadow-sm transition-all hover:scale-105"
             title="View student"
           >
             <IconEye size={15} />
-          </button>
-          <button
+          </IconButton>
+          <IconButton
+            size="small"
             onClick={() => navigate(`/Users/edit-student/${row.id}`)}
-            className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200/60 shadow-sm transition-all hover:scale-105"
+            className="!p-1.5 !rounded-lg !bg-amber-50 hover:!bg-amber-100 !text-amber-600 !border !border-amber-200/60 shadow-sm transition-all hover:scale-105"
             title="Edit student"
           >
             <IconPencil size={15} />
-          </button>
-          <button
+          </IconButton>
+          <IconButton
+            size="small"
             onClick={() => navigate(`/Users/edit-student/${row.id}?tab=fees`)}
-            className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 shadow-sm transition-all hover:scale-105"
+            className="!p-1.5 !rounded-lg !bg-emerald-50 hover:!bg-emerald-100 !text-emerald-600 !border !border-emerald-200/60 shadow-sm transition-all hover:scale-105"
             title="Update payment"
           >
             <IconCurrencyRupee size={15} />
-          </button>
+          </IconButton>
         </div>
       ),
     },

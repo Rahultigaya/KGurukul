@@ -6,6 +6,7 @@ import {
   Typography,
   TextField,
   Chip,
+  Button,
 } from "@mui/material";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import type { GuardianDetails, StudentRegistrationData, ValidationErrors } from "../types";
@@ -45,14 +46,16 @@ const GuardianContent = React.memo<GuardianProps>(
         </div>
 
         {formData.guardians.length < 2 && (
-          <button
+          <Button
             type="button"
+            variant="contained"
+            color="primary"
+            startIcon={<IconPlus size={16} />}
             onClick={addGuardian}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md transition-all hover:scale-105 !normal-case"
           >
-            <IconPlus size={16} />
-            <span>Add Secondary Guardian</span>
-          </button>
+            Add Secondary Guardian
+          </Button>
         )}
       </div>
 
@@ -90,15 +93,17 @@ const GuardianContent = React.memo<GuardianProps>(
               </div>
 
               {index > 0 && (
-                <button
+                <Button
                   type="button"
+                  variant="outlined"
+                  color="error"
+                  startIcon={<IconTrash size={14} />}
                   onClick={() => removeGuardian(guardian.id)}
-                  className="flex items-center gap-1 bg-white hover:bg-red-50 text-red-600 border border-red-200 text-xs font-semibold px-2.5 py-1 rounded-lg transition-all shadow-sm cursor-pointer"
+                  className="!bg-white hover:!bg-rose-50 !text-rose-600 !border-rose-200 !text-xs !font-semibold !px-2.5 !py-1 !rounded-lg transition-all !normal-case shadow-sm"
                   title="Remove Guardian"
                 >
-                  <IconTrash size={14} />
-                  <span>Remove</span>
-                </button>
+                  Remove
+                </Button>
               )}
             </div>
 

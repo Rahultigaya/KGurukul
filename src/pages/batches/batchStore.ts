@@ -67,6 +67,33 @@ export const BATCH_STATUS_META: Record<BatchStatus, { color: string }> = {
   Completed: { color: "gray" },
 };
 
+/**
+ * Clean and format batch name by stripping any leading dashes, spaces, or empty separators.
+ */
+export function cleanBatchName(
+  nameStr?: string,
+  fallbackParts: (string | undefined)[] = []
+): string {
+  let cleaned = (nameStr || "").trim();
+
+  // Repeatedly strip leading dashes, En-dashes (\u2013), Em-dashes (\u2014), spaces, and separators
+  cleaned = cleaned.replace(/^[\s\u2013\u2014\-\·\.\,]+/, "").trim();
+
+  if (cleaned && cleaned !== "–" && cleaned !== "-") {
+    return cleaned;
+  }
+
+  const parts = fallbackParts
+    .filter((p) => Boolean(p) && String(p).trim() !== "" && String(p).trim() !== "–" && String(p).trim() !== "-")
+    .map((p) => String(p).trim());
+
+  if (parts.length > 0) {
+    return parts.join(" – ");
+  }
+
+  return "Batch";
+}
+
 export interface AssignedStudent {
   id: string;
   name: string;
@@ -470,7 +497,7 @@ export const getAllBatchesAPI = async (): Promise<Batch[]> => {
 
       return {
         id: String(batch.id),
-        name: batch.name || `${area?.name || ""} – ${branch?.name || ""} – ${batch.day || ""} – ${batch.time_slot || ""}`,
+        name: cleanBatchName(batch.name, [area?.name, branch?.name, batch.day, batch.time_slot]),
         type: batch.type as BatchType,
         status: batch.status as BatchStatus,
         area: (area?.name as Area) || ("Thane" as Area),
@@ -523,12 +550,7 @@ export const getBatchesOnlyAPI = async (): Promise<Batch[]> => {
         batch.time_slot || batch.timeSlot,
       ].filter((p) => Boolean(p) && String(p).trim() !== "" && String(p).trim() !== "–" && String(p).trim() !== "-");
 
-      const hasValidName = batch.name && !batch.name.trim().startsWith("–") && !batch.name.trim().startsWith("-");
-      const computedName = hasValidName
-        ? batch.name
-        : parts.length > 0
-        ? parts.join(" – ")
-        : `Batch #${batch.id} (${batch.day || ""})`;
+      const computedName = cleanBatchName(batch.name, parts);
 
       return {
         id: String(batch.id),
@@ -641,9 +663,12 @@ export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
 
       const transformed: Batch = {
         id: String(batch.id),
-        name:
-          batch.name ||
-          `${batch.area_name || batch.area || ""} – ${batch.branch_name || batch.branch || ""} – ${batch.day || ""} – ${batch.time_slot || batch.timeSlot || ""}`,
+        name: cleanBatchName(batch.name, [
+          batch.area_name || batch.area,
+          batch.branch_name || batch.branch,
+          batch.day,
+          batch.time_slot || batch.timeSlot,
+        ]),
         type: (batch.type as BatchType) || "Regular",
         status: (batch.status as BatchStatus) || "Active",
         area: (batch.area_name || batch.area || "Thane") as Area,

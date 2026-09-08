@@ -291,8 +291,8 @@ export default function Hero() {
                 href="#courses"
                 variant="contained"
                 size="large"
-                startIcon={<RocketLaunchIcon fontSize="small" />}
-                endIcon={<ArrowForwardIcon fontSize="small" className="btn-arrow" />}
+                startIcon={<RocketLaunchIcon fontSize="small" sx={{ color: "#fff" }} />}
+                endIcon={<ArrowForwardIcon fontSize="small" className="btn-arrow" sx={{ color: "#fff" }} />}
                 className="w-full sm:w-auto"
                 sx={{
                   borderRadius: 3,
@@ -302,6 +302,9 @@ export default function Hero() {
                   fontWeight: 700,
                   textTransform: "none",
                   color: "#fff",
+                  "& .MuiButton-startIcon, & .MuiButton-endIcon": {
+                    color: "#fff",
+                  },
                   background: "linear-gradient(135deg, #2563eb 55%, #16a34a 115%)",
                   boxShadow: "0 10px 25px -6px rgba(37,99,235,0.45)",
                   transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",

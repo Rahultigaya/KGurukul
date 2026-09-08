@@ -8,6 +8,7 @@ import {
   IconClock,
 } from "@tabler/icons-react";
 import { sendOTP, verifyOTP, type AuthResponse } from "../../../api/api";
+import { normalizeRole, getDefaultRouteForRole } from "../../../utils/authRole";
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
@@ -167,9 +168,11 @@ const LoginForm: React.FC = () => {
       setIsLoading(false);
       setStep("success");
 
-      // Redirect to admin dashboard
+      const roleVal = user?.role_id ?? user?.role ?? user?.user_role ?? user?.roleId;
+      const targetRoute = getDefaultRouteForRole(normalizeRole(roleVal));
+
       setTimeout(() => {
-        navigate("/adminDashboard");
+        navigate(targetRoute);
       }, 1500);
     } catch (err: any) {
       setIsLoading(false);

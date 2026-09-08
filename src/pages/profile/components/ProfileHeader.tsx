@@ -5,6 +5,7 @@
 
 import React, { useRef, useState } from "react";
 import { IconCamera, IconCheck, IconX } from "@tabler/icons-react";
+import { Button } from "@mui/material";
 import { type UserRole } from "../types";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -215,18 +216,24 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           {/* ── Save / Cancel buttons (only when preview is pending) ── */}
           {preview && (
             <div className="flex items-center gap-2 sm:mb-1 shrink-0">
-              <button
+              <Button
+                size="small"
+                variant="contained"
                 onClick={handleSave}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
+                startIcon={<IconCheck size={14} />}
+                className="!bg-orange-500 hover:!bg-orange-600 !text-white !text-sm !font-medium !rounded-lg !normal-case"
               >
-                <IconCheck size={14} /> Save Photo
-              </button>
-              <button
+                Save Photo
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
                 onClick={handleCancel}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                startIcon={<IconX size={14} />}
+                className="!border-slate-300 !text-slate-700 hover:!bg-slate-50 !text-sm !font-medium !rounded-lg !normal-case"
               >
-                <IconX size={14} /> Cancel
-              </button>
+                Cancel
+              </Button>
             </div>
           )}
         </div>

@@ -199,28 +199,28 @@ const AmPmTimePicker: React.FC<{
 
         {/* AM / PM Segmented Control */}
         <div className="flex items-center bg-slate-200/80 p-0.5 rounded-lg ml-auto border border-slate-300/50">
-          <button
-            type="button"
+          <Button
+            size="small"
             onClick={() => handleAmPmToggle("AM")}
-            className={`px-2.5 py-1 text-xs font-extrabold rounded-md transition-all ${
+            className={`!px-2.5 !py-1 !text-xs !font-extrabold !rounded-md !min-w-0 transition-all ${
               ampm === "AM"
-                ? "bg-blue-600 text-white shadow-md scale-105"
-                : "text-slate-600 hover:text-slate-900"
+                ? "!bg-blue-600 !text-white shadow-md scale-105"
+                : "!text-slate-600 hover:!text-slate-900"
             }`}
           >
             AM
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="small"
             onClick={() => handleAmPmToggle("PM")}
-            className={`px-2.5 py-1 text-xs font-extrabold rounded-md transition-all ${
+            className={`!px-2.5 !py-1 !text-xs !font-extrabold !rounded-md !min-w-0 transition-all ${
               ampm === "PM"
-                ? "bg-indigo-600 text-white shadow-md scale-105"
-                : "text-slate-600 hover:text-slate-900"
+                ? "!bg-indigo-600 !text-white shadow-md scale-105"
+                : "!text-slate-600 hover:!text-slate-900"
             }`}
           >
             PM
-          </button>
+          </Button>
         </div>
       </div>
       {helperText && (
@@ -282,7 +282,7 @@ const BatchNamePreview: React.FC<{
 
   if (!hasAny)
     return (
-      <Text size="sm" fs="italic" className="text-muted">
+      <Text size="sm" fs="italic" className="text-slate-400">
         Fill Area, Branch, Day and Time to generate name…
       </Text>
     );
@@ -292,11 +292,11 @@ const BatchNamePreview: React.FC<{
       <p className="font-bold text-base tracking-wide flex flex-wrap items-center gap-0">
         {tokens.map((t, i) => (
           <span key={i} className="flex items-center">
-            <span style={{ color: t.filled ? "var(--accent-orange)" : "var(--text-muted)", fontStyle: t.filled ? "normal" : "italic", fontSize: t.filled ? undefined : "13px" }}>
+            <span className={t.filled ? "text-blue-600 font-bold" : "text-slate-400 italic text-xs"}>
               {t.filled ? t.value : `[ ${t.label} ]`}
             </span>
             {i < tokens.length - 1 && (
-              <span className="mx-1.5 text-muted">·</span>
+              <span className="mx-1.5 text-slate-300">·</span>
             )}
           </span>
         ))}
@@ -318,10 +318,8 @@ const BatchNamePreview: React.FC<{
             { label: "End", filled: !!endTime },
           ].map((s) => (
             <div key={s.label} className="flex items-center gap-1">
-              <div className={`w-1.5 h-1.5 rounded-full transition-all`}
-                style={{ background: s.filled ? "var(--accent-orange)" : "var(--border-default)" }} />
-              <span className="text-[10px]"
-                style={{ color: s.filled ? "var(--accent-orange)" : "var(--text-muted)" }}>
+              <div className={`w-1.5 h-1.5 rounded-full transition-all ${s.filled ? "bg-blue-600" : "bg-slate-300"}`} />
+              <span className={`text-[10px] ${s.filled ? "text-blue-600 font-bold" : "text-slate-400"}`}>
                 {s.label}
               </span>
             </div>
@@ -869,27 +867,30 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
 
       {/* ── Actions ───────────────────────────────────────────────────── */}
       <div className="flex items-center justify-end gap-3 pt-2 pb-6">
-        <button
-          type="button"
+        <Button
+          variant="outlined"
           onClick={() => navigate("/batches")}
-          className="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all flex items-center gap-2 shadow-sm"
+          startIcon={<CloseIcon fontSize="small" />}
+          className="!px-5 !py-2.5 !rounded-xl !border-slate-300 !bg-white hover:!bg-slate-50 !text-slate-700 !font-semibold !text-sm !normal-case shadow-sm"
         >
-          <CloseIcon fontSize="small" />
-          <span>Cancel</span>
-        </button>
-        <button
-          type="button"
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
           disabled={saving}
           onClick={handleSubmit}
-          className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          startIcon={
+            saving ? (
+              <CircularProgress size={18} color="inherit" />
+            ) : (
+              <SaveIcon fontSize="small" className="!text-white" />
+            )
+          }
+          className="!px-6 !py-2.5 !rounded-xl !bg-blue-600 hover:!bg-blue-700 !text-white !font-semibold !text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 !normal-case"
         >
-          {saving ? (
-            <CircularProgress size={18} color="inherit" />
-          ) : (
-            <SaveIcon fontSize="small" />
-          )}
-          <span>{mode === "edit" ? "Save Changes" : "Create Batch"}</span>
-        </button>
+          {mode === "edit" ? "Save Changes" : "Create Batch"}
+        </Button>
       </div>
 
     </div>

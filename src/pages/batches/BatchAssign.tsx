@@ -701,28 +701,25 @@ const BatchAssign: React.FC = () => {
 
       {/* ── Save / Cancel Action Bar ────────────────────────────────────────── */}
       <div className="flex items-center justify-end gap-3 pt-2 pb-6">
-        <button
+        <Button
+          variant="outlined"
           type="button"
           onClick={() => navigate("/batches")}
-          className="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all flex items-center gap-2 shadow-sm"
+          startIcon={<CloseIcon fontSize="small" />}
+          className="!px-5 !py-2.5 !rounded-xl !border-slate-300 !bg-white hover:!bg-slate-50 !text-slate-700 !font-semibold !text-sm !normal-case shadow-sm"
         >
-          <CloseIcon fontSize="small" />
-          <span>Cancel</span>
-        </button>
+          Cancel
+        </Button>
 
-        <button
-          type="button"
+        <Button
+          variant="contained"
           disabled={saving || !canEdit}
           onClick={handleSave}
-          className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <IconDeviceFloppy size={18} className="text-white" stroke={2.5} />}
+          className="!px-6 !py-2.5 !rounded-xl !bg-blue-600 hover:!bg-blue-700 !text-white !font-semibold !text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 !normal-case"
         >
-          {saving ? (
-            <CircularProgress size={18} color="inherit" />
-          ) : (
-            <IconDeviceFloppy size={18} className="text-white" stroke={2.5} />
-          )}
-          <span>Save Assignments</span>
-        </button>
+          Save Assignments
+        </Button>
       </div>
     </div>
   );

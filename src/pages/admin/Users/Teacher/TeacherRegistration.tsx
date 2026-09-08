@@ -77,15 +77,15 @@ const parseISOToDate = (dateStr: string): Date | null => {
 
 const fieldSx = {
   "& .MuiOutlinedInput-root": {
-    backgroundColor: "var(--bg-input)",
-    color: "var(--text-primary)",
-    "& fieldset": { borderColor: "var(--border-default)" },
-    "&:hover fieldset": { borderColor: "var(--border-accent)" },
-    "&.Mui-focused fieldset": { borderColor: "var(--accent-orange)" },
+    backgroundColor: "#ffffff",
+    color: "#0f172a",
+    "& fieldset": { borderColor: "#cbd5e1" },
+    "&:hover fieldset": { borderColor: "#94a3b8" },
+    "&.Mui-focused fieldset": { borderColor: "#2563eb" },
   },
-  "& .MuiInputLabel-root": { color: "var(--text-muted)" },
-  "& .MuiInputLabel-root.Mui-focused": { color: "var(--accent-orange)" },
-  "& .MuiFormHelperText-root": { color: "#f87171" },
+  "& .MuiInputLabel-root": { color: "#64748b" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#2563eb" },
+  "& .MuiFormHelperText-root": { color: "#ef4444" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ const TeacherRegistration: React.FC = () => {
             sx={{
               backgroundColor: "rgba(239,68,68,0.08)",
               border: "1px solid rgba(239,68,68,0.25)",
-              color: "var(--text-primary)",
+              color: "#0f172a",
               "& .MuiAlert-icon": { color: "#f87171" },
               mt: 2,
             }}
@@ -326,8 +326,8 @@ const TeacherRegistration: React.FC = () => {
             sx={{
               p: { xs: 2.5, sm: 3.5 },
               mt: 2,
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-accent)",
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -358,11 +358,11 @@ const TeacherRegistration: React.FC = () => {
                     <Avatar
                       sx={{
                         width: 96, height: 96,
-                        background: "var(--bg-tertiary)",
-                        border: "2px dashed var(--border-default)",
+                        background: "#f8fafc",
+                        border: "2px dashed #cbd5e1",
                       }}
                     >
-                      <IconUser size={38} style={{ color: "var(--text-muted)" }} />
+                      <IconUser size={38} className="text-slate-400" />
                     </Avatar>
                   )}
 
@@ -374,9 +374,9 @@ const TeacherRegistration: React.FC = () => {
                           display: "flex", alignItems: "center", gap: 0.75,
                           px: 1.5, py: 0.75, borderRadius: 2,
                           fontSize: 12, fontWeight: 500,
-                          background: "var(--bg-tertiary)",
-                          color: "var(--text-secondary)",
-                          border: "1px solid var(--border-default)",
+                          background: "#f8fafc",
+                          color: "#475569",
+                          border: "1px solid #e2e8f0",
                         }}
                       >
                         <IconUpload size={13} />
@@ -385,24 +385,24 @@ const TeacherRegistration: React.FC = () => {
                     </label>
                   )}
 
-                <Typography variant="caption" align="center" sx={{ color: "var(--text-muted)" }}>
+                <Typography variant="caption" align="center" sx={{ color: "#94a3b8" }}>
                   Optional · JPG, PNG · Max 500KB
                 </Typography>
 
                 <Box
                   sx={{
                     width: "100%", mt: 0.5, px: 1.5, py: 1, borderRadius: 2, textAlign: "center",
-                    background: "var(--bg-tertiary)", border: "1px solid var(--border-default)",
+                    background: "#f8fafc", border: "1px solid #e2e8f0",
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: "var(--text-muted)", display: "block", mb: 0.25 }}>
+                  <Typography variant="caption" sx={{ color: "#94a3b8", display: "block", mb: 0.25 }}>
                     Preview
                   </Typography>
                   <Typography
                     variant="body2"
                     sx={{
                       fontWeight: 600,
-                      color: form.firstName ? "var(--text-primary)" : "var(--text-muted)",
+                      color: form.firstName ? "#0f172a" : "#94a3b8",
                       fontStyle: form.firstName ? "normal" : "italic",
                     }}
                   >
@@ -420,7 +420,7 @@ const TeacherRegistration: React.FC = () => {
                 <Box>
                   <Typography
                     variant="caption"
-                    sx={{ fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", mb: 1 }}
+                    sx={{ fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", mb: 1 }}
                   >
                     Full Name
                   </Typography>
@@ -466,13 +466,13 @@ const TeacherRegistration: React.FC = () => {
                   </div>
                 </Box>
 
-                <Box sx={{ borderTop: "1px solid var(--border-default)" }} />
+                <Box sx={{ borderTop: "1px solid #e2e8f0" }} />
 
                 {/* Contact + Joining date */}
                 <Box>
                   <Typography
                     variant="caption"
-                    sx={{ fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", mb: 1 }}
+                    sx={{ fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", mb: 1 }}
                   >
                     Contact & Joining
                   </Typography>
@@ -512,8 +512,8 @@ const TeacherRegistration: React.FC = () => {
                           popper: {
                             sx: {
                               "& .MuiPaper-root": {
-                                backgroundColor: "var(--bg-secondary)",
-                                color: "var(--text-primary)",
+                                backgroundColor: "#ffffff",
+                                color: "#0f172a",
                               },
                             },
                           },
@@ -536,9 +536,9 @@ const TeacherRegistration: React.FC = () => {
             sx={{
               px: 2, py: 1.25, borderRadius: 3,
               fontSize: 14, fontWeight: 500, textTransform: "none",
-              background: "var(--bg-tertiary)", color: "var(--text-secondary)",
-              border: "1px solid var(--border-default)",
-              "&:hover": { background: "var(--bg-tertiary)", opacity: 0.85 },
+              background: "#f8fafc", color: "#475569",
+              border: "1px solid #e2e8f0",
+              "&:hover": { background: "#f1f5f9" },
             }}
           >
             Cancel
@@ -565,9 +565,9 @@ const TeacherRegistration: React.FC = () => {
               sx={{
                 px: 2.5, py: 1.25, borderRadius: 3,
                 fontSize: 14, fontWeight: 600, textTransform: "none",
-                background: "var(--accent-orange)", color: "white",
-                boxShadow: "0 4px 14px rgba(249,115,22,0.3)",
-                "&:hover": { background: "var(--accent-orange)", opacity: 0.9 },
+                background: "#2563eb", color: "white",
+                boxShadow: "0 4px 14px rgba(37,99,235,0.3)",
+                "&:hover": { background: "#1d4ed8" },
                 "&.Mui-disabled": { opacity: 0.5, color: "white" },
               }}
             >
@@ -582,3 +582,4 @@ const TeacherRegistration: React.FC = () => {
 };
 
 export default TeacherRegistration;
+

@@ -32,14 +32,13 @@ import {
   IconHistory,
   IconSearch,
   IconChevronDown,
-  IconChevronUp,
   IconClock,
   IconInfoCircle,
   IconPlayerPlayFilled,
 } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import { fetchWithAuth } from "../../api/common";
-import { getAllBatches, getBatchesOnlyAPI, getBatchById, getBatchByIdAPI, type Batch, type AssignedStudent } from "../batches/batchStore";
+import { getAllBatches, getBatchesOnlyAPI, getBatchById, getBatchByIdAPI, cleanBatchName as cleanBatchNameHelper, type Batch, type AssignedStudent } from "../batches/batchStore";
 import { studentCache, loadStudentCache, transformApiToFormData } from "../admin/Users/Student/studentStore";
 import {
   getSession,
@@ -51,6 +50,107 @@ import {
 } from "./attendanceStore";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fallback Demo Records (used when no data is returned from API or Store)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const FALLBACK_STUDENT = {
+  id: "fallback-student-1",
+  first_name: "Rahul",
+  firstName: "Rahul",
+  surname: "Sharma",
+  roll_no: "101",
+  rollNo: "101",
+  standard: "10th",
+  standard_name: "10th",
+  subject: "Science",
+  subject_name: "Science",
+  email: "rahul.sharma@example.com",
+  contact_no: "9876543210",
+  contactNo: "9876543210",
+};
+
+export const FALLBACK_GUEST_STUDENT = {
+  id: "fallback-student-2",
+  first_name: "Priya",
+  firstName: "Priya",
+  surname: "Verma",
+  roll_no: "102",
+  rollNo: "102",
+  standard: "10th",
+  standard_name: "10th",
+  subject: "Mathematics",
+  subject_name: "Mathematics",
+  email: "priya.verma@example.com",
+  contact_no: "9876543211",
+  contactNo: "9876543211",
+};
+
+export const FALLBACK_BATCH: Batch = {
+  id: "fallback-batch-1",
+  name: "10th Science - Mon (Demo)",
+  type: "Regular",
+  status: "Active",
+  area: "Thane",
+  branch: "Khopat",
+  day: "Monday",
+  timeSlot: "09:00 AM - 10:30 AM",
+  subject: "Science",
+  standard: "10th",
+  capacity: 30,
+  teacherId: "1",
+  teacherName: "Demo Teacher",
+  studentIds: ["fallback-student-1"],
+  students: [
+    {
+      id: "fallback-student-1",
+      name: "Rahul Sharma",
+      firstName: "Rahul",
+      surname: "Sharma",
+      email: "rahul.sharma@example.com",
+      contactNo: "9876543210",
+      rollNo: "101",
+      standard: "10th",
+    },
+  ],
+  createdAt: new Date().toISOString(),
+};
+
+export const FALLBACK_GUEST_BATCH: Batch = {
+  id: "fallback-batch-2",
+  name: "10th Math - Tue (Demo)",
+  type: "Regular",
+  status: "Active",
+  area: "Thane",
+  branch: "Khopat",
+  day: "Tuesday",
+  timeSlot: "11:00 AM - 12:30 PM",
+  subject: "Mathematics",
+  standard: "10th",
+  capacity: 30,
+  teacherId: "2",
+  teacherName: "Demo Teacher 2",
+  studentIds: ["fallback-student-2"],
+  students: [
+    {
+      id: "fallback-student-2",
+      name: "Priya Verma",
+      firstName: "Priya",
+      surname: "Verma",
+      email: "priya.verma@example.com",
+      contactNo: "9876543211",
+      rollNo: "102",
+      standard: "10th",
+    },
+  ],
+  createdAt: new Date().toISOString(),
+};
+
+// Pre-seed studentCache with fallback records
+studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
+studentCache["fallback-student-2"] = FALLBACK_GUEST_STUDENT as any;
+
 
 /**
  * Direct API call to fetch all students (bypassing any in-memory cache check)
@@ -108,11 +208,12 @@ export async function fetchBatchAssignedStudentsAPI(batchId: string | number): P
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
 function toYMD(d: Date): string {
-  return d.toISOString().split("T")[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
-
 function fmtDate(d?: string | null): string {
   if (!d) return "–";
   try {
@@ -171,26 +272,41 @@ function fmtFullDate(d?: string | null): string {
 
 function getStudentName(id: string): string {
   const s = studentCache[id] as any;
-  if (!s) return `Student #${id}`;
+  if (!s) {
+    if (id === "fallback-student-1") return "Rahul Sharma";
+    if (id === "fallback-student-2") return "Priya Verma";
+    return `Student #${id}`;
+  }
   return `${s.first_name || s.firstName || ""} ${s.surname || ""}`.trim() || `Student #${id}`;
 }
 
 function getStudentRollNo(id: string): string {
   const s = studentCache[id] as any;
-  if (!s) return "";
+  if (!s) {
+    if (id === "fallback-student-1") return "101";
+    if (id === "fallback-student-2") return "102";
+    return "";
+  }
   return s.roll_no || s.rollNo || "";
 }
 
 function getStudentStandard(id: string): string {
   const s = studentCache[id] as any;
-  if (!s) return "–";
+  if (!s) {
+    if (id === "fallback-student-1" || id === "fallback-student-2") return "10th";
+    return "–";
+  }
   if (typeof s.standard === "object" && s.standard?.name) return String(s.standard.name);
   return String(s.standard_name || s.standard || "–");
 }
 
 function getStudentSubject(id: string): string {
   const s = studentCache[id] as any;
-  if (!s) return "–";
+  if (!s) {
+    if (id === "fallback-student-1") return "Science";
+    if (id === "fallback-student-2") return "Mathematics";
+    return "–";
+  }
   if (typeof s.subject === "object" && s.subject?.name) return String(s.subject.name);
   return String(s.subject_name || s.subject || "–");
 }
@@ -241,22 +357,21 @@ const StatusBtn: React.FC<{
   const isPresent = status === "Present";
 
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-        active
+      className={`!flex !items-center !gap-1.5 !px-3 !py-1.5 !rounded-xl !text-xs !font-bold transition-all !normal-case ${active
           ? isPresent
-            ? "bg-emerald-600 text-white shadow-md scale-105"
-            : "bg-rose-600 text-white shadow-md scale-105"
+            ? "!bg-emerald-600 !text-white shadow-md scale-105"
+            : "!bg-rose-600 !text-white shadow-md scale-105"
           : isPresent
-          ? "bg-white text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
-          : "bg-white text-slate-600 border border-slate-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300"
-      }`}
+            ? "!bg-white !text-slate-600 !border !border-slate-200 hover:!bg-emerald-50 hover:!text-emerald-700 hover:!border-emerald-300"
+            : "!bg-white !text-slate-600 !border !border-slate-200 hover:!bg-rose-50 hover:!text-rose-700 hover:!border-rose-300"
+        }`}
     >
       {isPresent ? <IconCheck size={14} stroke={2.5} /> : <IconX size={14} stroke={2.5} />}
       <span>{status}</span>
-    </button>
+    </Button>
   );
 };
 
@@ -274,13 +389,12 @@ const StudentRow: React.FC<{
 
   return (
     <div
-      className={`rounded-2xl p-3.5 transition-all border ${
-        isAbsent
+      className={`rounded-2xl p-3.5 transition-all border ${isAbsent
           ? "bg-rose-50/40 border-rose-200/80 shadow-sm"
           : "bg-white border-slate-200/70 hover:border-slate-300 hover:bg-slate-50/40"
-      }`}
+        }`}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
         {/* Left: Serial + Avatar + Name info */}
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-xs font-bold text-slate-400 w-6 text-right shrink-0">
@@ -308,10 +422,16 @@ const StudentRow: React.FC<{
               {getStudentRollNo(record.studentId) ? `Roll #${getStudentRollNo(record.studentId)} · ` : ""}
               Std {getStudentStandard(record.studentId)} · {getStudentSubject(record.studentId)}
             </Typography>
+            {record.remark && !showRemark && (
+              <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg w-fit">
+                <IconNote size={13} className="text-amber-600 shrink-0" />
+                <span className="truncate max-w-[240px]">Remark: "{record.remark}"</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right: Status buttons + Remark toggle */}
+        {/* Right: Status buttons + Big Prominent Remark Button */}
         <div className="flex items-center gap-2 shrink-0">
           <StatusBtn
             status="Present"
@@ -324,19 +444,18 @@ const StudentRow: React.FC<{
             onClick={() => onChange({ ...record, status: "Absent" })}
           />
 
-          <Tooltip title={showRemark ? "Hide Remark" : "Add Remark"}>
-            <IconButton
-              size="small"
-              onClick={() => setShowRemark((v) => !v)}
-              className={`transition-colors ${
-                showRemark || record.remark
-                  ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+          <Button
+            type="button"
+            onClick={() => setShowRemark((v) => !v)}
+            title={showRemark ? "Hide remark field" : "Add or edit remark for student"}
+            className={`!flex !items-center !gap-1.5 !px-3 !py-1.5 !rounded-xl !text-xs !font-bold transition-all !border shadow-sm !normal-case ${showRemark || record.remark
+                ? "!bg-amber-500 !text-white !border-amber-500 shadow-md scale-105"
+                : "!bg-amber-50 !text-amber-800 !border-amber-200 hover:!bg-amber-100 hover:!border-amber-300"
               }`}
-            >
-              <IconNote size={16} />
-            </IconButton>
-          </Tooltip>
+          >
+            <IconNote size={18} stroke={2.2} />
+            <span>{record.remark ? "Edit Remark" : "+ Remark"}</span>
+          </Button>
         </div>
       </div>
 
@@ -344,17 +463,18 @@ const StudentRow: React.FC<{
       {showRemark && (
         <div className="mt-3 pl-9 pr-2">
           <TextField
-            placeholder="Add remark or note for this student…"
+            placeholder="Write remark or note for this student (e.g., Late arrival, Homework pending, Fee reminder)…"
             value={record.remark || ""}
             onChange={(e) => onChange({ ...record, remark: e.target.value })}
             size="small"
             fullWidth
             multiline
             rows={1}
+            autoFocus
             sx={{
               "& .MuiOutlinedInput-root": {
-                backgroundColor: "#f8fafc",
-                borderRadius: "10px",
+                backgroundColor: "#fffbeb",
+                borderRadius: "12px",
                 fontSize: "13px",
               },
             }}
@@ -425,10 +545,17 @@ const GuestRow: React.FC<{
                 </span>
               </div>
             )}
+
+            {record.remark && !showRemark && (
+              <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg w-fit">
+                <IconNote size={13} className="text-amber-600 shrink-0" />
+                <span className="truncate max-w-[240px]">Remark: "{record.remark}"</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right: Fixed Recovery Badge + Remark + Remove */}
+        {/* Right: Fixed Recovery Badge + Big Remark + Remove */}
         <div className="flex items-center gap-2 shrink-0">
           <Chip
             icon={<IconRefresh size={14} />}
@@ -439,15 +566,18 @@ const GuestRow: React.FC<{
             sx={{ fontWeight: 700 }}
           />
 
-          <Tooltip title={showRemark ? "Hide Remark" : "Add Remark"}>
-            <IconButton
-              size="small"
-              onClick={() => setShowRemark((v) => !v)}
-              className={showRemark ? "text-violet-600 bg-violet-100" : "text-slate-400"}
-            >
-              <IconNote size={16} />
-            </IconButton>
-          </Tooltip>
+          <Button
+            type="button"
+            onClick={() => setShowRemark((v) => !v)}
+            title={showRemark ? "Hide remark field" : "Add or edit remark for recovery student"}
+            className={`!flex !items-center !gap-1.5 !px-3 !py-1.5 !rounded-xl !text-xs !font-bold transition-all !border shadow-sm !normal-case ${showRemark || record.remark
+                ? "!bg-amber-500 !text-white !border-amber-500 shadow-md scale-105"
+                : "!bg-amber-50 !text-amber-800 !border-amber-200 hover:!bg-amber-100 hover:!border-amber-300"
+              }`}
+          >
+            <IconNote size={18} stroke={2.2} />
+            <span>{record.remark ? "Edit Remark" : "+ Remark"}</span>
+          </Button>
 
           <Tooltip title="Remove from this session">
             <IconButton size="small" color="error" onClick={onRemove} className="hover:bg-red-50">
@@ -467,10 +597,11 @@ const GuestRow: React.FC<{
             fullWidth
             multiline
             rows={1}
+            autoFocus
             sx={{
               "& .MuiOutlinedInput-root": {
-                backgroundColor: "#ffffff",
-                borderRadius: "10px",
+                backgroundColor: "#fffbeb",
+                borderRadius: "12px",
                 fontSize: "13px",
               },
             }}
@@ -498,7 +629,8 @@ const AddGuestPanel: React.FC<{
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [remark, setRemark] = useState("");
 
-  const allBatches = getAllBatches();
+  const localBatches = getAllBatches();
+  const allBatches = localBatches.length > 0 ? localBatches : [FALLBACK_BATCH, FALLBACK_GUEST_BATCH];
 
   const candidateStudentIds = studentIds.filter((sid) => !existingStudentIds.includes(sid));
 
@@ -601,7 +733,7 @@ const AddGuestPanel: React.FC<{
               </div>
             ) : (
               filteredStudents.map((sid) => (
-                <button
+                <Button
                   key={sid}
                   type="button"
                   onClick={() => {
@@ -610,9 +742,8 @@ const AddGuestPanel: React.FC<{
                     setSelectedBatchId(null);
                     setSelectedDate(null);
                   }}
-                  className={`w-full flex items-center justify-between p-3 text-left transition-colors hover:bg-violet-50/50 ${
-                    selectedStudent === sid ? "bg-violet-50" : ""
-                  }`}
+                  className={`w-full !flex !items-center !justify-between !p-3 !text-left transition-colors hover:!bg-violet-50/50 !normal-case ${selectedStudent === sid ? "!bg-violet-50" : ""
+                    }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Avatar sx={{ bgcolor: "#ede9fe", color: "#7c3aed", width: 28, height: 28, fontSize: 11, fontWeight: 700 }}>
@@ -628,7 +759,7 @@ const AddGuestPanel: React.FC<{
                     </div>
                   </div>
                   {selectedStudent === sid && <IconCheck size={16} className="text-violet-600" />}
-                </button>
+                </Button>
               ))
             )}
           </div>
@@ -648,29 +779,28 @@ const AddGuestPanel: React.FC<{
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {studentBatches.map((b) => (
-                <button
+                <Button
                   key={b.id}
                   type="button"
                   onClick={() => {
                     setSelectedBatchId(b.id);
                     setSelectedDate(null);
                   }}
-                  className={`p-3 rounded-xl text-left border transition-all flex items-center justify-between ${
-                    selectedBatchId === b.id
-                      ? "bg-violet-100/70 border-violet-400 shadow-sm"
-                      : "bg-white border-slate-200 hover:border-violet-300 hover:bg-violet-50/30"
-                  }`}
+                  className={`!p-3 !rounded-xl !text-left !border transition-all flex items-center justify-between !normal-case ${selectedBatchId === b.id
+                      ? "!bg-violet-100/70 !border-violet-400 shadow-sm"
+                      : "!bg-white !border-slate-200 hover:!border-violet-300 hover:!bg-violet-50/30"
+                    }`}
                 >
                   <div>
                     <span className="text-sm font-bold text-slate-800 block truncate">
-                      {b.name}
+                      {cleanBatchNameHelper(b.name, [b.area, b.branch, b.day, b.timeSlot])}
                     </span>
                     <span className="text-xs text-slate-500">
                       {b.day} · {b.timeSlot}
                     </span>
                   </div>
                   {selectedBatchId === b.id && <IconCheck size={16} className="text-violet-700 shrink-0" />}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -688,15 +818,14 @@ const AddGuestPanel: React.FC<{
               const isSelected = selectedDate === date;
               const d = new Date(date + "T00:00:00");
               return (
-                <button
+                <Button
                   key={date}
                   type="button"
                   onClick={() => setSelectedDate(date)}
-                  className={`p-2.5 rounded-xl text-left border transition-all ${
-                    isSelected
-                      ? "bg-violet-600 text-white border-violet-600 shadow-sm"
-                      : "bg-white border-slate-200 text-slate-700 hover:border-violet-300"
-                  }`}
+                  className={`!p-2.5 !rounded-xl !text-left !border transition-all !normal-case ${isSelected
+                      ? "!bg-violet-600 !text-white !border-violet-600 shadow-sm"
+                      : "!bg-white !border-slate-200 !text-slate-700 hover:!border-violet-300"
+                    }`}
                 >
                   <span className={`text-xs font-bold block ${isSelected ? "text-white" : "text-slate-800"}`}>
                     {d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
@@ -704,7 +833,7 @@ const AddGuestPanel: React.FC<{
                   <span className={`text-[10px] block ${isSelected ? "text-violet-100" : "text-slate-400"}`}>
                     {d.toLocaleDateString("en-IN", { weekday: "short" })}
                   </span>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -778,23 +907,39 @@ const MarkAttendance: React.FC = () => {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [studentIds, setStudentIds] = useState<string[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [visibleDatesCount, setVisibleDatesCount] = useState(10);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [customDateInput, setCustomDateInput] = useState<string>("");
+  const [dateValidationError, setDateValidationError] = useState<string | null>(null);
+  const [datePage, setDatePage] = useState<number>(0);
+  const DATES_PER_PAGE = 6;
   const attendanceSheetRef = React.useRef<HTMLDivElement>(null);
 
-  // 1. Initial Load: ONLY call batches API (no areas, branches, standards, subjects, teachers or all students)
-  useEffect(() => {
+  // 1. Initial Load: Call batches API; fallback to local batches or demo fallback batch
+  const fetchBatchesData = useCallback(() => {
+    studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
+    studentCache["fallback-student-2"] = FALLBACK_GUEST_STUDENT as any;
+    setApiError(null);
+
     getBatchesOnlyAPI()
       .then((data) => {
-        if (data && data.length > 0) {
-          setBatches(data.filter((b) => b.status === "Active"));
+        const active = data && data.length > 0 ? data.filter((b) => b.status === "Active") : [];
+        if (active.length > 0) {
+          setBatches(active);
         } else {
-          setBatches(getAllBatches().filter((b) => b.status === "Active"));
+          const localActive = getAllBatches().filter((b) => b.status === "Active");
+          setBatches(localActive.length > 0 ? localActive : [FALLBACK_BATCH]);
         }
       })
-      .catch(() => {
-        setBatches(getAllBatches().filter((b) => b.status === "Active"));
+      .catch((err: any) => {
+        const localActive = getAllBatches().filter((b) => b.status === "Active");
+        setBatches(localActive.length > 0 ? localActive : [FALLBACK_BATCH]);
+        setApiError(err?.message || "Network Error");
       });
   }, []);
+
+  useEffect(() => {
+    fetchBatchesData();
+  }, [fetchBatchesData]);
 
   // When a batch is selected: load full batch details (GET /batch/{id}) to know assigned students
   useEffect(() => {
@@ -811,26 +956,27 @@ const MarkAttendance: React.FC = () => {
 
   // 3. Lazy-load all students ONLY when user opens "Add Guest / Recovery Student" panel
   useEffect(() => {
-    if (showGuest && studentIds.length === 0) {
+    if (showGuest) {
       loadStudentCache().then(() => {
-        setStudentIds(Object.keys(studentCache));
+        let keys = Object.keys(studentCache);
+        if (!keys.includes("fallback-student-1")) {
+          studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
+          keys.push("fallback-student-1");
+        }
+        if (!keys.includes("fallback-student-2")) {
+          studentCache["fallback-student-2"] = FALLBACK_GUEST_STUDENT as any;
+          keys.push("fallback-student-2");
+        }
+        setStudentIds(keys);
       });
     }
-  }, [showGuest, studentIds.length]);
+  }, [showGuest]);
 
   const batch = selectedBatchId ? getBatchById(selectedBatchId) || batches.find((b) => b.id === selectedBatchId) || null : null;
 
   const cleanBatchName = useMemo(() => {
     if (!batch) return "Batch";
-    if (batch.name && !batch.name.trim().startsWith("–") && !batch.name.trim().startsWith("-")) {
-      return batch.name;
-    }
-    const parts = [
-      batch.branch,
-      batch.day,
-      batch.timeSlot,
-    ].filter(Boolean);
-    return parts.length > 0 ? parts.join(" · ") : `Batch #${batch.id}`;
+    return cleanBatchNameHelper(batch.name, [batch.area, batch.branch, batch.day, batch.timeSlot]);
   }, [batch]);
 
   const showToast = (msg: string, ok: boolean) => {
@@ -838,18 +984,60 @@ const MarkAttendance: React.FC = () => {
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Past occurrences for this batch's weekday
-  const batchDates = useMemo(() => {
+  // Past 52 occurrences (1 full year) for this batch's scheduled weekday
+  const batchDatesAll = useMemo(() => {
     if (!batch) return [];
-    return getPastDaysOfWeek(batch.day, 10);
-  }, [batch]);
+    const past52 = getPastDaysOfWeek(batch.day, 52);
+    if (selectedDate && !past52.includes(selectedDate)) {
+      return [selectedDate, ...past52];
+    }
+    return past52;
+  }, [batch, selectedDate]);
+
+  const totalDatePages = useMemo(() => {
+    return Math.ceil(batchDatesAll.length / DATES_PER_PAGE) || 1;
+  }, [batchDatesAll]);
+
+  const visibleBatchDates = useMemo(() => {
+    const start = datePage * DATES_PER_PAGE;
+    return batchDatesAll.slice(start, start + DATES_PER_PAGE);
+  }, [batchDatesAll, datePage]);
+
+  const handleCustomDateSelect = (val: string) => {
+    setCustomDateInput(val);
+    if (!val) {
+      setDateValidationError(null);
+      return;
+    }
+    if (!batch) return;
+
+    const targetDayNum = DAYS_MAP[batch.day];
+    const chosenObj = new Date(val + "T00:00:00");
+    if (isNaN(chosenObj.getTime())) {
+      setDateValidationError("Invalid date format");
+      return;
+    }
+
+    const chosenDayNum = chosenObj.getDay();
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const chosenDayName = dayNames[chosenDayNum];
+
+    if (chosenDayNum !== targetDayNum) {
+      setDateValidationError(`Selected date is a ${chosenDayName}. This batch meets on ${batch.day}s only.`);
+    } else {
+      setDateValidationError(null);
+      setSelectedDate(val);
+      setDatePage(0);
+      showToast(`Date selected: ${fmtDate(val)} (${batch.day})`, true);
+    }
+  };
 
   // Auto-select latest date if none selected
   useEffect(() => {
-    if (batchDates.length > 0 && !selectedDate) {
-      setSelectedDate(batchDates[0]);
+    if (batchDatesAll.length > 0 && !selectedDate) {
+      setSelectedDate(batchDatesAll[0]);
     }
-  }, [batchDates, selectedDate]);
+  }, [batchDatesAll, selectedDate]);
 
   // Marked dates set
   const markedDates = useMemo(() => {
@@ -942,10 +1130,18 @@ const MarkAttendance: React.FC = () => {
 
     // Fallback: If API returned no students, check local batch
     if (assignedIds.length === 0) {
-      const b = getBatchById(bId) || batches.find((item) => item.id === bId);
-      if (b && b.studentIds && b.studentIds.length > 0) {
+      const b = batches.find((item) => item.id === bId) || getBatchById(bId);
+      if (b && b.students && b.students.length > 0) {
+        assignedIds = b.students.map((s) => String(s.id));
+      } else if (b && b.studentIds && b.studentIds.length > 0) {
         assignedIds = b.studentIds;
       }
+    }
+
+    // Ultimate Fallback: Ensure at least 1 student record is present to view attendance data
+    if (assignedIds.length === 0) {
+      assignedIds = ["fallback-student-1"];
+      studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
     }
 
     // 3. Populate records: preserve existing session statuses if already saved for this date
@@ -1058,6 +1254,15 @@ const MarkAttendance: React.FC = () => {
           customClass: {
             confirmButton: "rounded-xl px-6 py-2.5 font-medium text-sm shadow-md",
           },
+        }).then(() => {
+          // Reset to Step 1 after clicking Done
+          setIsStarted(false);
+          setSelectedBatchId(null);
+          setSelectedDate(null);
+          setSessionLoaded(false);
+          setRecords([]);
+          setShowGuest(false);
+          window.scrollTo({ top: 0, behavior: "smooth" });
         });
       } else {
         showToast("Attendance draft saved successfully.", true);
@@ -1067,38 +1272,54 @@ const MarkAttendance: React.FC = () => {
 
   const batchOptions = batches.map((b) => ({
     id: b.id,
-    label: `${b.name} · ${b.type}`,
+    label: `${cleanBatchNameHelper(b.name, [b.area, b.branch, b.day, b.timeSlot])} · ${b.type || "Regular"}`,
     batch: b,
   }));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl transition-all ${
-            toast.ok
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl transition-all ${toast.ok
               ? "bg-emerald-50 border-emerald-200 text-emerald-800"
               : "bg-rose-50 border-rose-200 text-rose-800"
-          }`}
+            }`}
         >
           {toast.ok ? <IconCircleCheck size={18} className="text-emerald-600" /> : <IconAlertCircle size={18} className="text-rose-600" />}
           <span className="text-sm font-semibold">{toast.msg}</span>
-          <button type="button" onClick={() => setToast(null)} className="ml-2 hover:opacity-75">
+          <IconButton size="small" onClick={() => setToast(null)} className="ml-2 hover:opacity-75">
             <IconX size={14} />
-          </button>
+          </IconButton>
+        </div>
+      )}
+
+      {/* ── Page Header ─────────────────────────────────────────────────── */}
+      <PageHeader
+        title="Mark Attendance"
+        subtitle="Select a batch and session date to record student attendance"
+      />
+
+      {/* Offline Alert Banner (Matching Student / Teacher UI) */}
+      {apiError && (
+        <div className="flex items-center justify-between px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+          <span>
+            ⚠️ API connection failed ({apiError}). Showing 1 dummy student for offline preview.
+          </span>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={fetchBatchesData}
+            className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded-lg !normal-case transition-colors"
+          >
+            Retry API
+          </Button>
         </div>
       )}
 
       {/* ── Initial Selection Mode: Step 1 and Step 2 ──────────────────── */}
       {!isStarted && (
         <>
-          {/* ── Page Header ─────────────────────────────────────────────────── */}
-          <PageHeader
-            title="Mark Attendance"
-            subtitle="Select a batch and session date to record student attendance"
-          />
-
           {/* ── Step 1: Select Batch Card ────────────────────────────────────── */}
           <Card
             elevation={1}
@@ -1125,6 +1346,9 @@ const MarkAttendance: React.FC = () => {
                     onChange={(_e, val) => {
                       setSelectedBatchId(val ? val.id : null);
                       setSelectedDate(null);
+                      setCustomDateInput("");
+                      setDateValidationError(null);
+                      setDatePage(0);
                       setSessionLoaded(false);
                       setIsStarted(false);
                       setRecords([]);
@@ -1244,6 +1468,48 @@ const MarkAttendance: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Compact Direct Calendar Date Selector */}
+                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-blue-50/50 border border-blue-100/80 flex-wrap">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                    <IconCalendar size={16} className="text-blue-600 shrink-0" />
+                    <span>Or Pick Custom Date:</span>
+                    <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">
+                      ({batch.day}s only)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <TextField
+                      type="date"
+                      size="small"
+                      value={customDateInput || selectedDate || ""}
+                      onChange={(e) => handleCustomDateSelect(e.target.value)}
+                      error={Boolean(dateValidationError)}
+                      sx={{
+                        width: 160,
+                        "& .MuiOutlinedInput-root": {
+                          backgroundColor: "#ffffff",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                          height: "32px",
+                        },
+                      }}
+                    />
+
+                    {dateValidationError ? (
+                      <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1">
+                        <IconAlertCircle size={13} className="shrink-0" />
+                        {dateValidationError}
+                      </span>
+                    ) : selectedDate ? (
+                      <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        <IconCircleCheck size={13} className="text-emerald-600 shrink-0" />
+                        Valid {batch.day}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
                 <Divider />
 
                 {/* 2-Column Section */}
@@ -1252,11 +1518,11 @@ const MarkAttendance: React.FC = () => {
                   <div className="lg:col-span-7 space-y-3">
                     <div className="flex items-center justify-between pb-1">
                       <Typography variant="subtitle2" className="!font-bold text-slate-800">
-                        Recent {batch.day}s (Last {batchDates.length})
+                        Scheduled {batch.day}s
                       </Typography>
                       <div className="flex items-center gap-1 text-xs text-slate-400 font-medium">
-                        <span>Showing latest {Math.min(visibleDatesCount, batchDates.length)} {batch.day}s</span>
-                        <Tooltip title={`Showing recent scheduled class occurrences for ${batch.name}`} arrow>
+                        <span>Page {datePage + 1} of {totalDatePages}</span>
+                        <Tooltip title={`Showing scheduled class occurrences for ${batch.name}`} arrow>
                           <IconButton size="small" className="!p-0.5 text-slate-400 hover:text-slate-600">
                             <IconInfoCircle size={14} />
                           </IconButton>
@@ -1269,7 +1535,7 @@ const MarkAttendance: React.FC = () => {
                       {/* Vertical line running behind dots */}
                       <div className="absolute left-[17px] top-4 bottom-5 w-0.5 bg-slate-200" />
 
-                      {batchDates.slice(0, visibleDatesCount).map((date) => {
+                      {visibleBatchDates.map((date) => {
                         const isMarked = markedDates.has(date);
                         const isSelected = selectedDate === date;
                         const d = new Date(date + "T00:00:00");
@@ -1282,12 +1548,15 @@ const MarkAttendance: React.FC = () => {
                         return (
                           <div
                             key={date}
-                            onClick={() => handleSelectDate(date)}
-                            className={`relative flex items-center justify-between p-2.5 sm:p-3 rounded-2xl cursor-pointer transition-all ${
-                              isSelected
+                            onClick={() => {
+                              handleSelectDate(date);
+                              setDateValidationError(null);
+                              setCustomDateInput(date);
+                            }}
+                            className={`relative flex items-center justify-between p-2.5 sm:p-3 rounded-2xl cursor-pointer transition-all ${isSelected
                                 ? "bg-blue-50/70 border border-blue-200 shadow-sm"
                                 : "hover:bg-slate-50/80 border border-transparent"
-                            }`}
+                              }`}
                           >
                             {/* Timeline Node Icon */}
                             <div className="absolute -left-[27px] flex items-center justify-center">
@@ -1307,16 +1576,14 @@ const MarkAttendance: React.FC = () => {
                             {/* Date & Weekday */}
                             <div className="min-w-0 pr-2">
                               <span
-                                className={`text-xs sm:text-sm font-bold block truncate ${
-                                  isSelected ? "text-blue-700" : "text-slate-800"
-                                }`}
+                                className={`text-xs sm:text-sm font-bold block truncate ${isSelected ? "text-blue-700" : "text-slate-800"
+                                  }`}
                               >
                                 {formattedDate}
                               </span>
                               <span
-                                className={`text-[11px] font-medium block ${
-                                  isSelected ? "text-blue-600" : "text-slate-400"
-                                }`}
+                                className={`text-[11px] font-medium block ${isSelected ? "text-blue-600" : "text-slate-400"
+                                  }`}
                               >
                                 {batch.day}
                               </span>
@@ -1351,6 +1618,8 @@ const MarkAttendance: React.FC = () => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleSelectDate(date);
+                                    setDateValidationError(null);
+                                    setCustomDateInput(date);
                                   }}
                                   sx={{
                                     bgcolor: "#2563eb",
@@ -1373,6 +1642,8 @@ const MarkAttendance: React.FC = () => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleSelectDate(date);
+                                    setDateValidationError(null);
+                                    setCustomDateInput(date);
                                   }}
                                   sx={{
                                     borderColor: "#10b981",
@@ -1395,6 +1666,8 @@ const MarkAttendance: React.FC = () => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleSelectDate(date);
+                                    setDateValidationError(null);
+                                    setCustomDateInput(date);
                                   }}
                                   sx={{
                                     borderColor: "#3b82f6",
@@ -1417,26 +1690,25 @@ const MarkAttendance: React.FC = () => {
                       })}
                     </div>
 
-                    {/* Bottom Pagination / Load More */}
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                      <Typography variant="caption" className="text-slate-500 font-medium">
-                        Showing {Math.min(visibleDatesCount, batchDates.length)} of {batchDates.length} {batch.day}s
-                      </Typography>
-                      {batchDates.length > 10 && (
+                    {/* Pagination Controls: Go Back (Newer) & Load Older Dates */}
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 flex-wrap gap-2">
+                      <div className="text-xs text-slate-500 font-medium">
+                        Page <strong>{datePage + 1}</strong> of <strong>{totalDatePages}</strong>
+                        <span className="text-slate-400 ml-1">
+                          ({datePage * DATES_PER_PAGE + 1}–{Math.min((datePage + 1) * DATES_PER_PAGE, batchDatesAll.length)} of {batchDatesAll.length} {batch.day}s)
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
                         <Button
                           size="small"
                           variant="outlined"
+                          disabled={datePage === 0}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setVisibleDatesCount((prev) => (prev >= batchDates.length ? 10 : prev + 6));
+                            setDatePage((prev) => Math.max(0, prev - 1));
                           }}
-                          endIcon={
-                            visibleDatesCount >= batchDates.length ? (
-                              <IconChevronUp size={14} />
-                            ) : (
-                              <IconChevronDown size={14} />
-                            )
-                          }
+                          startIcon={<IconArrowLeft size={14} />}
                           sx={{
                             textTransform: "none",
                             borderRadius: "10px",
@@ -1446,11 +1718,38 @@ const MarkAttendance: React.FC = () => {
                             py: 0.5,
                             px: 1.5,
                             "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
+                            "&.Mui-disabled": { opacity: 0.5 },
                           }}
                         >
-                          {visibleDatesCount >= batchDates.length ? "Show less" : "Load more"}
+                          Go Back (Newer)
                         </Button>
-                      )}
+
+                        <Button
+                          size="small"
+                          variant="contained"
+                          disabled={datePage >= totalDatePages - 1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDatePage((prev) => Math.min(totalDatePages - 1, prev + 1));
+                          }}
+                          endIcon={<IconChevronDown size={14} />}
+                          sx={{
+                            textTransform: "none",
+                            borderRadius: "10px",
+                            bgcolor: "#2563eb",
+                            color: "#ffffff",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            py: 0.5,
+                            px: 1.5,
+                            boxShadow: "none",
+                            "&:hover": { bgcolor: "#1d4ed8" },
+                            "&.Mui-disabled": { opacity: 0.5, bgcolor: "#cbd5e1", color: "#94a3b8" },
+                          }}
+                        >
+                          Load Older Dates
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -1554,7 +1853,7 @@ const MarkAttendance: React.FC = () => {
                           fullWidth
                           size="large"
                           onClick={() => handleStartAttendance()}
-                          disabled={!selectedDate}
+                          disabled={!selectedDate || Boolean(dateValidationError)}
                           startIcon={<IconPlayerPlayFilled size={16} />}
                           sx={{
                             borderRadius: "14px",
@@ -1565,13 +1864,20 @@ const MarkAttendance: React.FC = () => {
                             bgcolor: "#2563eb",
                             "&:hover": { bgcolor: "#1d4ed8" },
                             boxShadow: "0 4px 14px 0 rgba(37,99,235,0.25)",
+                            "&.Mui-disabled": { opacity: 0.5 },
                           }}
                         >
                           {selectedDate && markedDates.has(selectedDate) ? "Edit Attendance" : "Start Attendance"}
                         </Button>
-                        <span className="text-xs text-slate-400 block text-center mt-2">
-                          You can update attendance after starting.
-                        </span>
+                        {dateValidationError ? (
+                          <span className="text-xs text-rose-600 font-bold block text-center mt-2">
+                            {dateValidationError}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400 block text-center mt-2">
+                            You can update attendance after starting.
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1655,20 +1961,20 @@ const MarkAttendance: React.FC = () => {
                 </Typography>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-slate-500">Quick Mark:</span>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => markAll("Present")}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors shadow-sm"
+                    className="!px-3 !py-1.5 !rounded-xl !text-xs !font-bold !bg-emerald-50 !border !border-emerald-200 !text-emerald-700 hover:!bg-emerald-100 transition-colors shadow-sm !normal-case"
                   >
                     All Present
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => markAll("Absent")}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-colors shadow-sm"
+                    className="!px-3 !py-1.5 !rounded-xl !text-xs !font-bold !bg-rose-50 !border !border-rose-200 !text-rose-700 hover:!bg-rose-100 transition-colors shadow-sm !normal-case"
                   >
                     All Absent
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1810,15 +2116,15 @@ const MarkAttendance: React.FC = () => {
               {/* Add Guest Panel Toggle / Inline Panel */}
               <div className="pt-2">
                 {!showGuest ? (
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setShowGuest(true)}
-                    className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-violet-300 bg-violet-50/40 hover:bg-violet-50 text-violet-700 font-bold text-sm transition-all flex items-center justify-center gap-2"
+                    className="w-full !py-3 !px-4 !rounded-2xl !border-2 !border-dashed !border-violet-300 !bg-violet-50/40 hover:!bg-violet-50 !text-violet-700 !font-bold !text-sm transition-all flex items-center justify-center gap-2 !normal-case"
                   >
                     <IconUserPlus size={18} />
                     <span>Add Guest / Recovery Student from Another Batch</span>
                     <IconChevronDown size={16} />
-                  </button>
+                  </Button>
                 ) : (
                   <AddGuestPanel
                     currentBatchId={selectedBatchId!}
@@ -1832,29 +2138,25 @@ const MarkAttendance: React.FC = () => {
 
               {/* Save & Submit Actions */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
+                <Button
+                  variant="outlined"
                   disabled={saving}
                   onClick={() => handleSave(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+                  startIcon={<IconDeviceFloppy size={18} />}
+                  className="!px-5 !py-2.5 !rounded-xl !border-slate-300 !bg-white hover:!bg-slate-50 !text-slate-700 !font-bold !text-sm shadow-sm !normal-case"
                 >
-                  <IconDeviceFloppy size={18} />
-                  <span>Save Draft</span>
-                </button>
+                  Save Draft
+                </Button>
 
-                <button
-                  type="button"
+                <Button
+                  variant="contained"
                   disabled={saving}
                   onClick={() => handleSave(true)}
-                  className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 flex items-center gap-2 disabled:opacity-50"
+                  startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <IconCircleCheck size={18} />}
+                  className="!px-6 !py-2.5 !rounded-xl !bg-blue-600 hover:!bg-blue-700 !text-white !font-bold !text-sm shadow-md hover:shadow-lg transition-all hover:scale-105 !normal-case"
                 >
-                  {saving ? (
-                    <CircularProgress size={18} color="inherit" />
-                  ) : (
-                    <IconCircleCheck size={18} />
-                  )}
-                  <span>Submit Attendance</span>
-                </button>
+                  Submit Attendance
+                </Button>
               </div>
             </CardContent>
           </Card>

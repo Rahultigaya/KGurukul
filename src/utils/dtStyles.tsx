@@ -1,65 +1,64 @@
 // src/utils/dtStyles.tsx
 
-
 export const dtStyles = {
   table: {
     style: { backgroundColor: "transparent" },
   },
   headRow: {
     style: {
-      backgroundColor: "var(--bg-secondary)",
-      borderBottomColor: "var(--border-default)",
+      backgroundColor: "#f8fafc",
+      borderBottomColor: "#e2e8f0",
     },
   },
   headCells: {
     style: {
-      color: "var(--text-primary)",
+      color: "#0f172a",
       fontWeight: 600,
       fontSize: "13px",
     },
   },
   sortIcon: {
-    style: { color: "var(--text-primary)", fill: "var(--text-primary)", opacity: 1 },
+    style: { color: "#64748b", fill: "#64748b", opacity: 1 },
   },
   rows: {
     style: {
-      backgroundColor: "var(--bg-card)",
-      borderBottomColor: "var(--border-default)",
-      color: "var(--text-primary)",
+      backgroundColor: "#ffffff",
+      borderBottomColor: "#f1f5f9",
+      color: "#0f172a",
     },
     highlightOnHoverStyle: {
-      backgroundColor: "var(--bg-card-hover)",
-      borderBottomColor: "var(--border-default)",
+      backgroundColor: "#f8fafc",
+      borderBottomColor: "#e2e8f0",
       outline: "none",
       cursor: "default",
     },
   },
   pagination: {
     style: {
-      backgroundColor: "var(--bg-secondary)",
-      borderTopColor: "var(--border-default)",
-      color: "var(--text-secondary)",
+      backgroundColor: "#f8fafc",
+      borderTopColor: "#e2e8f0",
+      color: "#475569",
     },
     pageButtonsStyle: {
-      fill: "var(--text-secondary)",
-      "&:disabled": { fill: "var(--text-muted)" },
+      fill: "#475569",
+      "&:disabled": { fill: "#cbd5e1" },
       "&:hover:not(:disabled)": {
-        backgroundColor: "var(--bg-tertiary)",
-        fill: "var(--accent-orange)",
+        backgroundColor: "#f1f5f9",
+        fill: "#2563eb",
       },
     },
   },
   noData: {
     style: {
-      backgroundColor: "var(--bg-card)",
-      color: "var(--text-muted)",
+      backgroundColor: "#ffffff",
+      color: "#94a3b8",
     },
   },
   select: {
     style: {
-      backgroundColor: "var(--bg-secondary)",
-      color: "var(--text-primary)",
-      border: "1px solid var(--border-default)",
+      backgroundColor: "#ffffff",
+      color: "#0f172a",
+      border: "1px solid #cbd5e1",
       borderRadius: "6px",
       padding: "2px 6px",
       cursor: "pointer",
@@ -69,23 +68,23 @@ export const dtStyles = {
 };
 
 export const sortIcon = (
-  <span style={{ color: "var(--text-secondary)", fontSize: 12, marginLeft: 4 }}>↕</span>
+  <span style={{ color: "#64748b", fontSize: 12, marginLeft: 4 }}>↕</span>
 );
 
 export const selectDropdownStyles = {
   comboboxProps: {
     styles: {
       dropdown: {
-        background: "var(--bg-secondary)",
-        border: "1px solid var(--border-accent)",
-        color: "var(--text-primary)",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        color: "#0f172a",
       },
     },
   },
   styles: {
     option: {
-      color: "var(--text-primary)",
-      backgroundColor: "var(--bg-secondary)",
+      color: "#0f172a",
+      backgroundColor: "#ffffff",
     },
   },
-};
+};

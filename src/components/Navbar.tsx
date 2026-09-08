@@ -132,7 +132,7 @@ export default function Navbar() {
             <Button
               href="#contact"
               variant="contained"
-              endIcon={<ArrowForwardIcon fontSize="small" className="btn-arrow" />}
+              endIcon={<ArrowForwardIcon fontSize="small" className="btn-arrow" sx={{ color: "#fff" }} />}
               sx={{
                 borderRadius: 2.5,
                 px: 3.2,
@@ -141,6 +141,9 @@ export default function Navbar() {
                 fontWeight: 700,
                 textTransform: "none",
                 color: "#fff",
+                "& .MuiButton-startIcon, & .MuiButton-endIcon": {
+                  color: "#fff",
+                },
                 background: "linear-gradient(135deg, #2563eb 55%, #16a34a 115%)",
                 boxShadow: "0 8px 20px -6px rgba(37,99,235,0.45)",
                 transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
@@ -213,12 +216,17 @@ export default function Navbar() {
                 href="#contact"
                 onClick={() => setOpen(false)}
                 variant="contained"
+                endIcon={<ArrowForwardIcon fontSize="small" sx={{ color: "#fff" }} />}
                 sx={{
                   borderRadius: 3,
                   py: 1.5,
                   fontWeight: 700,
                   fontSize: 15,
                   textTransform: "none",
+                  color: "#fff",
+                  "& .MuiButton-startIcon, & .MuiButton-endIcon": {
+                    color: "#fff",
+                  },
                   background: "linear-gradient(135deg, #2563eb, #16a34a)",
                   boxShadow: "0 8px 20px -6px rgba(37,99,235,0.45)",
                 }}

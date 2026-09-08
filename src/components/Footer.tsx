@@ -1,7 +1,3 @@
-import FacebookIcon from "@mui/icons-material/Facebook";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import YouTubeIcon from "@mui/icons-material/YouTube";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
@@ -26,13 +22,6 @@ const COURSES = [
   { class: "HSC", name: "Std-XII (CS1 + CS2)" },
   { class: "ISC", name: "Std-XI (Computer Application)" },
   { class: "ISC", name: "Std-XII (Computer Application)" },
-];
-
-const SOCIALS = [
-  { icon: <FacebookIcon sx={{ fontSize: 16 }} />, href: "#", label: "Facebook" },
-  { icon: <InstagramIcon sx={{ fontSize: 16 }} />, href: "#", label: "Instagram" },
-  { icon: <YouTubeIcon sx={{ fontSize: 16 }} />, href: "#", label: "YouTube" },
-  { icon: <LinkedInIcon sx={{ fontSize: 16 }} />, href: "#", label: "LinkedIn" },
 ];
 
 export default function Footer() {
@@ -63,20 +52,6 @@ export default function Footer() {
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm text-justify">
               KGurukul is Thane's leading computer education institute specializing in ICSE, HSC, and ISC board computer science, Java, C++, and practical lab training.
             </p>
-
-            {/* Social Links */}
-            <div className="flex items-center gap-2 pt-1">
-              {SOCIALS.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 hover:border-blue-500 text-slate-400 hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-110"
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Quick Links */}

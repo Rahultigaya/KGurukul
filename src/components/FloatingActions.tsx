@@ -38,7 +38,7 @@ const FloatingActions = () => {
             )}
 
             {/* WhatsApp */}
-            <a
+            {/* <a
                 href={`https://api.whatsapp.com/send?phone=91${WHATSAPP_NUMBER}&text=Hi`}
                 target="_blank"
                 // rel="noopener noreferrer"
@@ -53,7 +53,7 @@ const FloatingActions = () => {
             "
             >
                 <i className="fa fa-whatsapp" />
-            </a>
+            </a> */}
         </div>
     );
 };

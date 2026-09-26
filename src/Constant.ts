@@ -1,19 +1,19 @@
 // src/constants/Constant.ts
 
-export const CONTACT_NUMBERS = "+91 9967442515 , 8879798736";
+export const CONTACT_NUMBERS = "+91 9082187414";
 
-export const WHATSAPP_NUMBER = "8879798736";
+export const WHATSAPP_NUMBER = "9082187414";
 
-export const BRANCH_ADDRESS = "Thane West - 400601;";
+export const BRANCH_ADDRESS = "California USA - 987891;";
 
 export const LOGO = "/logo-gurukul-new.png";
 
-export const EMAIL = "kgurukuls09@gmail.com";
+export const EMAIL = "domain@gmail.com";
 
 export const SLOGAN = "Every Topper Starts With A Question";
 
 export const ADDRESS =
-    "6, Kavita CHS, Opp. Pratap Cinema, Kolbad Road";
+    "6, Elbert CHS, Opp. INOX Cinema, CA.";
 
 export interface Student {
     image: string;

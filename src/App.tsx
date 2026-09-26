@@ -1,31 +1,15 @@
+import { Outlet } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Hero from "./components/Hero";
 import FloatingActions from "./components/FloatingActions";
-import Contact from "./components/Contact";
-import Services from "./components/Cources";
-import About from "./components/AboutUs";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col transition-colors duration-500">
       <Navbar />
-      <section id="Home">
-        <Hero />
-      </section>
       <main className="flex-grow">
-        {/* pages / sections go here */}
+        <Outlet />
       </main>
-      <section id="About">
-        <About />
-      </section>
-      <section id="Courses">
-        <Services />
-      </section>
-      <section id="Contact">
-        <Contact />
-      </section>
-
       <Footer />
       <FloatingActions />
     </div>

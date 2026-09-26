@@ -3,7 +3,8 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import App from "../App";
-import Home from "../pages/Home";
+import HomePage from "../pages/HomePage";
+import ContactPage from "../pages/ContactPage";
 import Login from "../pages/auth/Login";
 
 import AppLayout from "../pages/components/layout/AppLayout";
@@ -42,7 +43,15 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <HomePage />,
+      },
+      {
+        path: "contact",
+        element: <ContactPage />,
+      },
+      {
+        path: "contact-us",
+        element: <ContactPage />,
       },
     ],
   },

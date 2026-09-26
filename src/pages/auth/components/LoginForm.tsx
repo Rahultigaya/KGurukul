@@ -388,13 +388,12 @@ const LoginForm: React.FC = () => {
           {/* Timer Display */}
           <div className="mb-1 flex items-center justify-center">
             <div
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                isExpired
-                  ? "bg-red-50 text-red-600"
-                  : timer <= 10
-                    ? "bg-orange-50 text-orange-600"
-                    : "bg-purple-50 text-purple-600"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg ${isExpired
+                ? "bg-red-50 text-red-600"
+                : timer <= 10
+                  ? "bg-orange-50 text-orange-600"
+                  : "bg-purple-50 text-purple-600"
+                }`}
             >
               <IconClock size={18} />
               <span className="font-semibold">

@@ -3,9 +3,11 @@ import Hero from "../components/Hero";
 
 const HomePage: React.FC = () => {
   return (
-    <section id="Home">
-      <Hero />
-    </section>
+    <div className="flex flex-col">
+      <section id="Home">
+        <Hero />
+      </section>
+    </div>
   );
 };
 

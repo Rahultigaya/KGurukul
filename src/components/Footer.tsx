@@ -53,7 +53,7 @@ const Footer: React.FC = () => {
         <footer className="w-full bg-[#0F172A] border-t border-slate-800 text-slate-300 mt-auto">
 
             {/* ── Top CTA Strip ── */}
-            <div className="bg-[#1E293B] border-b border-slate-800">
+            <div className="bg-[#09090B] border-b border-slate-800">
                 <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div>
                         <p className="text-white font-bold text-lg leading-tight">Ready for your next ride ?</p>

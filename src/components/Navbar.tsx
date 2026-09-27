@@ -19,8 +19,8 @@ const POPULAR_CITIES: City[] = [
 
 const MENU_ITEMS = [
     { label: "Home", icon: "fa-home", id: "Home", path: "/" },
-    { label: "Services", icon: "fa-book", id: "Courses", path: "/" },
-    { label: "About Us", icon: "fa-user", id: "About", path: "/" },
+    { label: "Services", icon: "fa-book", id: "Services", path: "/services" },
+    { label: "About Us", icon: "fa-user", id: "About", path: "/about" },
     { label: "Contact Us", icon: "fa-phone", id: "Contact", path: "/contact" },
 ];
 
@@ -33,6 +33,7 @@ const Navbar = () => {
 
     const [open, setOpen] = useState(false);
     const [locOpen, setLocOpen] = useState(false);
+    const [activeSection, setActiveSection] = useState("Home");
     const [selectedCity, setSelectedCity] = useState<City | null>(() => {
         const saved = sessionStorage.getItem("kg_selected_city");
         return saved ? JSON.parse(saved) : null;
@@ -43,6 +44,19 @@ const Navbar = () => {
 
     const menuRef = useRef<HTMLElement>(null);
     const locRef = useRef<HTMLLIElement>(null);
+
+    // ── Track location path to set active nav ──────────────────────────────
+    useEffect(() => {
+        if (location.pathname.startsWith("/services")) {
+            setActiveSection("Services");
+        } else if (location.pathname.startsWith("/about")) {
+            setActiveSection("About");
+        } else if (location.pathname.startsWith("/contact")) {
+            setActiveSection("Contact");
+        } else if (location.pathname === "/") {
+            setActiveSection("Home");
+        }
+    }, [location.pathname]);
 
     // ── Close menus on outside click ─────────────────────────────────────────
     useEffect(() => {
@@ -85,20 +99,36 @@ const Navbar = () => {
 
     const handleNavigation = (item: { label: string; icon: string; id: string; path?: string }) => {
         setOpen(false);
+        setActiveSection(item.id);
+        if (item.label === "Services" || item.path === "/services") {
+            navigate("/services");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+        }
+        if (item.label === "About Us" || item.path === "/about") {
+            navigate("/about");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+        }
         if (item.label === "Contact Us" || item.path === "/contact") {
             navigate("/contact");
             window.scrollTo({ top: 0, behavior: "smooth" });
             return;
         }
 
+        const targetId = item.id;
         if (location.pathname !== "/") {
             navigate("/");
             setTimeout(() => {
-                const el = document.getElementById(item.id);
-                el?.scrollIntoView({ behavior: "smooth" });
+                const el = document.getElementById(targetId) || document.getElementById(targetId.toLowerCase());
+                if (el) {
+                    el.scrollIntoView({ behavior: "smooth" });
+                } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                }
             }, 100);
         } else {
-            const el = document.getElementById(item.id);
+            const el = document.getElementById(targetId) || document.getElementById(targetId.toLowerCase());
             if (el) {
                 el.scrollIntoView({ behavior: "smooth" });
             } else {
@@ -108,8 +138,18 @@ const Navbar = () => {
     };
 
     const isItemActive = (item: typeof MENU_ITEMS[0]) => {
-        if (item.path === "/contact" && location.pathname.startsWith("/contact")) return true;
-        if (item.path === "/" && location.pathname === "/") return true;
+        if (item.path === "/services") {
+            return location.pathname.startsWith("/services");
+        }
+        if (item.path === "/about") {
+            return location.pathname.startsWith("/about");
+        }
+        if (item.path === "/contact") {
+            return location.pathname.startsWith("/contact");
+        }
+        if (location.pathname === "/") {
+            return item.id === activeSection;
+        }
         return false;
     };
 
@@ -158,7 +198,7 @@ const Navbar = () => {
                     {/* Logo */}
                     <span
                         onClick={() => { navigate("/"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                        className="text-3xl font-mono tracking-tight shrink-0 cursor-pointer font-bold"
+                        className="text-3xl font-mono tracking-tight shrink-0 cursor-pointer font"
                     >
                         SayOne
                     </span>
@@ -171,11 +211,10 @@ const Navbar = () => {
                                 <li
                                     key={item.label}
                                     onClick={() => handleNavigation(item)}
-                                    className={`flex items-center gap-2 cursor-pointer transition ${
-                                        active
-                                            ? "text-amber-400 font-bold border-b-2 border-amber-400 pb-0.5"
-                                            : "text-slate-200 hover:text-amber-400"
-                                    }`}
+                                    className={`flex items-center gap-2 cursor-pointer transition ${active
+                                        ? "text-amber-400 font-bold"
+                                        : "text-slate-200 hover:text-amber-400"
+                                        }`}
                                 >
                                     <i className={`fa ${item.icon}`}></i>
                                     <span>{item.label}</span>
@@ -262,7 +301,7 @@ const Navbar = () => {
                                     </svg>
                                 ) : (
                                     <svg className="w-3.5 h-3.5 fill-current text-amber-500" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" clipRule="evenodd" />
                                     </svg>
                                 )}
                             </span>
@@ -294,7 +333,7 @@ const Navbar = () => {
                                     </svg>
                                 ) : (
                                     <svg className="w-3 h-3 fill-current text-amber-500" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" clipRule="evenodd" />
                                     </svg>
                                 )}
                             </span>
@@ -314,21 +353,24 @@ const Navbar = () => {
                 {/* Mobile Menu */}
                 <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${open ? "max-h-screen opacity-100" : "max-h-0 opacity-0"}`}>
                     <ul className={`px-6 py-4 space-y-3 text-base border-t ${darkMode ? "bg-slate-800 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
-                        {MENU_ITEMS.map((item, i) => (
-                            <li
-                                key={item.label}
-                                onClick={() => handleNavigation(item)}
-                                className="flex items-center gap-3 cursor-pointer hover:text-yellow-400 transition py-1"
-                                style={{
-                                    transitionDelay: open ? `${i * 50}ms` : "0ms",
-                                    opacity: open ? 1 : 0,
-                                    transform: open ? "translateX(0)" : "translateX(-16px)",
-                                }}
-                            >
-                                <i className={`fa ${item.icon} text-lg`}></i>
-                                <span>{item.label}</span>
-                            </li>
-                        ))}
+                        {MENU_ITEMS.map((item, i) => {
+                            const active = isItemActive(item);
+                            return (
+                                <li
+                                    key={item.label}
+                                    onClick={() => handleNavigation(item)}
+                                    className={`flex items-center gap-3 cursor-pointer transition py-1 ${active ? "text-amber-400 font-bold" : "text-slate-200 hover:text-amber-400"}`}
+                                    style={{
+                                        transitionDelay: open ? `${i * 50}ms` : "0ms",
+                                        opacity: open ? 1 : 0,
+                                        transform: open ? "translateX(0)" : "translateX(-16px)",
+                                    }}
+                                >
+                                    <i className={`fa ${item.icon} text-lg`}></i>
+                                    <span>{item.label}</span>
+                                </li>
+                            );
+                        })}
 
                         {/* Mobile Location */}
                         <li>
@@ -345,7 +387,7 @@ const Navbar = () => {
                                 <div className={`mt-2 rounded-xl border overflow-hidden ${drop}`}>
                                     <button
                                         onClick={requestGeoLocation}
-                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-yellow-400 border-b border-inherit"
+                                        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-yellow-400 border-b border-inherit"
                                     >
                                         <i className="fa fa-crosshairs"></i>
                                         Detect My Location

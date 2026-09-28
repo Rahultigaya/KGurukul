@@ -101,8 +101,8 @@ function transformFormDataToPayload(data: StudentRegistrationData) {
     photo: data.photo,
     academic_year: data.academicYear,
     registration_date: formatDate(
-      data.registrationDate instanceof Date
-        ? data.registrationDate.toISOString().split("T")[0]
+      (data.registrationDate as any) instanceof Date
+        ? (data.registrationDate as any).toISOString().split("T")[0]
         : data.registrationDate
     ),
     subject_id: Number(data.subject) || 0,

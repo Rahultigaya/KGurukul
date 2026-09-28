@@ -287,14 +287,14 @@ const AddGuestPanel: React.FC<{
   const allBatches = getAllBatches();
 
   // All students NOT already in this session
-  const allStudentIds = studentIds.filter(
-    (sid) => !existingStudentIds.includes(sid)
+  const allStudentIds = Object.keys(studentCache).filter(
+    (sid: string) => !existingStudentIds.includes(sid)
   );
 
   const filteredStudents = useMemo(() => {
     const q = search.toLowerCase();
     if (!q) return [];
-    return allStudentIds.filter((sid) =>
+    return allStudentIds.filter((sid: string) =>
       getStudentName(sid).toLowerCase().includes(q) ||
       getStudentStandard(sid).toLowerCase().includes(q) ||
       getStudentSubject(sid).toLowerCase().includes(q)
@@ -390,7 +390,7 @@ const AddGuestPanel: React.FC<{
               <div className="px-4 py-3 text-center">
                 <Text size="xs" style={{ color: "var(--text-muted)" }}>No students found</Text>
               </div>
-            ) : filteredStudents.map((sid) => (
+            ) : filteredStudents.map((sid: string) => (
               <button key={sid}
                 onClick={() => {
                   setSelectedStudent(sid);
@@ -548,12 +548,9 @@ const MarkAttendance: React.FC = () => {
   const [showGuest,       setShowGuest]       = useState(false);
   const [saving,          setSaving]          = useState(false);
   const [toast,           setToast]           = useState<{ msg: string; ok: boolean } | null>(null);
-  const [studentIds, setStudentIds]         = useState<string[]>([]);
 
   useEffect(() => {
-    loadStudentCache().then(() => {
-      setStudentIds(Object.keys(studentCache));
-    });
+    loadStudentCache();
   }, []);
 
   const allBatches  = getAllBatches().filter((b) => b.status === "Active");

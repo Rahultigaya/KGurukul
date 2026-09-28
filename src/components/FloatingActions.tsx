@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { WHATSAPP_NUMBER } from "../Constant";
 
 const FloatingActions = () => {
     const [showTop, setShowTop] = useState(false);

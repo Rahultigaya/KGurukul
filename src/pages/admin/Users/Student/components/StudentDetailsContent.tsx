@@ -248,7 +248,6 @@ const StudentDetailsContent = React.memo<StudentDetailsProps>(
                 label: { color: "var(--text-primary)", marginBottom: 6 },
                 input: { backgroundColor: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-default)" },
                 option: { color: "var(--text-primary)", backgroundColor: "var(--bg-secondary)" },
-                placeholder: { color: "var(--text-muted)" },
               }}
             />
           </Grid.Col>

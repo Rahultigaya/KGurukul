@@ -170,7 +170,7 @@ export interface InstallmentPayload {
 export interface StudentCreatePayload {
   photo: string | null;
   academic_year: string;
-  registration_date: string;
+  registration_date: string | null;
   subject_id: number;
   branch_id: number;
   standard_id: number;

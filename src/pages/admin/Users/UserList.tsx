@@ -217,7 +217,7 @@ const UsersList: React.FC = () => {
           ) : (
             <DataTable
               columns={studentColumns}
-              data={students}
+              data={students as any}
               customStyles={dtStyles}
               sortIcon={sortIcon}
               pagination

@@ -12,7 +12,7 @@ export interface GuardianDetails {
 
 export interface Installment {
   amount: string;
-  date: Date | null;
+  date: string | Date | null;
   mode: string;
   bankName: string;
   paidTo: string;
@@ -41,7 +41,7 @@ export interface StudentRegistrationData {
   discountAmount: string;
   fullPayment: {
     amount: string;
-    date: Date | null;
+    date: string | Date | null;
     mode: string;
     bankName: string;
     paidTo: string;

@@ -21,7 +21,7 @@ import {
   updateParent,
   type ParentData,
 } from "../admin/Parent/parentStore";
-import { getStudentById } from "../admin/Users/Student/studentStore";
+import { studentCache } from "../admin/Users/Student/studentStore";
 import type { LinkedStudent } from "./types";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ const statusConfig: Record<
 
 function buildLinkedStudents(childrenIds: string[]): LinkedStudent[] {
   return childrenIds.reduce<LinkedStudent[]>((acc, studentId) => {
-    const student = getStudentById(studentId);
+    const student = studentCache[studentId];
     if (!student) return acc; // skip if id not found in studentStore
 
     const net =

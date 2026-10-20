@@ -72,6 +72,7 @@ export const BATCH_STATUS_META: Record<BatchStatus, { color: string }> = {
   Active: { color: "green" },
   Inactive: { color: "yellow" },
   Completed: { color: "gray" },
+  Complete: { color: "gray" },
 };
 
 /**

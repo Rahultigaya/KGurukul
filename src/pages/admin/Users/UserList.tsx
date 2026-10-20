@@ -1035,9 +1035,7 @@ const UsersList: React.FC = () => {
                       <Button
                         size="small"
                         variant="contained"
-                        onClick={
-                          fetchStudents
-                        }
+                        onClick={() => { fetchStudents(); }}
                         className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded !normal-case"
                       >
                         Retry API
@@ -1570,9 +1568,7 @@ const UsersList: React.FC = () => {
                       <Button
                         size="small"
                         variant="contained"
-                        onClick={
-                          fetchTeachers
-                        }
+                        onClick={() => { fetchTeachers(); }}
                         className="!px-3 !py-1 !bg-blue-600 hover:!bg-blue-700 !text-white !text-xs !font-medium !rounded !normal-case"
                       >
                         Retry API

@@ -30,7 +30,6 @@ import {
   IconCheck,
   IconCalendar,
   IconHistory,
-  IconSearch,
   IconChevronDown,
   IconClock,
   IconInfoCircle,
@@ -38,7 +37,7 @@ import {
 } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import { fetchWithAuth } from "../../api/common";
-import { getAllBatches, getAllBatchesAPI, getBatchesOnlyAPI, getBatchById, getBatchByIdAPI, cleanBatchName as cleanBatchNameHelper, type Batch, type AssignedStudent } from "../batches/batchStore";
+import { getAllBatches, getBatchesOnlyAPI, getBatchById, getBatchByIdAPI, cleanBatchName as cleanBatchNameHelper, type Batch, type AssignedStudent } from "../batches/batchStore";
 import { studentCache, loadStudentCache, transformApiToFormData } from "../admin/Users/Student/studentStore";
 import {
   getSession,

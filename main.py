@@ -18,7 +18,7 @@ import os
 from dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
-from models import User, Teacher, Area, Branch, Subject, Batch, Student, Guardian, FullPayment, Installment
+from models import User, Teacher, Area, Branch, Subject, Batch, Student, Guardian, FullPayment, Installment, BatchStudent, AttendanceSession, AttendanceRecord
 
 # Load environment variables from .env file
 load_dotenv()
@@ -137,12 +137,26 @@ def update_batch(batch_id: int, batch: schemas.BatchUpdate, db: Session = Depend
         raise HTTPException(status_code=404, detail="Batch not found")
     return updated_batch
 
-@app.get("/batch/{batch_id}")
-def get_batch(batch_id: int, db: Session = Depends(get_db)):
-    batch = crud.get_batch_by_id(db, batch_id)
+@app.get("/batches/{id}", response_model=schemas.BatchDetailResponse)
+def get_batch(id: int, db: Session = Depends(get_db)):
+    batch = crud.get_batch_by_id(db, batch_id=id)
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
     return batch
+
+@app.post("/batches/{batch_id}/assign-students", response_model=schemas.BatchAssignStudentsResponse)
+def assign_students(batch_id: int, data: schemas.BatchAssignStudentsRequest, db: Session = Depends(get_db)):
+    result, error = crud.assign_students_to_batch(db, batch_id=batch_id, student_ids=data.student_ids)
+    if error:
+        raise HTTPException(status_code=404, detail=error)
+    return result
+
+@app.patch("/batches/{batch_id}/toggle-status", response_model=schemas.BatchToggleStatusResponse)
+def toggle_batch_status(batch_id: int, db: Session = Depends(get_db)):
+    result = crud.toggle_batch_status(db, batch_id=batch_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    return result
 
 @app.get("/users")
 def read_users(db: Session = Depends(get_db)):
@@ -362,6 +376,13 @@ def update_teacher(teacher_id: int, data: schemas.TeacherUpdate, db: Session = D
         "photo": teacher.photo
     }
 
+@app.patch("/teacher/{id}/toggle-status", response_model=schemas.TeacherToggleStatusResponse)
+def toggle_teacher_status(id: int, db: Session = Depends(get_db)):
+    result = crud.toggle_teacher_status(db, teacher_id=id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return result
+
 @app.post("/upload-image")
 async def upload_image(request: Request):
     try:
@@ -478,3 +499,20 @@ def list_students(
     db: Session = Depends(get_db)
 ):
     return crud.get_students(db, skip=skip, limit=limit, academic_year=academic_year)
+
+
+@app.get("/students/{id}", response_class=ORJSONResponse)
+def get_student(id: int, db: Session = Depends(get_db)):
+    student = crud.get_student_by_id(db, student_id=id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
+
+
+@app.patch("/students/{id}/toggle-status", response_model=schemas.StudentToggleStatusResponse)
+def toggle_student_status(id: int, db: Session = Depends(get_db)):
+    result = crud.toggle_student_status(db, student_id=id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return result
+

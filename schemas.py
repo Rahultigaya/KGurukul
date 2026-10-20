@@ -117,32 +117,46 @@ class StandardResponse(BaseModel):
 
 class StudentResponse(BaseModel):
     id: int
-    user_id: int
-    photo: Optional[str]
+    user_id: Optional[int] = None
+    photo: Optional[str] = None
+    is_active: bool = True
     academic_year: str
     registration_date: date
     course_type: str
-    reference: Optional[str]
-    surname: str
+    reference: Optional[str] = None
+    branch_id: Optional[int] = None
+    branch: BranchResponse
+    standard_id: Optional[int] = None
+    standard: StandardResponse
+    subject_id: Optional[int] = None
+    subject: SubjectResponse
     first_name: str
-    middle_name: Optional[str]
+    middle_name: Optional[str] = None
+    surname: str
     gender: str
+    email: str
+    contact_no: str
     address: str
     school_college_name: str
+    guardians: list[GuardianResponse] = []
     payment_type: str
     total_fees: str
     discount_amount: str
-    email: str
-    contact_no: str
-    subject: SubjectResponse
-    branch: BranchResponse
-    standard: StandardResponse
-    guardians: list[GuardianResponse]
-    full_payment: Optional[FullPaymentResponse]
-    installments: list[InstallmentResponse]
+    full_payment: Optional[FullPaymentResponse] = None
+    installments: list[InstallmentResponse] = []
 
     class Config:
         from_attributes = True
+
+
+class StudentToggleStatusResponse(BaseModel):
+    message: str
+    id: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
 
 class UserCreate(BaseModel):
     name: str
@@ -192,6 +206,14 @@ class TeacherResponse(BaseModel):
     joining_date: str
     status: str  # Active / Inactive
     photo: str | None = None  # Cloudinary URL
+
+class TeacherToggleStatusResponse(BaseModel):
+    message: str
+    id: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True
 
 class AreaCreate(BaseModel):
     name: str
@@ -282,3 +304,68 @@ class BatchResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class BatchStudentItem(BaseModel):
+    id: int
+    name: str
+    roll_no: str
+    contact_no: str
+    email: str
+    standard: str
+
+    class Config:
+        from_attributes = True
+
+
+class BatchDetailResponse(BaseModel):
+    id: int
+    name: str
+    type: str
+    status: str
+    area_id: int
+    area_name: str
+    branch_id: int
+    branch_name: str
+    day: str
+    start_time: str
+    end_time: str
+    time_slot: str
+    subject_id: int
+    subject_name: str
+    standard_id: int
+    standard_name: str
+    teacher_id: int
+    teacher_name: str
+    capacity: int
+    created_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    students: list[BatchStudentItem] = []
+
+    class Config:
+        from_attributes = True
+
+
+class BatchAssignStudentsRequest(BaseModel):
+    batch_id: Optional[int] = None
+    student_ids: list[int]
+
+
+class BatchAssignStudentsResponse(BaseModel):
+    status: str
+    message: str
+    batch_id: int
+    assigned_count: int
+
+    class Config:
+        from_attributes = True
+
+
+class BatchToggleStatusResponse(BaseModel):
+    message: str
+    id: int
+    status: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True

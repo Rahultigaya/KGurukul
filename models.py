@@ -168,3 +168,60 @@ class Batch(Base):
     capacity = Column(Integer)  # Max students
     type = Column(String(20))  # "Regular" or "Premium"
     status = Column(String(20), default="Active")  # "Active" or "Inactive"
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+
+    area = relationship("Area", backref="batches")
+    branch = relationship("Branch", backref="batches")
+    subject = relationship("Subject", backref="batches")
+    standard = relationship("Standards", backref="batches")
+    teacher = relationship("Teacher", backref="batches")
+
+
+class BatchStudent(Base):
+    __tablename__ = "batch_students"
+
+    id = Column(Integer, primary_key=True, index=True)
+    batch_id = Column(Integer, ForeignKey("batches.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    status = Column(Integer, default=1)  # 1-Active, 0-Inactive, 2-Completed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    batch = relationship("Batch", backref="batch_students")
+    student = relationship("Student", backref="batch_assignments")
+
+
+class AttendanceSession(Base):
+    __tablename__ = "attendance_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    batch_id = Column(Integer, ForeignKey("batches.id"), nullable=False)
+    date = Column(Date, nullable=False)
+    marked_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # user_id from users table
+    is_submitted = Column(Integer, default=0, nullable=False)  # 0-Draft, 1-Submitted
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    batch = relationship("Batch", backref="attendance_sessions")
+    user = relationship("User", backref="marked_attendance_sessions")
+    records = relationship("AttendanceRecord", back_populates="session", cascade="all, delete-orphan")
+
+
+class AttendanceRecord(Base):
+    __tablename__ = "attendance_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    attendance_session_id = Column(Integer, ForeignKey("attendance_sessions.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    status = Column(Integer, nullable=False)  # 1-Present, 0-Absent
+    remark = Column(String(255), nullable=True)
+    is_recovery = Column(Integer, default=0, nullable=False)  # 1 if student is a recovery guest from another batch
+    from_batch_id = Column(Integer, ForeignKey("batches.id"), nullable=True)  # Original batch id where lecture was missed
+    missed_date = Column(Date, nullable=True)  # Lecture date that was missed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    session = relationship("AttendanceSession", back_populates="records")
+    student = relationship("Student", backref="attendance_records")
+    from_batch = relationship("Batch", foreign_keys=[from_batch_id])

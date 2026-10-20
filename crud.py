@@ -108,38 +108,89 @@ def get_students(db: Session, skip: int = 0, limit: int = 100, academic_year: st
     return results
 
 
+def get_student_by_id(db: Session, student_id: int):
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        return None
+
+    user = db.query(models.User).filter(models.User.id == student.user_id).first()
+    guardians = db.query(models.Guardian).filter(models.Guardian.student_id == student.id).all()
+    full_payment = db.query(models.FullPayment).filter(models.FullPayment.student_id == student.id).first()
+    installments = db.query(models.Installment).filter(models.Installment.student_id == student.id).all()
+    subject = db.query(models.Subject).filter(models.Subject.id == student.subject_id).first()
+    branch = db.query(models.Branch).filter(models.Branch.id == student.branch_id).first()
+    standard = db.query(models.Standards).filter(models.Standards.id == student.standard_id).first()
+
+    return _build_student_response(student, user, subject, branch, standard, guardians, full_payment, installments)
+
+
+def toggle_student_status(db: Session, student_id: int):
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        return None
+
+    # Toggle status: 1 -> 0, 0 -> 1
+    if student.is_active == 1:
+        student.is_active = 0
+        is_active = False
+        message = "Student deactivated successfully"
+    else:
+        student.is_active = 1
+        is_active = True
+        message = "Student activated successfully"
+
+    # Also sync linked user's active status if user exists
+    if student.user_id:
+        user = db.query(models.User).filter(models.User.id == student.user_id).first()
+        if user:
+            user.isactive = student.is_active
+
+    db.commit()
+    db.refresh(student)
+
+    return {
+        "message": message,
+        "id": student.id,
+        "is_active": is_active
+    }
+
+
 def _build_student_response(student, user, subject, branch, standard, guardians, full_payment, installments):
     return {
         "id": student.id,
         "user_id": student.user_id,
         "photo": student.photo,
+        "is_active": bool(student.is_active == 1) if student.is_active is not None else True,
         "academic_year": student.academic_year,
         "registration_date": student.registration_date,
         "course_type": student.course_type,
         "reference": student.reference,
-        "surname": student.surname,
+        "branch_id": student.branch_id,
+        "branch": {"id": branch.id, "name": branch.name} if branch else {"id": None, "name": ""},
+        "standard_id": student.standard_id,
+        "standard": {"id": standard.id, "name": standard.name} if standard else {"id": None, "name": ""},
+        "subject_id": student.subject_id,
+        "subject": {"id": subject.id, "name": subject.name} if subject else {"id": None, "name": ""},
         "first_name": student.first_name,
         "middle_name": student.middle_name,
+        "surname": student.surname,
         "gender": student.gender,
-        "address": student.address,
-        "school_college_name": student.school_college_name,
-        "payment_type": student.payment_type,
-        "total_fees": student.total_fees,
-        "discount_amount": student.discount_amount,
         "email": user.email if user else "",
         "contact_no": user.mobile_number if user else "",
-        "subject": {"id": subject.id, "name": subject.name} if subject else {"id": None, "name": ""},
-        "branch": {"id": branch.id, "name": branch.name} if branch else {"id": None, "name": ""},
-        "standard": {"id": standard.id, "name": standard.name} if standard else {"id": None, "name": ""},
+        "address": student.address,
+        "school_college_name": student.school_college_name,
         "guardians": [
             {
                 "id": g.id,
                 "name": g.name,
-                "email": g.email,
-                "contact": g.contact,
                 "relation": g.relation,
+                "contact": g.contact,
+                "email": g.email,
             } for g in guardians
         ],
+        "payment_type": student.payment_type,
+        "total_fees": student.total_fees,
+        "discount_amount": student.discount_amount,
         "full_payment": {
             "id": full_payment.id,
             "amount": full_payment.amount,
@@ -319,7 +370,77 @@ def get_batches(db: Session):
     return db.query(models.Batch).all()
 
 def get_batch_by_id(db: Session, batch_id: int):
-    return db.query(models.Batch).filter(models.Batch.id == batch_id).first()
+    batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
+    if not batch:
+        return None
+
+    area = db.query(models.Area).filter(models.Area.id == batch.area_id).first() if batch.area_id else None
+    branch = db.query(models.Branch).filter(models.Branch.id == batch.branch_id).first() if batch.branch_id else None
+    subject = db.query(models.Subject).filter(models.Subject.id == batch.subject_id).first() if batch.subject_id else None
+    standard = db.query(models.Standards).filter(models.Standards.id == batch.standard_id).first() if batch.standard_id else None
+    teacher = db.query(models.Teacher).filter(models.Teacher.id == batch.teacher_id).first() if batch.teacher_id else None
+
+    area_name = area.name if area else ""
+    branch_name = branch.name if branch else ""
+    subject_name = subject.name if subject else ""
+    standard_name = standard.name if standard else ""
+    teacher_name = " ".join(filter(None, [teacher.first_name, teacher.last_name])) if teacher else ""
+
+    # Name: "Thane – Khopat – Monday – 09:00 AM – 10:30 AM"
+    time_display = batch.time_slot or (f"{batch.start_time} – {batch.end_time}" if batch.start_time and batch.end_time else "")
+    parts = [p for p in [area_name, branch_name, batch.day, time_display] if p]
+    name = " – ".join(parts) if parts else f"Batch {batch.id}"
+
+    # Assigned students
+    batch_students = db.query(models.BatchStudent).filter(
+        models.BatchStudent.batch_id == batch.id,
+        models.BatchStudent.status == 1
+    ).all()
+
+    student_list = []
+    for bs in batch_students:
+        st = db.query(models.Student).filter(models.Student.id == bs.student_id).first()
+        if not st:
+            continue
+        user = db.query(models.User).filter(models.User.id == st.user_id).first() if st.user_id else None
+        st_std = db.query(models.Standards).filter(models.Standards.id == st.standard_id).first() if st.standard_id else None
+
+        student_list.append({
+            "id": st.id,
+            "name": " ".join(filter(None, [st.first_name, st.surname])),
+            "roll_no": f"STU-{st.id:04d}",
+            "contact_no": user.mobile_number if user else "",
+            "email": user.email if user else "",
+            "standard": st_std.name if st_std else ""
+        })
+
+    created_at_str = batch.created_at.strftime("%Y-%m-%d") if getattr(batch, "created_at", None) else None
+    completed_at_str = batch.completed_at.strftime("%Y-%m-%d") if getattr(batch, "completed_at", None) else None
+
+    return {
+        "id": batch.id,
+        "name": name,
+        "type": batch.type,
+        "status": batch.status,
+        "area_id": batch.area_id,
+        "area_name": area_name,
+        "branch_id": batch.branch_id,
+        "branch_name": branch_name,
+        "day": batch.day,
+        "start_time": batch.start_time,
+        "end_time": batch.end_time,
+        "time_slot": batch.time_slot,
+        "subject_id": batch.subject_id,
+        "subject_name": subject_name,
+        "standard_id": batch.standard_id,
+        "standard_name": standard_name,
+        "teacher_id": batch.teacher_id,
+        "teacher_name": teacher_name,
+        "capacity": batch.capacity,
+        "created_at": created_at_str,
+        "completed_at": completed_at_str,
+        "students": student_list
+    }
 
 def update_batch(db: Session, batch_id: int, batch: schemas.BatchUpdate):
     db_batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
@@ -349,3 +470,98 @@ def update_batch(db: Session, batch_id: int, batch: schemas.BatchUpdate):
     db.commit()
     db.refresh(db_batch)
     return db_batch
+
+
+def toggle_teacher_status(db: Session, teacher_id: int):
+    teacher = db.query(models.Teacher).filter(models.Teacher.id == teacher_id).first()
+    if not teacher:
+        return None
+
+    # Toggle status: 1 -> 0, 0 -> 1
+    if teacher.isactive == 1:
+        teacher.isactive = 0
+        is_active = False
+        message = "Teacher deactivated successfully"
+    else:
+        teacher.isactive = 1
+        is_active = True
+        message = "Teacher activated successfully"
+
+    # Also sync linked user's active status if user exists
+    if teacher.user_id:
+        user = db.query(models.User).filter(models.User.id == teacher.user_id).first()
+        if user:
+            user.isactive = teacher.isactive
+
+    db.commit()
+    db.refresh(teacher)
+
+    return {
+        "message": message,
+        "id": teacher.id,
+        "is_active": is_active
+    }
+
+
+def assign_students_to_batch(db: Session, batch_id: int, student_ids: list[int]):
+    batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
+    if not batch:
+        return None, "Batch not found"
+
+    assigned_count = 0
+    for sid in student_ids:
+        student = db.query(models.Student).filter(models.Student.id == sid).first()
+        if not student:
+            continue
+
+        existing = db.query(models.BatchStudent).filter(
+            models.BatchStudent.batch_id == batch_id,
+            models.BatchStudent.student_id == sid
+        ).first()
+
+        if existing:
+            existing.status = 1
+        else:
+            new_bs = models.BatchStudent(
+                batch_id=batch_id,
+                student_id=sid,
+                status=1
+            )
+            db.add(new_bs)
+
+        assigned_count += 1
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": "Students assigned to batch successfully",
+        "batch_id": batch_id,
+        "assigned_count": assigned_count
+    }, None
+
+
+def toggle_batch_status(db: Session, batch_id: int):
+    batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
+    if not batch:
+        return None
+
+    if batch.status == "Active":
+        batch.status = "Inactive"
+        is_active = False
+        message = "Batch deactivated successfully"
+    else:
+        batch.status = "Active"
+        is_active = True
+        message = "Batch activated successfully"
+
+    db.commit()
+    db.refresh(batch)
+
+    return {
+        "message": message,
+        "id": batch.id,
+        "status": batch.status,
+        "is_active": is_active
+    }
+

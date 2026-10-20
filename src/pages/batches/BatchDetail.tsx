@@ -122,11 +122,12 @@ const BatchDetail: React.FC = () => {
     : fillPct >= 80 ? "#f59e0b" : "#22c55e";
 
   const typeMeta   = BATCH_TYPE_META[batch.type];
+  const isCompleted = batch.status === "Completed" || (batch.status as string) === "Complete";
   const statusIcon = batch.status === "Active"    ? <IconCircleCheck size={22} className="text-green-500" />
-                   : batch.status === "Completed" ? <IconCircleX     size={22} className="text-slate-400" />
+                   : isCompleted ? <IconCircleX     size={22} className="text-slate-400" />
                    :                                <IconCircleOff   size={22} className="text-amber-500" />;
   const statusIconBg = batch.status === "Active"    ? "rgba(34,197,94,0.12)"
-                     : batch.status === "Completed" ? "rgba(100,116,139,0.2)"
+                     : isCompleted ? "rgba(100,116,139,0.2)"
                      :                                "rgba(234,179,8,0.12)";
 
   return (
@@ -161,7 +162,7 @@ const BatchDetail: React.FC = () => {
               </span>
               <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
                 batch.status === "Active" ? "bg-emerald-50 text-emerald-600 border border-emerald-200" :
-                batch.status === "Completed" ? "bg-slate-100 text-slate-500 border border-slate-200" : "bg-amber-50 text-amber-600 border border-amber-200"
+                isCompleted ? "bg-slate-100 text-slate-500 border border-slate-200" : "bg-amber-50 text-amber-600 border border-amber-200"
               }`}>
                 {batch.status}
               </span>

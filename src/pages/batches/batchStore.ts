@@ -14,7 +14,14 @@ const API_BASE_URL = "http://127.0.0.1:8000";
 
 export type Area = "Thane" | "Mulund";
 export type BatchType = "Regular" | "Backlog" | "Recovery";
-export type BatchStatus = "Active" | "Inactive" | "Completed";
+export type BatchStatus = "Active" | "Inactive" | "Completed" | "Complete";
+
+export function normalizeBatchStatus(raw: any): BatchStatus {
+  const s = String(raw || "").trim().toLowerCase();
+  if (s === "complete" || s === "completed") return "Completed";
+  if (s === "inactive") return "Inactive";
+  return "Active";
+}
 
 export const AREAS: Area[] = ["Thane", "Mulund"];
 
@@ -499,7 +506,7 @@ export const getAllBatchesAPI = async (): Promise<Batch[]> => {
         id: String(batch.id),
         name: cleanBatchName(batch.name, [area?.name, branch?.name, batch.day, batch.time_slot]),
         type: batch.type as BatchType,
-        status: batch.status as BatchStatus,
+        status: normalizeBatchStatus(batch.status),
         area: (area?.name as Area) || ("Thane" as Area),
         branch: branch?.name || "",
         day: batch.day || "",
@@ -509,7 +516,7 @@ export const getAllBatchesAPI = async (): Promise<Batch[]> => {
         teacherId: String(batch.teacher_id || ""),
         teacherName: teacher ? getTeacherFullName(teacher) : "",
         capacity: batch.capacity || 0,
-        studentIds: batch.student_ids || [],
+        studentIds: batch.student_ids || batch.studentIds || (Array.isArray(batch.students) ? batch.students.map((s: any) => String(s?.id ?? s)) : []),
         createdAt: batch.created_at || "",
         completedAt: batch.completed_at,
       };
@@ -527,7 +534,9 @@ export const getAllBatchesAPI = async (): Promise<Batch[]> => {
 };
 
 /**
- * Fetch ONLY batches from /batches without calling areas, branches, standards, subjects, or teachers APIs.
+ * Fetch ONLY batches from /batches (single API call).
+ * Uses batch.name or area_name/branch_name when provided by backend,
+ * or falls back to `Batch #${batch.id}` if those keys are not yet provided.
  */
 export const getBatchesOnlyAPI = async (): Promise<Batch[]> => {
   try {
@@ -543,24 +552,35 @@ export const getBatchesOnlyAPI = async (): Promise<Batch[]> => {
     const data = await batchesResponse.json();
 
     const transformed: Batch[] = data.map((batch: any) => {
-      const parts = [
-        batch.area_name || batch.area,
-        batch.branch_name || batch.branch,
-        batch.day,
-        batch.time_slot || batch.timeSlot,
-      ].filter((p) => Boolean(p) && String(p).trim() !== "" && String(p).trim() !== "–" && String(p).trim() !== "-");
+      const areaName = batch.area_name || batch.area;
+      const branchName = batch.branch_name || batch.branch;
+      const day = batch.day || "";
+      const timeSlot =
+        batch.time_slot ||
+        batch.timeSlot ||
+        (batch.start_time && batch.end_time ? `${batch.start_time} – ${batch.end_time}` : "");
 
-      const computedName = cleanBatchName(batch.name, parts);
+      // 1. Direct full name from backend (e.g. "Bhayandar – Uttan – Tuesday – 9:00 AM – 11:00 AM")
+      // 2. OR constructed from area_name + branch_name + day + timeSlot
+      // 3. Fallback: `Batch #${batch.id}` if area/branch keys are missing
+      let computedName = "";
+      if (batch.name && typeof batch.name === "string" && batch.name.trim() && batch.name.trim() !== "–" && batch.name.trim() !== "-") {
+        computedName = cleanBatchName(batch.name);
+      } else if (areaName && branchName) {
+        computedName = cleanBatchName("", [areaName, branchName, day, timeSlot]);
+      } else {
+        computedName = `Batch #${batch.id}`;
+      }
 
       return {
         id: String(batch.id),
         name: computedName,
         type: (batch.type as BatchType) || "Regular",
-        status: (batch.status as BatchStatus) || "Active",
-        area: (batch.area_name || batch.area || "Thane") as Area,
-        branch: batch.branch_name || batch.branch || "",
-        day: batch.day || "",
-        timeSlot: batch.time_slot || batch.timeSlot || "",
+        status: normalizeBatchStatus(batch.status),
+        area: (areaName || "Thane") as Area,
+        branch: branchName || "",
+        day: day,
+        timeSlot: timeSlot,
         subject: batch.subject_name || batch.subject || "",
         standard: batch.standard_name || batch.standard || "",
         teacherId: String(batch.teacher_id || ""),
@@ -617,7 +637,7 @@ export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
 
   const fetchPromise = (async () => {
     try {
-      const batchResponse = await fetchWithAuth(`${API_BASE_URL}/batch/${id}`, {
+      const batchResponse = await fetchWithAuth(`${API_BASE_URL}/batches/${id}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -640,17 +660,17 @@ export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
 
       const parsedStudents: AssignedStudent[] = rawStudents.map((s: any) => {
         const sId = String(s.id);
-        const sName = `${s.first_name || ""} ${s.surname || ""}`.trim() || `Student #${sId}`;
+        const sName = (s.name || `${s.first_name || ""} ${s.surname || ""}`).trim() || `Student #${sId}`;
         const stdName = s.standard?.name || s.standard || "";
 
         return {
           id: sId,
           name: sName,
-          firstName: s.first_name || "",
-          surname: s.surname || "",
+          firstName: s.firstName || s.first_name || (sName.includes(" ") ? sName.split(" ")[0] : sName),
+          surname: s.surname || (sName.includes(" ") ? sName.split(" ").slice(1).join(" ") : ""),
           email: s.email || "",
-          contactNo: s.contact_no || "",
-          rollNo: s.roll_no || "",
+          contactNo: s.contact_no || s.contactNo || "",
+          rollNo: s.roll_no || s.rollNo || "",
           standard: stdName,
           photo: s.photo || null,
         };
@@ -670,7 +690,7 @@ export const getBatchByIdAPI = async (id: string): Promise<Batch | null> => {
           batch.time_slot || batch.timeSlot,
         ]),
         type: (batch.type as BatchType) || "Regular",
-        status: (batch.status as BatchStatus) || "Active",
+        status: normalizeBatchStatus(batch.status),
         area: (batch.area_name || batch.area || "Thane") as Area,
         branch: batch.branch_name || batch.branch || "",
         day: batch.day || "",
@@ -770,7 +790,7 @@ export const assignStudentsToBatchAPI = async (
   };
 
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/assign-students`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/batches/${numericBatchId}/assign-students`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -813,7 +833,7 @@ export const toggleBatchStatusAPI = async (
   const nextStatus: BatchStatus = currentStatus === "Active" ? "Inactive" : "Active";
 
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/batch/${numericId}/toggle-status`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/batches/${numericId}/toggle-status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
     });

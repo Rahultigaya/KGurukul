@@ -106,7 +106,11 @@ const BatchCard: React.FC<{
             {batch.type}
           </span>
           {batch.status !== "Active" && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-semibold uppercase">
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+              batch.status === "Completed" || (batch.status as string) === "Complete"
+                ? "bg-slate-100 text-slate-600 border border-slate-200"
+                : "bg-amber-50 text-amber-600 border border-amber-200"
+            }`}>
               {batch.status}
             </span>
           )}
@@ -292,7 +296,9 @@ const BatchList: React.FC = () => {
           (!filterType || b.type === filterType) &&
           (!filterStatus || (filterStatus === "today"
             ? b.day === TODAY_DAY && b.status === "Active"
-            : b.status === filterStatus))
+            : filterStatus === "Completed"
+              ? (b.status === "Completed" || (b.status as string) === "Complete")
+              : b.status === filterStatus))
         );
       })
       .sort((a, b) => {

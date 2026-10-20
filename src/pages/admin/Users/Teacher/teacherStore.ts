@@ -80,10 +80,10 @@ export const teacherStore: Record<string, TeacherData> = {
 };
 
 // 📥 Get all teachers from API
-export async function getAllTeachers(): Promise<any[]> {
+export async function getAllTeachers(params?: { is_active?: number; status?: string }): Promise<any[]> {
   try {
-    const response = await getTeachers();
-    const teachers = response.data;
+    const response = await getTeachers(params);
+    const teachers = Array.isArray(response.data) ? response.data : [];
     console.log("Teachers from API:", teachers);
 
     // Update cache

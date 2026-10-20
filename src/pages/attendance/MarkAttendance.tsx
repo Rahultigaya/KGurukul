@@ -38,15 +38,19 @@ import {
 } from "@tabler/icons-react";
 import Swal from "sweetalert2";
 import { fetchWithAuth } from "../../api/common";
-import { getAllBatches, getBatchesOnlyAPI, getBatchById, getBatchByIdAPI, cleanBatchName as cleanBatchNameHelper, type Batch, type AssignedStudent } from "../batches/batchStore";
+import { getAllBatches, getAllBatchesAPI, getBatchesOnlyAPI, getBatchById, getBatchByIdAPI, cleanBatchName as cleanBatchNameHelper, type Batch, type AssignedStudent } from "../batches/batchStore";
 import { studentCache, loadStudentCache, transformApiToFormData } from "../admin/Users/Student/studentStore";
 import {
   getSession,
   saveSession,
   getBatchSessions,
+  saveAttendanceAPI,
+  getAttendanceByBatchAndDateAPI,
+  getBatchAttendanceDatesAPI,
   type AttendanceStatus,
   type StudentAttendance,
   type AttendanceSession,
+  type SaveAttendancePayload,
 } from "./attendanceStore";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -147,9 +151,7 @@ export const FALLBACK_GUEST_BATCH: Batch = {
   createdAt: new Date().toISOString(),
 };
 
-// Pre-seed studentCache with fallback records
-studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
-studentCache["fallback-student-2"] = FALLBACK_GUEST_STUDENT as any;
+// Fallback records (only used when backend API fails or returns no data)
 
 
 /**
@@ -173,10 +175,20 @@ export async function fetchAllStudentsAPI(): Promise<any[]> {
 
       list.forEach((s: any) => {
         const sId = String(s.id);
+        const existing = (studentCache[sId] as any) || {};
+        const transformed = transformApiToFormData(s);
         studentCache[sId] = {
-          ...transformApiToFormData(s),
+          ...transformed,
+          ...existing,
           id: sId,
-        };
+          rollNo: existing.rollNo || existing.roll_no || s.roll_no || s.rollNo || (s.id ? `STU-${String(s.id).padStart(4, "0")}` : ""),
+          roll_no: existing.rollNo || existing.roll_no || s.roll_no || s.rollNo || (s.id ? `STU-${String(s.id).padStart(4, "0")}` : ""),
+          name: existing.name || s.name || `${s.first_name || ""} ${s.surname || ""}`.trim() || `Student #${sId}`,
+          standard: existing.standard || transformed.standardName || s.standard_name || s.standard || "",
+          standardName: existing.standardName || existing.standard || transformed.standardName || s.standard_name || s.standard || "",
+          subject: existing.subject && isNaN(Number(existing.subject)) ? existing.subject : (transformed.subjectName || s.subject_name || existing.subject || ""),
+          subjectName: existing.subjectName || (existing.subject && isNaN(Number(existing.subject)) ? existing.subject : "") || transformed.subjectName || s.subject_name || "",
+        } as any;
       });
       return list;
     }
@@ -277,7 +289,7 @@ function getStudentName(id: string): string {
     if (id === "fallback-student-2") return "Priya Verma";
     return `Student #${id}`;
   }
-  return `${s.first_name || s.firstName || ""} ${s.surname || ""}`.trim() || `Student #${id}`;
+  return s.name || `${s.first_name || s.firstName || ""} ${s.surname || ""}`.trim() || `Student #${id}`;
 }
 
 function getStudentRollNo(id: string): string {
@@ -287,7 +299,7 @@ function getStudentRollNo(id: string): string {
     if (id === "fallback-student-2") return "102";
     return "";
   }
-  return s.roll_no || s.rollNo || "";
+  return s.rollNo || s.roll_no || (id && !isNaN(Number(id)) ? `STU-${String(id).padStart(4, "0")}` : "");
 }
 
 function getStudentStandard(id: string): string {
@@ -297,7 +309,7 @@ function getStudentStandard(id: string): string {
     return "–";
   }
   if (typeof s.standard === "object" && s.standard?.name) return String(s.standard.name);
-  return String(s.standard_name || s.standard || "–");
+  return String(s.standardName || s.standard_name || s.standard || "–");
 }
 
 function getStudentSubject(id: string): string {
@@ -308,7 +320,9 @@ function getStudentSubject(id: string): string {
     return "–";
   }
   if (typeof s.subject === "object" && s.subject?.name) return String(s.subject.name);
-  return String(s.subject_name || s.subject || "–");
+  if (s.subject_name) return String(s.subject_name);
+  if (s.subject && isNaN(Number(s.subject))) return String(s.subject);
+  return "–";
 }
 
 function getInitials(id: string): string {
@@ -382,8 +396,9 @@ const StatusBtn: React.FC<{
 const StudentRow: React.FC<{
   record: StudentAttendance;
   serialNo: number;
+  batchSubject?: string;
   onChange: (u: StudentAttendance) => void;
-}> = ({ record, serialNo, onChange }) => {
+}> = ({ record, serialNo, batchSubject, onChange }) => {
   const [showRemark, setShowRemark] = useState(!!record.remark);
   const isAbsent = record.status === "Absent";
 
@@ -420,7 +435,7 @@ const StudentRow: React.FC<{
             </Typography>
             <Typography variant="caption" className="text-slate-500 truncate block">
               {getStudentRollNo(record.studentId) ? `Roll #${getStudentRollNo(record.studentId)} · ` : ""}
-              Std {getStudentStandard(record.studentId)} · {getStudentSubject(record.studentId)}
+              Std {getStudentStandard(record.studentId)} · {batchSubject || getStudentSubject(record.studentId)}
             </Typography>
             {record.remark && !showRemark && (
               <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg w-fit">
@@ -620,32 +635,32 @@ const AddGuestPanel: React.FC<{
   currentBatchId: string;
   existingStudentIds: string[];
   studentIds: string[];
+  batches?: Batch[];
   onAdd: (record: StudentAttendance) => void;
   onClose: () => void;
-}> = ({ currentBatchId, existingStudentIds, studentIds, onAdd, onClose }) => {
-  const [search, setSearch] = useState("");
+}> = ({ currentBatchId, existingStudentIds, studentIds, batches = [], onAdd, onClose }) => {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [remark, setRemark] = useState("");
 
-  const localBatches = getAllBatches();
-  const allBatches = localBatches.length > 0 ? localBatches : [FALLBACK_BATCH, FALLBACK_GUEST_BATCH];
+  const allBatches = useMemo(() => {
+    if (batches && batches.length > 0) return batches;
+    const localBatches = getAllBatches();
+    return localBatches.length > 0 ? localBatches : [FALLBACK_BATCH, FALLBACK_GUEST_BATCH];
+  }, [batches]);
 
   const candidateStudentIds = studentIds.filter((sid) => !existingStudentIds.includes(sid));
 
-  const filteredStudents = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return [];
-    return candidateStudentIds
-      .filter(
-        (sid) =>
-          getStudentName(sid).toLowerCase().includes(q) ||
-          getStudentStandard(sid).toLowerCase().includes(q) ||
-          getStudentSubject(sid).toLowerCase().includes(q)
-      )
-      .slice(0, 8);
-  }, [search, candidateStudentIds]);
+  const studentOptions = useMemo(() => {
+    return candidateStudentIds.map((sid) => ({
+      id: sid,
+      name: getStudentName(sid),
+      rollNo: getStudentRollNo(sid),
+      standard: getStudentStandard(sid),
+      subject: getStudentSubject(sid),
+    }));
+  }, [candidateStudentIds]);
 
   const studentBatches = useMemo(() => {
     if (!selectedStudent) return [];
@@ -654,25 +669,27 @@ const AddGuestPanel: React.FC<{
     );
   }, [selectedStudent, allBatches, currentBatchId]);
 
+  const selectedBatchObj = useMemo(() => {
+    if (!selectedBatchId) return null;
+    return allBatches.find((item) => item.id === selectedBatchId) || getBatchById(selectedBatchId);
+  }, [selectedBatchId, allBatches]);
+
   const batchDates = useMemo(() => {
-    if (!selectedBatchId) return [];
-    const b = getBatchById(selectedBatchId);
-    if (!b) return [];
-    return getPastDaysOfWeek(b.day, 10);
-  }, [selectedBatchId]);
+    if (!selectedBatchObj) return [];
+    return getPastDaysOfWeek(selectedBatchObj.day, 10);
+  }, [selectedBatchObj]);
 
   const canAdd = Boolean(selectedStudent && selectedBatchId && selectedDate);
 
   const handleAdd = () => {
-    if (!canAdd) return;
-    const fromBatch = getBatchById(selectedBatchId!)!;
+    if (!canAdd || !selectedBatchObj) return;
     onAdd({
       studentId: selectedStudent!,
       status: "Recovery",
       remark,
       recoveryInfo: {
-        fromBatchId: fromBatch.id,
-        fromBatchName: fromBatch.name,
+        fromBatchId: selectedBatchObj.id,
+        fromBatchName: selectedBatchObj.name,
         missedDate: selectedDate!,
       },
     });
@@ -699,71 +716,85 @@ const AddGuestPanel: React.FC<{
         <Typography variant="caption" className="!font-bold text-slate-600 uppercase tracking-wider">
           Step 1: Search Student
         </Typography>
-        <TextField
-          placeholder="Search student by name, standard, or subject…"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setSelectedStudent(null);
+        <Autocomplete
+          options={studentOptions}
+          value={studentOptions.find((o) => o.id === selectedStudent) || null}
+          onChange={(_event, newValue) => {
+            setSelectedStudent(newValue ? newValue.id : null);
             setSelectedBatchId(null);
             setSelectedDate(null);
           }}
+          getOptionLabel={(option) =>
+            `${option.name}${option.rollNo ? ` (Roll #${option.rollNo})` : ""} · Std ${option.standard} · ${option.subject}`
+          }
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          filterOptions={(options, { inputValue }) => {
+            const q = inputValue.toLowerCase().trim();
+            if (!q) return options;
+            return options.filter(
+              (o) =>
+                o.name.toLowerCase().includes(q) ||
+                o.rollNo.toLowerCase().includes(q) ||
+                o.standard.toLowerCase().includes(q) ||
+                o.subject.toLowerCase().includes(q) ||
+                o.id.toLowerCase().includes(q)
+            );
+          }}
+          noOptionsText={
+            <span className="text-xs text-slate-400 font-medium">
+              No matching students found
+            </span>
+          }
           size="small"
-          fullWidth
-          slotProps={{
-            input: {
-              startAdornment: (
-                <IconSearch size={16} className="text-slate-400 mr-2 shrink-0" />
-              ),
-            },
-          }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "#ffffff",
-              borderRadius: "12px",
-            },
-          }}
-        />
-
-        {search.length > 0 && (
-          <div className="mt-2 bg-white rounded-xl border border-slate-200 shadow-md max-h-48 overflow-y-auto divide-y divide-slate-100">
-            {filteredStudents.length === 0 ? (
-              <div className="p-4 text-center text-xs text-slate-400 font-medium">
-                No matching students found
-              </div>
-            ) : (
-              filteredStudents.map((sid) => (
-                <Button
-                  key={sid}
-                  type="button"
-                  onClick={() => {
-                    setSelectedStudent(sid);
-                    setSearch(getStudentName(sid));
-                    setSelectedBatchId(null);
-                    setSelectedDate(null);
-                  }}
-                  className={`w-full !flex !items-center !justify-between !p-3 !text-left transition-colors hover:!bg-violet-50/50 !normal-case ${selectedStudent === sid ? "!bg-violet-50" : ""
-                    }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Avatar sx={{ bgcolor: "#ede9fe", color: "#7c3aed", width: 28, height: 28, fontSize: 11, fontWeight: 700 }}>
-                      {getInitials(sid)}
-                    </Avatar>
-                    <div>
-                      <span className="text-sm font-bold text-slate-800 block">
-                        {getStudentName(sid)}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        Std {getStudentStandard(sid)} · {getStudentSubject(sid)}
-                      </span>
-                    </div>
+          renderOption={(props, option) => {
+            const { key, ...otherProps } = props;
+            return (
+              <li
+                key={key || option.id}
+                {...otherProps}
+                className="!p-2.5 hover:!bg-violet-50/70 transition-colors cursor-pointer !flex !items-center !justify-between border-b border-slate-100 last:border-b-0"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Avatar
+                    sx={{
+                      bgcolor: "#ede9fe",
+                      color: "#7c3aed",
+                      width: 28,
+                      height: 28,
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {getInitials(option.id)}
+                  </Avatar>
+                  <div className="min-w-0">
+                    <span className="text-sm font-bold text-slate-800 block truncate">
+                      {option.name}
+                    </span>
+                    <span className="text-xs text-slate-500 block truncate">
+                      {option.rollNo ? `Roll #${option.rollNo} · ` : ""}Std {option.standard} · {option.subject}
+                    </span>
                   </div>
-                  {selectedStudent === sid && <IconCheck size={16} className="text-violet-600" />}
-                </Button>
-              ))
-            )}
-          </div>
-        )}
+                </div>
+                {selectedStudent === option.id && (
+                  <IconCheck size={16} className="text-violet-600 shrink-0 ml-2" />
+                )}
+              </li>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              placeholder="Search student by name, roll no, standard, or subject…"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#ffffff",
+                  borderRadius: "12px",
+                },
+              }}
+            />
+          )}
+        />
       </div>
 
       {/* Step 2: Pick Original Batch */}
@@ -807,35 +838,94 @@ const AddGuestPanel: React.FC<{
         </div>
       )}
 
-      {/* Step 3: Pick Missed Date */}
+      {/* Step 3: Pick Missed Date (Compact & User-Friendly) */}
       {selectedBatchId && (
-        <div className="space-y-1.5 pt-1">
-          <Typography variant="caption" className="!font-bold text-slate-600 uppercase tracking-wider">
-            Step 3: Select Missed Lecture Date
-          </Typography>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-44 overflow-y-auto pr-1">
-            {batchDates.map((date) => {
+        <div className="space-y-2.5 pt-1 bg-white/80 rounded-2xl p-3 sm:p-4 border border-violet-100/90 shadow-xs">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-1.5">
+              <IconCalendar size={15} className="text-violet-600 shrink-0" />
+              <Typography variant="caption" className="!font-bold text-slate-700 uppercase tracking-wider !text-[11px]">
+                Step 3: Select Missed Lecture Date
+              </Typography>
+              {selectedBatchObj?.day && (
+                <span className="text-[10px] font-semibold text-violet-700 bg-violet-100/70 px-2 py-0.5 rounded-md">
+                  {selectedBatchObj.day}s
+                </span>
+              )}
+            </div>
+
+            {selectedDate && (
+              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <IconCheck size={12} className="stroke-[3] text-emerald-600" />
+                Selected: {fmtDate(selectedDate)}
+              </span>
+            )}
+          </div>
+
+          {/* Compact Modern Date Pill Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 pt-1">
+            {batchDates.slice(0, 10).map((date, idx) => {
               const isSelected = selectedDate === date;
               const d = new Date(date + "T00:00:00");
+              const dayNum = d.getDate();
+              const monthShort = d.toLocaleDateString("en-IN", { month: "short" });
+              const weekday = d.toLocaleDateString("en-IN", { weekday: "short" });
+              const isLatest = idx === 0;
+
               return (
-                <Button
+                <button
                   key={date}
                   type="button"
                   onClick={() => setSelectedDate(date)}
-                  className={`!p-2.5 !rounded-xl !text-left !border transition-all !normal-case ${isSelected
-                      ? "!bg-violet-600 !text-white !border-violet-600 shadow-sm"
-                      : "!bg-white !border-slate-200 !text-slate-700 hover:!border-violet-300"
-                    }`}
+                  className={`group relative flex flex-col items-center justify-center py-2 px-2 rounded-xl border transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white border-transparent shadow-md shadow-violet-500/25 scale-[1.02]"
+                      : "bg-white text-slate-700 border-slate-200/80 hover:border-violet-300 hover:bg-violet-50/50 hover:shadow-xs"
+                  }`}
                 >
-                  <span className={`text-xs font-bold block ${isSelected ? "text-white" : "text-slate-800"}`}>
-                    {d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  {isLatest && (
+                    <span
+                      className={`absolute -top-2 px-1.5 py-0.2 text-[9px] font-black rounded-full uppercase tracking-tighter shadow-xs ${
+                        isSelected
+                          ? "bg-white text-violet-700"
+                          : "bg-violet-100 text-violet-700 border border-violet-200"
+                      }`}
+                    >
+                      Latest
+                    </span>
+                  )}
+                  <span
+                    className={`text-[10px] font-semibold leading-none mb-1 uppercase tracking-wider ${
+                      isSelected ? "text-violet-100" : "text-slate-400 group-hover:text-violet-600"
+                    }`}
+                  >
+                    {weekday}
                   </span>
-                  <span className={`text-[10px] block ${isSelected ? "text-violet-100" : "text-slate-400"}`}>
-                    {d.toLocaleDateString("en-IN", { weekday: "short" })}
+                  <span
+                    className={`text-sm font-extrabold leading-tight ${
+                      isSelected ? "text-white" : "text-slate-800"
+                    }`}
+                  >
+                    {dayNum} {monthShort}
                   </span>
-                </Button>
+                </button>
               );
             })}
+          </div>
+
+          {/* Bottom Bar: Specific Date Fallback */}
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] flex-wrap gap-2">
+            <span className="text-slate-400 font-medium">
+              Click a recent lecture above or pick a specific date:
+            </span>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="date"
+                value={selectedDate || ""}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -911,13 +1001,12 @@ const MarkAttendance: React.FC = () => {
   const [customDateInput, setCustomDateInput] = useState<string>("");
   const [dateValidationError, setDateValidationError] = useState<string | null>(null);
   const [datePage, setDatePage] = useState<number>(0);
+  const [apiMarkedDates, setApiMarkedDates] = useState<string[]>([]);
   const DATES_PER_PAGE = 6;
   const attendanceSheetRef = React.useRef<HTMLDivElement>(null);
 
   // 1. Initial Load: Call batches API; fallback to local batches or demo fallback batch
   const fetchBatchesData = useCallback(() => {
-    studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
-    studentCache["fallback-student-2"] = FALLBACK_GUEST_STUDENT as any;
     setApiError(null);
 
     getBatchesOnlyAPI()
@@ -941,7 +1030,7 @@ const MarkAttendance: React.FC = () => {
     fetchBatchesData();
   }, [fetchBatchesData]);
 
-  // When a batch is selected: load full batch details (GET /batch/{id}) to know assigned students
+  // When a batch is selected: load full batch details (GET /batches/{id}) to know assigned students
   useEffect(() => {
     if (!selectedBatchId) return;
     getBatchByIdAPI(selectedBatchId).then((fullBatch) => {
@@ -949,6 +1038,28 @@ const MarkAttendance: React.FC = () => {
         setBatches((prev) =>
           prev.map((b) => (b.id === fullBatch.id ? fullBatch : b))
         );
+        if (fullBatch.students && fullBatch.students.length > 0) {
+          fullBatch.students.forEach((s) => {
+            const sId = String(s.id);
+            studentCache[sId] = {
+              ...(studentCache[sId] || {}),
+              id: sId,
+              name: s.name || `${s.firstName || ""}`.trim() || `Student #${sId}`,
+              firstName: s.firstName || (s.name ? s.name.split(" ")[0] : ""),
+              surname: s.surname || (s.name && s.name.includes(" ") ? s.name.split(" ").slice(1).join(" ") : ""),
+              middleName: "",
+              standard: s.standard || fullBatch.standard || "",
+              standardName: s.standard || fullBatch.standard || "",
+              subject: fullBatch.subject || "",
+              subjectName: fullBatch.subject || "",
+              branch: fullBatch.branch || "",
+              rollNo: s.rollNo || "",
+              contactNo: s.contactNo || "",
+              email: s.email || "",
+              photo: s.photo || null,
+            } as any;
+          });
+        }
       }
     });
   }, [selectedBatchId]);
@@ -957,18 +1068,29 @@ const MarkAttendance: React.FC = () => {
   // 3. Lazy-load all students ONLY when user opens "Add Guest / Recovery Student" panel
   useEffect(() => {
     if (showGuest) {
-      loadStudentCache().then(() => {
-        let keys = Object.keys(studentCache);
-        if (!keys.includes("fallback-student-1")) {
+      loadStudentCache()
+        .then(() => {
+          const realKeys = Object.keys(studentCache).filter(
+            (k) => !k.startsWith("fallback-student-")
+          );
+          if (realKeys.length > 0) {
+            // API succeeded -> remove any fallback students so they never appear
+            delete studentCache["fallback-student-1"];
+            delete studentCache["fallback-student-2"];
+            setStudentIds(realKeys);
+          } else {
+            // API failed or returned 0 students -> use fallback demo students
+            studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
+            studentCache["fallback-student-2"] = FALLBACK_GUEST_STUDENT as any;
+            setStudentIds(["fallback-student-1", "fallback-student-2"]);
+          }
+        })
+        .catch(() => {
+          // API failed -> use fallback demo students
           studentCache["fallback-student-1"] = FALLBACK_STUDENT as any;
-          keys.push("fallback-student-1");
-        }
-        if (!keys.includes("fallback-student-2")) {
           studentCache["fallback-student-2"] = FALLBACK_GUEST_STUDENT as any;
-          keys.push("fallback-student-2");
-        }
-        setStudentIds(keys);
-      });
+          setStudentIds(["fallback-student-1", "fallback-student-2"]);
+        });
     }
   }, [showGuest]);
 
@@ -1039,93 +1161,84 @@ const MarkAttendance: React.FC = () => {
     }
   }, [batchDatesAll, selectedDate]);
 
-  // Marked dates set
+  // Fetch marked attendance dates from API whenever selected batch changes
+  useEffect(() => {
+    if (selectedBatchId) {
+      getBatchAttendanceDatesAPI(selectedBatchId).then((dates) => {
+        if (dates && dates.length > 0) {
+          setApiMarkedDates(dates);
+        }
+      });
+    } else {
+      setApiMarkedDates([]);
+    }
+  }, [selectedBatchId]);
+
+  // Marked dates set: union of API marked dates and local session dates
   const markedDates = useMemo(() => {
-    if (!selectedBatchId) return new Set<string>();
-    return new Set(getBatchSessions(selectedBatchId).map((s) => s.date));
-  }, [selectedBatchId, records]);
+    const set = new Set<string>(apiMarkedDates);
+    if (selectedBatchId) {
+      getBatchSessions(selectedBatchId).forEach((s) => set.add(s.date));
+    }
+    return set;
+  }, [selectedBatchId, apiMarkedDates, records]);
 
   const loadSession = async (bId: string, date: string) => {
     setLoadingBatchStudents(true);
     setSessionLoaded(true);
     setShowGuest(false);
 
-    // 1. Check existing saved session first
-    const existing = getSession(bId, date);
-
-    // 2. Directly fetch all students via API: GET http://127.0.0.1:8000/students (always fresh, no cache skipping)
-    try {
-      await fetchAllStudentsAPI();
-      setStudentIds(Object.keys(studentCache));
-    } catch (err) {
-      console.warn("[MarkAttendance] fetchAllStudentsAPI error:", err);
+    // 1. Check backend API first for existing saved attendance for this batch & date
+    let existing = await getAttendanceByBatchAndDateAPI(bId, date);
+    if (!existing) {
+      existing = getSession(bId, date);
     }
 
-    // 3. Get assigned users for this batch (reuse the already-fetched batch from dropdown select)
-    let assignedIds: string[] = [];
-    const existingBatch = batches.find((b) => b.id === bId) || getBatchById(bId);
+    // 2. Get assigned students directly from batch response (GET /batches/{id})
+    let currentBatch = batches.find((b) => b.id === bId) || getBatchById(bId);
 
-    if (existingBatch && existingBatch.students && existingBatch.students.length > 0) {
-      console.log(`[MarkAttendance] Reusing batch data already fetched from dropdown selection for batch #${bId}`);
-      assignedIds = existingBatch.students.map((s) => String(s.id));
-      existingBatch.students.forEach((s) => {
+    // If batch doesn't have students loaded yet, fetch it via GET /batches/{id}
+    if (!currentBatch || !currentBatch.students || currentBatch.students.length === 0) {
+      try {
+        console.log(`[MarkAttendance API] Fetching batch details: GET ${API_BASE_URL}/batches/${bId}`);
+        const fullBatch = await getBatchByIdAPI(bId);
+        if (fullBatch) {
+          currentBatch = fullBatch;
+          setBatches((prev) =>
+            prev.map((b) => (b.id === bId ? fullBatch : b))
+          );
+        }
+      } catch (err) {
+        console.warn(`[MarkAttendance API] GET /batches/${bId} error:`, err);
+      }
+    }
+
+    let assignedIds: string[] = [];
+    if (currentBatch && currentBatch.students && currentBatch.students.length > 0) {
+      console.log(`[MarkAttendance] Using assigned students from batch #${bId} (count: ${currentBatch.students.length})`);
+      assignedIds = currentBatch.students.map((s) => String(s.id));
+      currentBatch.students.forEach((s) => {
         const sId = String(s.id);
         studentCache[sId] = {
           ...(studentCache[sId] || {}),
           id: sId,
-          firstName: s.firstName || s.name || studentCache[sId]?.firstName || "",
-          surname: s.surname || studentCache[sId]?.surname || "",
+          name: s.name || `${s.firstName || ""}`.trim() || `Student #${sId}`,
+          firstName: s.firstName || (s.name ? s.name.split(" ")[0] : ""),
+          surname: s.surname || (s.name && s.name.includes(" ") ? s.name.split(" ").slice(1).join(" ") : ""),
           middleName: "",
-          standard: s.standard || existingBatch.standard || studentCache[sId]?.standard || "",
-          standardName: s.standard || existingBatch.standard || studentCache[sId]?.standardName || "",
-          subject: existingBatch.subject || studentCache[sId]?.subject || "",
-          subjectName: existingBatch.subject || studentCache[sId]?.subjectName || "",
-          branch: existingBatch.branch || studentCache[sId]?.branch || "",
-          rollNo: s.rollNo || studentCache[sId]?.rollNo || "",
-          contactNo: s.contactNo || studentCache[sId]?.contactNo || "",
-          email: s.email || studentCache[sId]?.email || "",
-          photo: s.photo || studentCache[sId]?.photo || null,
+          standard: s.standard || currentBatch?.standard || "",
+          standardName: s.standard || currentBatch?.standard || "",
+          subject: currentBatch?.subject || "",
+          subjectName: currentBatch?.subject || "",
+          branch: currentBatch?.branch || "",
+          rollNo: s.rollNo || "",
+          contactNo: s.contactNo || "",
+          email: s.email || "",
+          photo: s.photo || null,
         } as any;
       });
-    } else if (existingBatch && existingBatch.studentIds && existingBatch.studentIds.length > 0) {
-      assignedIds = existingBatch.studentIds;
-    } else {
-      // Only call GET /batch/{bId} if not already fetched!
-      try {
-        console.log(`[MarkAttendance API] Fetching batch details: GET ${API_BASE_URL}/batch/${bId}`);
-        const fullBatch = await getBatchByIdAPI(bId);
-        if (fullBatch) {
-          setBatches((prev) =>
-            prev.map((b) => (b.id === bId ? fullBatch : b))
-          );
-          if (fullBatch.students && fullBatch.students.length > 0) {
-            assignedIds = fullBatch.students.map((s) => String(s.id));
-            fullBatch.students.forEach((s) => {
-              const sId = String(s.id);
-              studentCache[sId] = {
-                ...(studentCache[sId] || {}),
-                id: sId,
-                firstName: s.firstName || s.name || studentCache[sId]?.firstName || "",
-                surname: s.surname || studentCache[sId]?.surname || "",
-                middleName: "",
-                standard: s.standard || fullBatch.standard || studentCache[sId]?.standard || "",
-                standardName: s.standard || fullBatch.standard || studentCache[sId]?.standardName || "",
-                subject: fullBatch.subject || studentCache[sId]?.subject || "",
-                subjectName: fullBatch.subject || studentCache[sId]?.subjectName || "",
-                branch: fullBatch.branch || studentCache[sId]?.branch || "",
-                rollNo: s.rollNo || studentCache[sId]?.rollNo || "",
-                contactNo: s.contactNo || studentCache[sId]?.contactNo || "",
-                email: s.email || studentCache[sId]?.email || "",
-                photo: s.photo || studentCache[sId]?.photo || null,
-              } as any;
-            });
-          } else if (fullBatch.studentIds && fullBatch.studentIds.length > 0) {
-            assignedIds = fullBatch.studentIds;
-          }
-        }
-      } catch (err) {
-        console.warn(`[MarkAttendance API] GET /batch/${bId} error:`, err);
-      }
+    } else if (currentBatch && currentBatch.studentIds && currentBatch.studentIds.length > 0) {
+      assignedIds = currentBatch.studentIds;
     }
 
     // Fallback: If API returned no students, check local batch
@@ -1216,63 +1329,93 @@ const MarkAttendance: React.FC = () => {
     showToast(`${getStudentName(record.studentId)} added as recovery guest.`, true);
   };
 
-  const handleSave = (submit: boolean) => {
+  const handleSave = async (submit: boolean) => {
     if (!selectedBatchId || !selectedDate || !batch) return;
     setSaving(true);
 
-    setTimeout(() => {
-      const session: AttendanceSession = {
-        id: `${selectedBatchId}_${selectedDate}`,
-        batchId: selectedBatchId,
-        batchName: batch.name,
-        date: selectedDate,
-        markedBy,
-        markedAt: new Date().toISOString(),
-        records,
-        isSubmitted: submit,
-      };
-      saveSession(session);
-      setSaving(false);
+    const session: AttendanceSession = {
+      id: `${selectedBatchId}_${selectedDate}`,
+      batchId: selectedBatchId,
+      batchName: batch.name,
+      date: selectedDate,
+      markedBy,
+      markedAt: new Date().toISOString(),
+      records,
+      isSubmitted: submit,
+    };
+    // Sync local store
+    saveSession(session);
 
-      if (submit) {
-        Swal.fire({
-          title: "Attendance Submitted!",
-          html: `
-            <div style="color: #475569; font-size: 14px; line-height: 1.8;">
-              <div style="color: #2563eb; font-weight: 700; font-size: 15px; margin-bottom: 8px;">${batch.name}</div>
-              <div>📅 ${fmtDate(selectedDate)}</div>
-              <div style="margin-top: 4px;">
-                ✅ Present: <strong style="color: #16a34a">${stats.present}</strong> &nbsp;·&nbsp;
-                ❌ Absent: <strong style="color: #dc2626">${stats.absent}</strong> &nbsp;·&nbsp;
-                🔄 Recovery: <strong style="color: #7c3aed">${stats.guests}</strong>
-              </div>
-              <div style="margin-top: 4px; color: #64748b;">👤 Marked by: ${markedBy}</div>
-            </div>`,
-          icon: "success",
-          confirmButtonText: "Done",
-          confirmButtonColor: "#2563eb",
-          customClass: {
-            confirmButton: "rounded-xl px-6 py-2.5 font-medium text-sm shadow-md",
-          },
-        }).then(() => {
-          // Reset to Step 1 after clicking Done
-          setIsStarted(false);
-          setSelectedBatchId(null);
-          setSelectedDate(null);
-          setSessionLoaded(false);
-          setRecords([]);
-          setShowGuest(false);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-      } else {
-        showToast("Attendance draft saved successfully.", true);
-      }
-    }, 300);
+    // Prepare API payload for backend
+    const numericBatchId = !isNaN(Number(selectedBatchId)) ? Number(selectedBatchId) : selectedBatchId;
+    const payload: SaveAttendancePayload = {
+      batch_id: numericBatchId,
+      date: selectedDate,
+      marked_by: markedBy,
+      is_submitted: submit,
+      status: submit ? "submitted" : "draft",
+      records: records.map((r) => {
+        const numStudentId = !isNaN(Number(r.studentId)) ? Number(r.studentId) : r.studentId;
+        const fromBatchId = r.recoveryInfo?.fromBatchId;
+        const numFromBatchId = fromBatchId && !isNaN(Number(fromBatchId)) ? Number(fromBatchId) : fromBatchId;
+        return {
+          student_id: numStudentId,
+          status: r.status,
+          remark: r.remark || "",
+          from_batch_id: numFromBatchId || null,
+          from_batch_name: r.recoveryInfo?.fromBatchName || null,
+          missed_date: r.recoveryInfo?.missedDate || null,
+        };
+      }),
+    };
+
+    try {
+      await saveAttendanceAPI(payload);
+    } catch (err: any) {
+      console.warn("[MarkAttendance API] POST /attendance error:", err);
+      showToast(err?.message || "Failed to reach /attendance API endpoint", false);
+    } finally {
+      setSaving(false);
+    }
+
+    if (submit) {
+      Swal.fire({
+        title: "Attendance Submitted!",
+        html: `
+          <div style="color: #475569; font-size: 14px; line-height: 1.8;">
+            <div style="color: #2563eb; font-weight: 700; font-size: 15px; margin-bottom: 8px;">${batch.name}</div>
+            <div>📅 ${fmtDate(selectedDate)}</div>
+            <div style="margin-top: 4px;">
+              ✅ Present: <strong style="color: #16a34a">${stats.present}</strong> &nbsp;·&nbsp;
+              ❌ Absent: <strong style="color: #dc2626">${stats.absent}</strong> &nbsp;·&nbsp;
+              🔄 Recovery: <strong style="color: #7c3aed">${stats.guests}</strong>
+            </div>
+            <div style="margin-top: 4px; color: #64748b;">👤 Marked by: ${markedBy}</div>
+          </div>`,
+        icon: "success",
+        confirmButtonText: "Done",
+        confirmButtonColor: "#2563eb",
+        customClass: {
+          confirmButton: "rounded-xl px-6 py-2.5 font-medium text-sm shadow-md",
+        },
+      }).then(() => {
+        // Reset to Step 1 after clicking Done
+        setIsStarted(false);
+        setSelectedBatchId(null);
+        setSelectedDate(null);
+        setSessionLoaded(false);
+        setRecords([]);
+        setShowGuest(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    } else {
+      showToast("Attendance draft saved successfully.", true);
+    }
   };
 
   const batchOptions = batches.map((b) => ({
     id: b.id,
-    label: `${cleanBatchNameHelper(b.name, [b.area, b.branch, b.day, b.timeSlot])} · ${b.type || "Regular"}`,
+    label: b.name || `Batch #${b.id}`,
     batch: b,
   }));
 
@@ -2074,6 +2217,7 @@ const MarkAttendance: React.FC = () => {
                           key={r.studentId}
                           record={r}
                           serialNo={i + 1}
+                          batchSubject={batch?.subject}
                           onChange={(u) => updateRecord(realIdx, u)}
                         />
                       );
@@ -2130,6 +2274,7 @@ const MarkAttendance: React.FC = () => {
                     currentBatchId={selectedBatchId!}
                     existingStudentIds={records.map((r) => r.studentId)}
                     studentIds={studentIds}
+                    batches={batches}
                     onAdd={handleAddGuest}
                     onClose={() => setShowGuest(false)}
                   />

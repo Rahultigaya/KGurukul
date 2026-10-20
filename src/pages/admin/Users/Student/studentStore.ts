@@ -22,7 +22,21 @@ export async function loadStudentCache(force: boolean = false): Promise<void> {
           : [];
 
     list.forEach((s: any) => {
-      studentCache[String(s.id)] = { ...transformApiToFormData(s), id: String(s.id) };
+      const sId = String(s.id);
+      const existing = (studentCache[sId] as any) || {};
+      const transformed = transformApiToFormData(s);
+      studentCache[sId] = {
+        ...transformed,
+        ...existing,
+        id: sId,
+        rollNo: existing.rollNo || existing.roll_no || s.roll_no || s.rollNo || (s.id ? `STU-${String(s.id).padStart(4, "0")}` : ""),
+        roll_no: existing.rollNo || existing.roll_no || s.roll_no || s.rollNo || (s.id ? `STU-${String(s.id).padStart(4, "0")}` : ""),
+        name: existing.name || `${s.first_name || ""} ${s.surname || ""}`.trim() || `Student #${sId}`,
+        standard: existing.standard || transformed.standardName || s.standard_name || s.standard || "",
+        standardName: existing.standardName || existing.standard || transformed.standardName || s.standard_name || s.standard || "",
+        subject: existing.subject && isNaN(Number(existing.subject)) ? existing.subject : (transformed.subjectName || s.subject_name || existing.subject || ""),
+        subjectName: existing.subjectName || (existing.subject && isNaN(Number(existing.subject)) ? existing.subject : "") || transformed.subjectName || s.subject_name || "",
+      } as any;
     });
     cacheLoaded = true;
   } catch (e) {

@@ -58,7 +58,14 @@ interface OptionItem {
 function findOption(options: OptionItem[], value: string | number | null | undefined): OptionItem | null {
   if (value === null || value === undefined || value === "") return null;
   const strVal = String(value).trim();
-  return options.find((o) => o.value === strVal) || null;
+  const lower = strVal.toLowerCase();
+  return (
+    options.find((o) => o.value === strVal) ||
+    options.find((o) => o.value.toLowerCase() === lower) ||
+    (lower === "complete" ? options.find((o) => o.value.toLowerCase() === "completed") : null) ||
+    (lower === "completed" ? options.find((o) => o.value.toLowerCase() === "complete") : null) ||
+    null
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -263,9 +270,16 @@ const emptyForm: FormData = {
 const BatchNamePreview: React.FC<{
   area: string | null; branch: string | null; day: string | null;
   startTime: string; endTime: string;
-}> = ({ area, branch, day, startTime, endTime }) => {
+  status?: string | null;
+}> = ({ area, branch, day, startTime, endTime, status }) => {
   const hasAny = !!(area || branch || day || startTime || endTime);
-  const isComplete = !!(area && branch && day && startTime && endTime);
+  const isDetailsFilled = !!(area && branch && day && startTime && endTime);
+
+  const statusLower = String(status || "").trim().toLowerCase();
+  const isCompleted = statusLower === "complete" || statusLower === "completed";
+  const isInactive = statusLower === "inactive";
+  const displayStatus = isCompleted ? "Completed" : isInactive ? "Inactive" : "Active";
+  const badgeColor = isCompleted ? "blue" : isInactive ? "yellow" : "green";
 
   const tokens = [
     { label: "Area", value: area, filled: !!area },
@@ -300,15 +314,15 @@ const BatchNamePreview: React.FC<{
             )}
           </span>
         ))}
-        {isComplete && (
-          <Badge size="xs" variant="light" color="green" leftSection={<IconCheck size={9} />} ml="sm"
+        {isDetailsFilled && (
+          <Badge size="xs" variant="light" color={badgeColor} leftSection={<IconCheck size={9} />} ml="sm"
             styles={{ root: { textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 } }}>
-            Complete
+            {displayStatus}
           </Badge>
         )}
       </p>
 
-      {hasAny && !isComplete && (
+      {hasAny && !isDetailsFilled && (
         <div className="flex items-center gap-2 mt-2">
           {[
             { label: "Area", filled: !!area },
@@ -371,6 +385,12 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
         const standardId = batch.standard_id != null ? Number(batch.standard_id) : (standards.find(s => s.name === batch.standard)?.id != null ? Number(standards.find(s => s.name === batch.standard)!.id) : null);
         const teacherId = batch.teacher_id != null ? Number(batch.teacher_id) : (teachers.find(t => String(t.id) === String(batch.teacherId) || getTeacherFullName(t) === batch.teacherName)?.id != null ? Number(teachers.find(t => String(t.id) === String(batch.teacherId) || getTeacherFullName(t) === batch.teacherName)!.id) : null);
 
+        const rawStatus = String(batch.status || "").trim().toLowerCase();
+        const batchStatus: BatchStatus =
+          rawStatus === "complete" || rawStatus === "completed"
+            ? "Completed"
+            : (batch.status as BatchStatus) || "Active";
+
         setForm({
           area_id: areaId,
           branch_id: branchId,
@@ -382,7 +402,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
           teacher_id: teacherId,
           capacity: batch.capacity ?? 30,
           type: batch.type || "Regular",
-          status: batch.status || "Active",
+          status: batchStatus,
         });
       } catch (err) {
         console.error("Error loading batch:", err);
@@ -590,11 +610,12 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
           </Typography>
           <div className="pt-1">
             <BatchNamePreview
-              area={areas.find(a => a.id === form.area_id)?.name ?? null}
-              branch={branches.find(b => b.id === form.branch_id)?.name ?? null}
+              area={areas.find(a => String(a.id) === String(form.area_id))?.name ?? null}
+              branch={branches.find(b => String(b.id) === String(form.branch_id))?.name ?? null}
               day={form.day}
               startTime={form.startTime}
               endTime={form.endTime}
+              status={form.status}
             />
           </div>
         </CardContent>
@@ -835,7 +856,11 @@ const BatchForm: React.FC<BatchFormProps> = ({ mode }) => {
                   <Autocomplete
                     options={statusOptions}
                     getOptionLabel={(option) => option.label}
-                    isOptionEqualToValue={(option, value) => option.value === value.value}
+                    isOptionEqualToValue={(option, value) =>
+                      option.value.toLowerCase() === value.value.toLowerCase() ||
+                      (option.value === "Completed" && value.value === "Complete") ||
+                      (option.value === "Complete" && value.value === "Completed")
+                    }
                     value={findOption(statusOptions, form.status)}
                     onChange={(_e, newValue) => set("status", (newValue ? newValue.value : "Active") as BatchStatus)}
                     size="small"

@@ -32,6 +32,7 @@ import {
   InputAdornment,
   IconButton,
   Button,
+  Switch,
 } from "@mui/material";
 
 import {
@@ -190,10 +191,13 @@ function transformStudent(raw: any): Student {
     ),
 
     isActive:
-      raw.is_active ??
-      raw.isactive ??
-      raw.isActive ??
-      true,
+      raw.is_active !== undefined
+        ? Number(raw.is_active) === 1
+        : raw.isactive !== undefined
+          ? Number(raw.isactive) === 1
+          : raw.isActive !== undefined
+            ? Boolean(raw.isActive)
+            : true,
   };
 }
 
@@ -247,49 +251,38 @@ const UsersList: React.FC = () => {
   const [searchQuery, setSearchQuery] =
     useState("");
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // Reset pagination and sorting when tab changes
-  // ───────────────────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    setPage(0);
-
-    if (activeTab === "students") {
-      setOrderBy("firstName");
-    } else {
-      setOrderBy("name");
-    }
-
-    setOrder("asc");
-  }, [activeTab]);
+  // Deactivated toggle state
+  const [showDeactivated, setShowDeactivated] =
+    useState<boolean>(false);
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Fetch data on mount: Call both APIs once (guarded against StrictMode double calls)
+  // Fetch Students (GET /students?is_active=0/1)
   // ───────────────────────────────────────────────────────────────────────────
 
-  const hasFetched = useRef(false);
-
-  useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-
-    fetchStudents();
-    fetchTeachers();
-  }, []);
-
-  // ───────────────────────────────────────────────────────────────────────────
-  // Fetch Students
-  // ───────────────────────────────────────────────────────────────────────────
-
-  const fetchStudents = async () => {
+  const fetchStudents = async (isActiveParam?: number) => {
     setLoadingStudents(true);
     setStudentError(null);
 
+    const activeFlag =
+      typeof isActiveParam === "number"
+        ? isActiveParam
+        : showDeactivated
+          ? 0
+          : 1;
+
     try {
-      const res = await getStudents();
+      const res = await getStudents({ is_active: activeFlag });
+
+      const rawList = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+          ? res.data.data
+          : Array.isArray(res.data?.students)
+            ? res.data.students
+            : [];
 
       setStudents(
-        res.data.map(transformStudent)
+        rawList.map(transformStudent)
       );
     } catch (err: any) {
       console.error(
@@ -313,14 +306,35 @@ const UsersList: React.FC = () => {
   // Fetch Teachers
   // ───────────────────────────────────────────────────────────────────────────
 
-  const fetchTeachers = async () => {
+  const fetchTeachers = async (isActiveParam?: number) => {
     setLoadingTeachers(true);
     setTeacherError(null);
 
-    try {
-      const data = await getAllTeachers();
+    const activeFlag =
+      typeof isActiveParam === "number"
+        ? isActiveParam
+        : showDeactivated
+          ? 0
+          : 1;
 
-      setTeachers(data);
+    try {
+      const data = await getAllTeachers({ is_active: activeFlag });
+
+      // Extra client-side filter alignment
+      const filtered = data.filter((t: any) => {
+        if (activeFlag === 0) {
+          return t.status === "Inactive" || t.is_active === 0 || t.isActive === false;
+        } else {
+          return (
+            t.status === "Active" ||
+            t.is_active === 1 ||
+            t.isActive === true ||
+            t.isActive === undefined
+          );
+        }
+      });
+
+      setTeachers(filtered);
     } catch (err: any) {
       console.error(
         "Error fetching teachers:",
@@ -340,6 +354,48 @@ const UsersList: React.FC = () => {
       setLoadingTeachers(false);
     }
   };
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Handle Toggle Deactivated
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const handleToggleDeactivated = (checked: boolean) => {
+    setShowDeactivated(checked);
+    setPage(0);
+    const targetIsActive = checked ? 0 : 1;
+    if (activeTab === "students") {
+      fetchStudents(targetIsActive);
+    } else {
+      fetchTeachers(targetIsActive);
+    }
+  };
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Tab changes & initial load
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const isFirstMount = useRef(true);
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      fetchStudents(showDeactivated ? 0 : 1);
+      fetchTeachers(showDeactivated ? 0 : 1);
+      return;
+    }
+
+    setPage(0);
+
+    if (activeTab === "students") {
+      setOrderBy("firstName");
+      fetchStudents(showDeactivated ? 0 : 1);
+    } else {
+      setOrderBy("name");
+      fetchTeachers(showDeactivated ? 0 : 1);
+    }
+
+    setOrder("asc");
+  }, [activeTab]);
 
   // ───────────────────────────────────────────────────────────────────────────
   // Toggle Student Status
@@ -392,20 +448,10 @@ const UsersList: React.FC = () => {
 
     try {
       await toggleStudentStatus(Number(student.id));
+      await fetchStudents(showDeactivated ? 0 : 1);
     } catch (err: any) {
       console.error("API error toggling student status:", err);
     }
-
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === student.id
-          ? {
-              ...s,
-              isActive: newIsActive,
-            }
-          : s
-      )
-    );
 
     Swal.fire(
       "Updated!",
@@ -468,20 +514,10 @@ const UsersList: React.FC = () => {
 
     try {
       await toggleTeacherStatus(teacher.id);
+      await fetchTeachers(showDeactivated ? 0 : 1);
     } catch (err: any) {
       console.error("API error toggling teacher status:", err);
     }
-
-    setTeachers((prev) =>
-      prev.map((t) =>
-        t.id === teacher.id
-          ? {
-              ...t,
-              status: newStatus,
-            }
-          : t
-      )
-    );
 
     Swal.fire(
       "Updated!",
@@ -878,46 +914,96 @@ const UsersList: React.FC = () => {
         >
           <CardContent className="!p-5 sm:!p-6">
             {/* Card Toolbar: Directory Title & Search Box */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-5">
-              <h3 className="text-lg font-bold text-slate-800">
-                {activeTab === "students" ? "Student List" : "Teacher List"}
-              </h3>
+            {/* Card Toolbar: Directory Title, Deactivated Toggle & Search Box */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-5">
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-lg font-bold text-slate-800">
+                  {activeTab === "students" ? "Student List" : "Teacher List"}
+                </h3>
+                {showDeactivated && (
+                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-semibold border border-rose-200">
+                    Deactivated Only
+                  </span>
+                )}
+              </div>
 
-              {/* Search */}
-              <TextField
-                placeholder={
-                  activeTab === "students"
-                    ? "Search students by name, email, std, subject..."
-                    : "Search teachers by name, email, status..."
-                }
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setPage(0);
-                }}
-                size="small"
-                className="w-full sm:w-80"
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon className="text-slate-400" fontSize="small" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: searchQuery ? (
-                      <IconButton size="small" onClick={() => setSearchQuery("")}>
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    ) : null,
-                  },
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "#f8fafc",
-                    borderRadius: "12px",
-                  },
-                }}
-              />
+              {/* Controls: Deactivated Toggle & Search */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                {/* Deactivated Toggle Button / Switch */}
+                <div
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none ${
+                    showDeactivated
+                      ? "bg-rose-50/90 border-rose-200 text-rose-700 shadow-sm"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100/80"
+                  }`}
+                  onClick={() => handleToggleDeactivated(!showDeactivated)}
+                  title={showDeactivated ? "Click to show active users" : "Click to show deactivated users"}
+                >
+                  <Switch
+                    checked={showDeactivated}
+                    onChange={(e) => handleToggleDeactivated(e.target.checked)}
+                    onClick={(e) => e.stopPropagation()}
+                    size="small"
+                    sx={{
+                      "& .MuiSwitch-switchBase.Mui-checked": {
+                        color: "#ef4444",
+                      },
+                      "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                        backgroundColor: "#ef4444",
+                      },
+                    }}
+                  />
+                  <span className="text-xs font-semibold whitespace-nowrap flex items-center gap-1.5">
+                    {showDeactivated ? (
+                      <span className="flex items-center gap-1 text-rose-600 font-bold">
+                        <IconUserOff size={15} />
+                        Showing Deactivated
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-slate-600">
+                        <IconUserOff size={15} className="text-slate-400" />
+                        Show Deactivated
+                      </span>
+                    )}
+                  </span>
+                </div>
+
+                {/* Search */}
+                <TextField
+                  placeholder={
+                    activeTab === "students"
+                      ? "Search students by name, email, std, subject..."
+                      : "Search teachers by name, email, status..."
+                  }
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(0);
+                  }}
+                  size="small"
+                  className="w-full sm:w-80"
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon className="text-slate-400" fontSize="small" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: searchQuery ? (
+                        <IconButton size="small" onClick={() => setSearchQuery("")}>
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      ) : null,
+                    },
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#f8fafc",
+                      borderRadius: "12px",
+                    },
+                  }}
+                />
+              </div>
             </div>
 
           {/* ================================================================ */}
@@ -1104,9 +1190,22 @@ const UsersList: React.FC = () => {
                           <TableRow>
                             <TableCell
                               colSpan={7}
-                              className="text-center py-10 text-slate-400 text-sm"
+                              className="text-center py-12 text-slate-400 text-sm"
                             >
-                              No students found
+                              <div className="flex flex-col items-center justify-center gap-2">
+                                {showDeactivated ? (
+                                  <>
+                                    <IconUserCheck size={36} className="text-emerald-500 opacity-60" />
+                                    <p className="font-semibold text-slate-600">No deactivated students found</p>
+                                    <p className="text-xs text-slate-400">All registered students are currently active.</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <IconSchool size={36} className="text-slate-300" />
+                                    <p className="font-semibold text-slate-600">No students found</p>
+                                  </>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ) : (
@@ -1133,7 +1232,11 @@ const UsersList: React.FC = () => {
                                 <TableRow
                                   key={row.id}
                                   hover
-                                  className="transition-colors hover:bg-slate-50/80"
+                                  className={`transition-colors ${
+                                    !isActive
+                                      ? "bg-rose-50/30 hover:bg-rose-50/60"
+                                      : "hover:bg-slate-50/80"
+                                  }`}
                                 >
 
                                   {/* Student */}
@@ -1160,9 +1263,16 @@ const UsersList: React.FC = () => {
                                       )}
 
                                       <div className="min-w-0">
-                                        <p className="font-semibold text-sm text-slate-800">
-                                          {fullName}
-                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <p className="font-semibold text-sm text-slate-800">
+                                            {fullName}
+                                          </p>
+                                          {!isActive && (
+                                            <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-rose-100 text-rose-700 rounded border border-rose-200">
+                                              Deactivated
+                                            </span>
+                                          )}
+                                        </div>
 
                                         <p className="text-xs text-slate-500">
                                           {row.email}
@@ -1540,9 +1650,22 @@ const UsersList: React.FC = () => {
                           <TableRow>
                             <TableCell
                               colSpan={3}
-                              className="text-center py-10 text-slate-400 text-sm"
+                              className="text-center py-12 text-slate-400 text-sm"
                             >
-                              No teachers found
+                              <div className="flex flex-col items-center justify-center gap-2">
+                                {showDeactivated ? (
+                                  <>
+                                    <IconUserCheck size={36} className="text-emerald-500 opacity-60" />
+                                    <p className="font-semibold text-slate-600">No deactivated teachers found</p>
+                                    <p className="text-xs text-slate-400">All registered teachers are currently active.</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <IconChalkboard size={36} className="text-slate-300" />
+                                    <p className="font-semibold text-slate-600">No teachers found</p>
+                                  </>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ) : (
@@ -1551,7 +1674,11 @@ const UsersList: React.FC = () => {
                               <TableRow
                                 key={row.id}
                                 hover
-                                className="transition-colors hover:bg-slate-50/80"
+                                className={`transition-colors ${
+                                  row.status !== "Active"
+                                    ? "bg-rose-50/30 hover:bg-rose-50/60"
+                                    : "hover:bg-slate-50/80"
+                                }`}
                               >
 
                                 {/* Teacher */}
@@ -1573,10 +1700,16 @@ const UsersList: React.FC = () => {
                                     )}
 
                                     <div className="min-w-0">
-
-                                      <p className="font-semibold text-sm text-slate-800">
-                                        {row.name}
-                                      </p>
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-semibold text-sm text-slate-800">
+                                          {row.name}
+                                        </p>
+                                        {row.status !== "Active" && (
+                                          <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-rose-100 text-rose-700 rounded border border-rose-200">
+                                            Deactivated
+                                          </span>
+                                        )}
+                                      </div>
 
                                       <p className="text-xs text-slate-500">
                                         {row.email}

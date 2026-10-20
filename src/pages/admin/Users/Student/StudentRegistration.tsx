@@ -7,6 +7,8 @@ import {
   Box,
   CircularProgress,
   Button,
+  Chip,
+  Avatar,
 } from "@mui/material";
 import {
   IconArrowLeft,
@@ -420,12 +422,55 @@ const StudentRegistration: React.FC = () => {
     );
   }
 
+  const studentFullName = `${formData.firstName || ""} ${formData.surname || ""}`.trim();
+  const studentInitials =
+    `${formData.firstName?.[0] || ""}${formData.surname?.[0] || ""}`.toUpperCase() || "S";
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <PageHeader
         title={pageTitle}
         subtitle={pageSubtitle}
+        action={
+          studentFullName && (isEditMode || isViewMode) ? (
+            <Chip
+              avatar={
+                formData.photo ? (
+                  <Avatar src={formData.photo} alt={studentFullName} />
+                ) : (
+                  <Avatar
+                    sx={{
+                      bgcolor: "#2563eb",
+                      color: "#ffffff !important",
+                      fontWeight: 700,
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    {studentInitials}
+                  </Avatar>
+                )
+              }
+              label={
+                <span className="flex items-center gap-1.5 py-0.5">
+                   
+                  <span className="font-bold text-slate-800 text-sm max-w-[200px] sm:max-w-none truncate">
+                    {studentFullName}
+                  </span>
+                   
+                </span>
+              }
+              variant="outlined"
+              className="!bg-white/95 !border-slate-300 shadow-sm !h-auto !py-1 !px-1.5 rounded-full"
+              sx={{
+                "& .MuiChip-avatar": {
+                  width: 28,
+                  height: 28,
+                },
+              }}
+            />
+          ) : undefined
+        }
       />
 
       {/* View Mode Banner */}

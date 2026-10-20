@@ -126,8 +126,8 @@ export interface TeacherResponse {
   photo?: string;
 }
 
-export const getTeachers = () =>
-  API.get<TeacherResponse[]>("/teachers");
+export const getTeachers = (params?: { is_active?: number; status?: string }) =>
+  API.get<TeacherResponse[]>("/teachers", { params });
 
 export const updateTeacher = (id: string, data: {
   email: string;
@@ -202,6 +202,7 @@ export const getStudents = (params?: {
   standard_id?: number | string;
   subject_id?: number | string;
   batch_id?: number | string;
+  is_active?: number;
 }) => API.get("/students", { params });
 
 export const getStudentById = (id: number) =>
@@ -220,6 +221,6 @@ export const toggleStudentStatus = (id: number) =>
   API.patch(`/students/${id}/toggle-status`);
 
 export const toggleTeacherStatus = (id: string | number) =>
-  API.patch(`/teachers/${id}/toggle-status`);
+  API.patch(`/teacher/${id}/toggle-status`);
 
 export default API;

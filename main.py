@@ -1,3 +1,4 @@
+from typing import Optional, Union
 from auth import get_current_user
 from sqlalchemy.orm import Session
 import models, schemas, crud
@@ -126,7 +127,7 @@ def add_batch(batch: schemas.BatchCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=error)
     return new_batch
 
-@app.get("/batches")
+@app.get("/batches", response_model=list[schemas.BatchResponse])
 def get_batches(db: Session = Depends(get_db)):
     return crud.get_batches(db)
 
@@ -495,10 +496,29 @@ def create_student(data: schemas.StudentCreate, db: Session = Depends(get_db)):
 def list_students(
     skip: int = 0,
     limit: int = 100,
-    academic_year: str = None,
+    academic_year: Optional[str] = None,
+    is_active: Optional[Union[int, bool, str]] = None,
+    branch_id: Optional[int] = None,
+    subject_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    return crud.get_students(db, skip=skip, limit=limit, academic_year=academic_year)
+    active_filter = None
+    if is_active is not None and str(is_active).strip() != "":
+        val_str = str(is_active).strip().lower()
+        if val_str in ("1", "true"):
+            active_filter = 1
+        elif val_str in ("0", "false"):
+            active_filter = 0
+
+    return crud.get_students(
+        db,
+        skip=skip,
+        limit=limit,
+        academic_year=academic_year,
+        is_active=active_filter,
+        branch_id=branch_id,
+        subject_id=subject_id
+    )
 
 
 @app.get("/students/{id}", response_class=ORJSONResponse)
@@ -509,10 +529,65 @@ def get_student(id: int, db: Session = Depends(get_db)):
     return student
 
 
+@app.put("/students/{id}", response_class=ORJSONResponse)
+def update_student(id: int, data: schemas.StudentUpdate, db: Session = Depends(get_db)):
+    student = crud.update_student(db, student_id=id, data=data)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
+
+
+@app.put("/student/{id}", response_class=ORJSONResponse, include_in_schema=False)
+def update_student_singular(id: int, data: schemas.StudentUpdate, db: Session = Depends(get_db)):
+    return update_student(id=id, data=data, db=db)
+
+
 @app.patch("/students/{id}/toggle-status", response_model=schemas.StudentToggleStatusResponse)
 def toggle_student_status(id: int, db: Session = Depends(get_db)):
     result = crud.toggle_student_status(db, student_id=id)
     if not result:
         raise HTTPException(status_code=404, detail="Student not found")
     return result
+
+
+# ─── Attendance ───────────────────────────────────────────────────────────────
+
+@app.post("/attendance", response_model=schemas.AttendanceResponse)
+def mark_attendance(data: schemas.AttendanceCreateRequest, db: Session = Depends(get_db)):
+    session, error = crud.save_attendance(db, data)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+
+    is_sub = data.is_submitted or (data.status and data.status.lower() == "submitted")
+    message = "Attendance submitted successfully" if is_sub else "Attendance saved successfully"
+
+    return {
+        "success": True,
+        "message": message
+    }
+
+
+@app.get("/attendance", response_model=schemas.AttendanceSessionResponse, response_model_exclude_none=True)
+def get_attendance(batch_id: int, date: str, db: Session = Depends(get_db)):
+    try:
+        from datetime import datetime as dt
+        date_obj = dt.strptime(date.strip(), "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format, expected YYYY-MM-DD")
+
+    attendance = crud.get_attendance(db, batch_id=batch_id, attendance_date=date_obj)
+    if not attendance:
+        raise HTTPException(status_code=404, detail="Attendance not found for this batch and date")
+
+    return attendance
+
+
+@app.get("/batches/{batch_id}/attendance-dates", response_model=list[str])
+def get_batch_attendance_dates(batch_id: int, db: Session = Depends(get_db)):
+    dates, error = crud.get_batch_attendance_dates(db, batch_id=batch_id)
+    if error:
+        raise HTTPException(status_code=404, detail=error)
+    return dates
+
+
 

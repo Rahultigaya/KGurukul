@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import date
-from typing import Optional
+from typing import Optional, Union
 
 
 # ─── Student Schemas ────────────────────────────────────────────────────────────
@@ -89,6 +89,36 @@ class StudentCreate(BaseModel):
     guardians: list[GuardianCreate] = []
     full_payment: Optional[FullPaymentCreate] = None
     installments: list[InstallmentCreate] = []
+
+
+class StudentUpdate(BaseModel):
+    photo: Optional[str] = None
+    academic_year: Optional[str] = None
+    registration_date: Optional[date] = None
+    subject_id: Optional[int] = None
+    branch_id: Optional[int] = None
+    standard_id: Optional[int] = None
+    course_type: Optional[str] = None
+    reference: Optional[str] = ""
+    # Student name
+    surname: Optional[str] = None
+    first_name: Optional[str] = None
+    middle_name: Optional[str] = ""
+    gender: Optional[str] = None
+    # User fields (stored in users table)
+    email: Optional[str] = None
+    contact_no: Optional[str] = None
+    # Address & school
+    address: Optional[str] = None
+    school_college_name: Optional[str] = None
+    # Payment
+    payment_type: Optional[str] = None
+    total_fees: Optional[str] = None
+    discount_amount: Optional[str] = "0"
+    guardians: Optional[list[GuardianCreate]] = None
+    full_payment: Optional[FullPaymentCreate] = None
+    installments: Optional[list[InstallmentCreate]] = None
+
 
 
 class SubjectResponse(BaseModel):
@@ -289,18 +319,25 @@ class BatchUpdate(BaseModel):
 
 class BatchResponse(BaseModel):
     id: int
+    name: Optional[str] = None
     area_id: int
+    area_name: Optional[str] = None
     branch_id: int
+    branch_name: Optional[str] = None
     day: str
     start_time: str
     end_time: str
     time_slot: str
     subject_id: int
+    subject_name: Optional[str] = None
     standard_id: int
+    standard_name: Optional[str] = None
     teacher_id: int
+    teacher_name: Optional[str] = None
     capacity: int
     type: str
     status: str
+    student_ids: list[int] = []
 
     class Config:
         from_attributes = True
@@ -368,4 +405,63 @@ class BatchToggleStatusResponse(BaseModel):
     is_active: bool
 
     class Config:
-        from_attributes = True
+        from_attributes = True
+
+
+# ─── Attendance Schemas ─────────────────────────────────────────────────────────
+
+class AttendanceRecordItem(BaseModel):
+    student_id: int
+    status: str  # "Present", "Absent", "Recovery"
+    remark: Optional[str] = ""
+    from_batch_id: Optional[int] = None
+    from_batch_name: Optional[str] = None
+    missed_date: Optional[Union[date, str]] = None
+
+    @field_validator("missed_date", mode="before")
+    @classmethod
+    def parse_missed_date(cls, v):
+        if not v or v == "":
+            return None
+        return v
+
+    @field_validator("remark", mode="before")
+    @classmethod
+    def parse_remark(cls, v):
+        if v is None:
+            return ""
+        return str(v)
+
+
+class AttendanceCreateRequest(BaseModel):
+    batch_id: int
+    date: date
+    marked_by: Optional[Union[str, int]] = "Admin"
+    is_submitted: bool = False
+    status: Optional[str] = "draft"
+    records: list[AttendanceRecordItem] = []
+
+
+class AttendanceResponse(BaseModel):
+    success: bool
+    message: str
+
+
+class AttendanceRecordResponse(BaseModel):
+    student_id: int
+    status: str
+    remark: Optional[str] = ""
+    from_batch_id: Optional[int] = None
+    from_batch_name: Optional[str] = None
+    missed_date: Optional[str] = None
+
+
+class AttendanceSessionResponse(BaseModel):
+    batch_id: int
+    date: str
+    marked_by: Optional[str] = "Admin"
+    is_submitted: bool
+    status: str
+    records: list[AttendanceRecordResponse] = []
+
+
